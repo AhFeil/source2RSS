@@ -1,1 +1,4 @@
+ruamel.yaml
 httpx
+pymongo
+feedgen

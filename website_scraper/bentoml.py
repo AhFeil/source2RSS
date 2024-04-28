@@ -50,7 +50,6 @@ class BentoMLBlog:
             query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items()) + '&' + cls.steady_query
             encoded_query = quote(query, safe='[]=&')
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
-            print(url)
 
             async with httpx.AsyncClient(follow_redirects=True) as client:
                 response = await client.get(url=url, headers=cls.headers)
@@ -73,22 +72,21 @@ class BentoMLBlog:
 
                 article = {
                     "id": id,
-                    "name": name,
-                    "description": description,
+                    "article_name": name,
+                    "summary": description,
                     "article_url": article_url,
                     "image_link": image_link,
-                    "create_time": time_obj
+                    "pub_time": time_obj
                 }
 
                 yield article
 
             start_page += 1
-            break
     
     @classmethod
     async def article_newer_than(cls, datetime_):
         async for a in BentoMLBlog.parse():
-            if a["create_time"] > datetime_:
+            if a["pub_time"] > datetime_:
                 yield a
             else:
                 return
