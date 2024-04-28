@@ -4,6 +4,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# mine
+config_and_data_files
+
 # C extensions
 *.so
 
