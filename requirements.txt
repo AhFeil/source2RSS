@@ -3,3 +3,4 @@ httpx
 pymongo
 feedgen
 schedule
+beautifulsoup4

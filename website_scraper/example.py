@@ -1,52 +1,46 @@
 from urllib.parse import quote
 import asyncio
 from datetime import datetime
+
 from typing import AsyncGenerator, Any
 
 import httpx
 
 
-class BentoMLBlog:
-    title = "BentoML Blog"
-    home_url = "https://www.bentoml.com/blog"
-    admin_url = "https://admin.bentoml.com"
-
+class WebsiteScraper:
+    title = "技焉洲"
+    home_url = "https://yanh.tech/"
+    admin_url = "https://yanh.tech/wp-content"
+    # 请求每页之间的间隔，秒
     page_turning_duration = 5
 
+    # 数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用
     source_info = {
         "title": title,
         "link": home_url,
-        "description": "Dive into the transformative world of AI application development with us! From expert insights to innovative use cases, we bring you the latest in efficiently deploying AI at scale.",
-        "language": "En"
+        "description": "Linux，单片机，编程",
+        "language": "zh-CN"
     }
 
+    # https://curlconverter.com/
     headers = {
         'Accept': '*/*',
-        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
         'Connection': 'keep-alive',
         'Content-Type': 'application/json',
         'DNT': '1',
-        'Origin': 'https://www.bentoml.com',
-        'Referer': 'https://www.bentoml.com/',
+        'Origin': 'https://yanh.tech',
+        'Referer': 'https://yanh.tech',
         'Sec-Fetch-Dest': 'empty',
         'Sec-Fetch-Mode': 'cors',
         'Sec-Fetch-Site': 'same-site',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
         'sec-ch-ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
         'sec-ch-ua-mobile': '?0',
         'sec-ch-ua-platform': '"Windows"',
     }
 
     steady_query_dict = {
-        "pagination[pageSize]": 12,
-        "pagination[withCount]": "true",
-        "sort[0]": "overrideCreatedAt:desc",
-        "sort[1]": "createdAt:desc",
-        "populate[0]": "name",
-        "populate[1]": "slug",
-        "populate[2]": "description",
-        "populate[3]": "image",
-        "publicationState": "live"
     }
     steady_query = '&'.join(f"{key}={value}" for key, value in steady_query_dict.items())
     
@@ -90,12 +84,11 @@ class BentoMLBlog:
                 yield article
 
             start_page += 1
-
             await asyncio.sleep(cls.page_turning_duration)
     
     @classmethod
     async def article_newer_than(cls, datetime_):
-        async for a in BentoMLBlog.parse():
+        async for a in WebsiteScraper.parse():
             if a["pub_time"] > datetime_:
                 yield a
             else:
@@ -103,14 +96,15 @@ class BentoMLBlog:
 
 
 import api._v1
-
-api._v1.register(BentoMLBlog)
+api._v1.register(WebsiteScraper)
 
 
 async def test():
-    async for a in BentoMLBlog.article_newer_than(datetime(2024, 4, 1, 13, 19, 4, 115000)):
+    async for a in WebsiteScraper.article_newer_than(datetime(2024, 4, 1)):
         print(a)
-
+    # 判断结尾是否正常
+    # async for a in WebsiteScraper.parse(20):
+    #     print(a)
 
 if __name__ == "__main__":
     asyncio.run(test())
