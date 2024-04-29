@@ -32,6 +32,8 @@ class Config:
 
         self.mongodb_uri = configs['mongodb_uri']
         self.mongo_dbname = configs['mongo_dbname']
+
+        self.enabled_web_scraper = configs.get('enabled_web_scraper', "all")
         self.rss_dir = configs['rss_dir']
         self.domain_url = configs['domain_url']
         

@@ -1,4 +1,4 @@
-# 添加命令行参数解析，调用 configHandle，调用 dataHandle，实例一些全局类
+# 添加命令行参数解析，调用 configHandle，加载插件，调用 dataHandle，实例一些全局类
 import argparse
 
 from configHandle import Config
@@ -16,7 +16,42 @@ configfile = args.config
 # 定义所有变量
 config = Config(configfile)
 
+
+
+import api._v1
+
+plugins = api._v1._private.plugins
+
+# 加载插件
+import importlib
+import pkgutil
+
+import website_scraper
+
+def iter_namespace(ns_pkg):
+    return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
+
+def load_plugins():
+    print("enabled web scraper: ", config.enabled_web_scraper)
+    # 只导入启用的插件
+    if config.enabled_web_scraper == "all":
+        for _, name, _ in iter_namespace(website_scraper):
+            print(name)
+            importlib.import_module(name)
+    else:
+        for _, name, _ in iter_namespace(website_scraper):
+            print(name)
+            importlib.import_module(name)
+
+load_plugins()
+
+
+
+
 # 如果前面没出错，可以加载持久化的数据
 from dataHandle import Data
 
 data = Data(config)
+
+
+

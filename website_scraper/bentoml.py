@@ -1,6 +1,4 @@
 from urllib.parse import quote
-import json
-import time
 import asyncio
 from datetime import datetime
 from typing import AsyncGenerator, Any
@@ -8,9 +6,20 @@ from typing import AsyncGenerator, Any
 import httpx
 
 
+__all__ = ["BentoMLBlog"]
+
+
 class BentoMLBlog:
+    title = "BentoML Blog"
     home_url = "https://www.bentoml.com/blog"
     admin_url = "https://admin.bentoml.com"
+
+    source_info = {
+        "title": title,
+        "link": home_url,
+        "description": "Dive into the transformative world of AI application development with us! From expert insights to innovative use cases, we bring you the latest in efficiently deploying AI at scale.",
+        "language": "En"
+    }
 
     headers = {
         'Accept': '*/*',
@@ -90,7 +99,12 @@ class BentoMLBlog:
                 yield a
             else:
                 return
-        
+
+
+import api._v1
+
+api._v1.register(BentoMLBlog)
+
 
 async def test():
     async for a in BentoMLBlog.article_newer_than(datetime(2024, 4, 1, 13, 19, 4, 115000)):
