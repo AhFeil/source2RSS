@@ -14,7 +14,7 @@ class BentoMLBlog:
     home_url = "https://www.bentoml.com/blog"
     admin_url = "https://admin.bentoml.com"
 
-    page_turning_duration = 1000
+    page_turning_duration = 5
 
     source_info = {
         "title": title,

@@ -2,3 +2,4 @@ ruamel.yaml
 httpx
 pymongo
 feedgen
+schedule

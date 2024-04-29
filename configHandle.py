@@ -12,6 +12,7 @@ class Config:
 
         # 用户可以不管，开发者可以改的
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
+        self.run_test_every_seconds = 10
 
     def _load_config(self) -> dict:
         """定义如何加载配置文件"""
@@ -29,6 +30,8 @@ class Config:
         configs = self._load_config()
         logging.config.dictConfig(configs["logging"])
         self.is_production = configs['is_production']
+        self.run_everyday_at = configs.get("run_everyday_at", "06:00")
+        self.WAIT = configs.get("WAIT", 1800) if self.is_production else 1
 
         self.mongodb_uri = configs['mongodb_uri']
         self.mongo_dbname = configs['mongo_dbname']
