@@ -32,17 +32,22 @@ def iter_namespace(ns_pkg):
     return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
 def load_plugins():
-    print("enabled web scraper: ", config.enabled_web_scraper)
+    print("Config enabled web scraper: ", config.enabled_web_scraper)
     # 只导入启用的插件
-    if config.enabled_web_scraper == "all":
-        for _, name, _ in iter_namespace(website_scraper):
-            print(name)
-            importlib.import_module(name)
+    enabled_web_scraper = set(config.enabled_web_scraper)
+    available_web_scraper = {name for _, name, _ in iter_namespace(website_scraper)}
+    print("Process Available web scraper: ", available_web_scraper)
+    if "all" not in enabled_web_scraper:
+        usable_web_scraper = enabled_web_scraper & available_web_scraper
     else:
-        for _, name, _ in iter_namespace(website_scraper):
-            print(name)
-            importlib.import_module(name)
-
+        usable_web_scraper = available_web_scraper
+    
+    print("import plugins: ", end='')
+    for usable_web_scraper in enabled_web_scraper & available_web_scraper:
+        print(usable_web_scraper, end=',')
+        importlib.import_module(usable_web_scraper)
+    print()
+    
 load_plugins()
 
 

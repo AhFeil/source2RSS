@@ -13,7 +13,7 @@ def generate_rss(collection, rss_dir, source_meta):
     result = list(result)
     # result 的结构是 [{ "_id":, "article_infomation": {} },    ]
     title = collection.name
-    print(title)
+    # print(title)
 
     # 从程序结构说，起码有一个结果，但是万一有什么bug
     try:

@@ -14,6 +14,8 @@ class BentoMLBlog:
     home_url = "https://www.bentoml.com/blog"
     admin_url = "https://admin.bentoml.com"
 
+    page_turning_duration = 1000
+
     source_info = {
         "title": title,
         "link": home_url,
@@ -91,6 +93,8 @@ class BentoMLBlog:
                 yield article
 
             start_page += 1
+
+            await asyncio.sleep(cls.page_turning_duration)
     
     @classmethod
     async def article_newer_than(cls, datetime_):

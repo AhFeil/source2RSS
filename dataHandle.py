@@ -15,14 +15,19 @@ class Data:
         # MongoDB
         self.m = MongoClient(config.mongodb_uri)
         self.db = self.m[config.mongo_dbname]
-
+        self.meta_collection = self.db[self.config.source_meta]
 
     def store2database(self, mp_name: str, one_article_doc: dict):
         """将原始 msg、文章信息和时间戳存入数据库"""
         collection = self.db[mp_name]
         collection.insert_one(one_article_doc)
 
-    def add_source2meta(self, source_info: dict):
+    def exist_source_meta(self, source_info: dict):
+        # 确保存在元信息
+        if not self.meta_collection.find_one({"title": source_info["title"]}):
+            self._add_source2meta(source_info)
+
+    def _add_source2meta(self, source_info: dict):
         """添加某个来源的元信息
         source_info = {
             "title": "",
@@ -31,8 +36,7 @@ class Data:
             "language": ""
         }
         """
-        collection = self.db[self.config.source_meta]
-        collection.insert_one(source_info)
+        self.meta_collection.insert_one(source_info)
         self.logger.info(f"{source_info['title']} Add into source_meta")
 
     def _clear_db(self):
