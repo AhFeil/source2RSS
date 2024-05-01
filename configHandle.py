@@ -1,4 +1,6 @@
 import sys
+import os
+import json
 import logging.config
 from typing import Generator, Any
 
@@ -15,6 +17,9 @@ class Config:
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
         self.run_test_every_seconds = 10
         self.bili_context = "config_and_data_files/bili_context.json"
+        if not os.path.exists(self.bili_context):
+            with open(self.bili_context, 'w', encoding="utf-8") as f:
+                json.dump({}, f)
 
     def _load_config(self) -> Generator[dict, Any, Any]:
         """定义如何加载配置文件"""
@@ -58,4 +63,5 @@ class Config:
         self.domain_url = user_configs['domain_url']
         
         self.image_root = user_configs['image_root']
-        
+        os.makedirs(self.image_root, exist_ok=True)
+    

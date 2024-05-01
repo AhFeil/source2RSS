@@ -76,7 +76,7 @@ async def dynamic_web(config, data, source_name, cls):
 async def monitor_website(config, data, plugins):
     """控制总流程： 解析，整合，保存，生成 RSS"""
 
-    # await asyncio.gather(*(one_website(config, data, source_name, cls) for source_name, cls in plugins["static"].items()))
+    await asyncio.gather(*(one_website(config, data, source_name, cls) for source_name, cls in plugins["static"].items()))
     await asyncio.gather(*(dynamic_web(config, data, source_name, cls) for source_name, cls in plugins["dynamic"].items()))
 
 
