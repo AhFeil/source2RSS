@@ -3,8 +3,12 @@
 
 
 def register(cls):
-    plugins[cls.title] = cls
+    plugins["static"][cls.title] = cls
+
+def register_d(cls):
+    plugins["dynamic"][cls.title] = cls
 
 
+plugins = {"static": {}, "dynamic": {}}
 
-plugins = {}
+

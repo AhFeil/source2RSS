@@ -4,3 +4,5 @@ pymongo
 feedgen
 schedule
 beautifulsoup4
+pytest-playwright
+Pillow

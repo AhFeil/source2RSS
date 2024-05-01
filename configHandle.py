@@ -14,6 +14,7 @@ class Config:
         # 用户不应该考虑的配置，开发者可以改的
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
         self.run_test_every_seconds = 10
+        self.bili_context = "config_and_data_files/bili_context.json"
 
     def _load_config(self) -> Generator[dict, Any, Any]:
         """定义如何加载配置文件"""
@@ -39,7 +40,11 @@ class Config:
 
         # 默认无须用户改动的
         logging.config.dictConfig(program_configs["logging"])
-        
+        self.desktop_user_agent = program_configs["desktop_user_agent"]
+        self.mobile_user_agent = program_configs["mobile_user_agent"]
+        self.init_script_path = program_configs["init_script_path"]
+        self.screenshot_root = program_configs["screenshot_root"]
+
         # 用户配置
         self.is_production = user_configs['is_production']
         self.run_everyday_at = user_configs.get("run_everyday_at", "06:00")
@@ -51,4 +56,6 @@ class Config:
         self.enabled_web_scraper = user_configs.get('enabled_web_scraper', "all")
         self.rss_dir = user_configs['rss_dir']
         self.domain_url = user_configs['domain_url']
+        
+        self.image_root = user_configs['image_root']
         
