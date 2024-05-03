@@ -43,6 +43,8 @@ class FanQie:
         book_name = book_info_json["book_name"]
         create_time = book_info_json["create_time"]
         last_chapter_title = book_info_json["last_chapter_title"]
+        source = book_info_json["source"]   # 番茄转载的小说，来源网站
+        abstract = book_info_json["abstract"]
         book_info = {
             "image_link": image_link,
             "author": author,
@@ -51,7 +53,8 @@ class FanQie:
             "book_name": book_name,
             "create_time": create_time
         }
-        catalog_list = data_json['data']['data']['catalog_data']
+
+        catalog_list = data_json['data']['data'].get('catalog_data') or data_json['data']['data'].get('item_data_list')
 
         for c in reversed(catalog_list):
             item_id = c["item_id"]
@@ -121,13 +124,18 @@ class FanQie:
             else:
                 return
             
-import api._v1
-api._v1.register_c(FanQie)
+# import api._v1
+# api._v1.register_c(FanQie)
 
 
 async def test():
     book = FanQie("我不是戏神", "7276384138653862966")
     async for a in book.chapter_greater_than(590):
+        print(a["article_name"], a["pub_time"], a["chapter_number"])
+
+    # 转载的
+    book = FanQie("系统炸了，我成了系统", "6995119385308302344")
+    async for a in book.latest_chapter_for(5):
         print(a["article_name"], a["pub_time"], a["chapter_number"])
 
 if __name__ == "__main__":

@@ -83,22 +83,37 @@ async def chapter_mode(config, data, fanqie_books_id, cls):
         
         source_name = source_info["title"]
         collection = data.db[source_name]
-        result = collection.find({}, {'pub_time': 1}).sort('pub_time', -1).limit(1)   # 含有 '_id', 
+        result = collection.find({}, {'pub_time': 1, 'article_infomation': 1}).sort('pub_time', -1).limit(1)   # 含有 '_id', 
         result = list(result)
 
         there_is_new_article = False
-        async for a in instance.latest_chapter_for():
-            # 每篇文章整合成一个文档，存入相应集合
-            one_article_etc = {
-                "article_infomation": a, 
-                "pub_time": a['pub_time'],
-                "rss_time": datetime.fromtimestamp(0)
-            }
-            data.store2database(source_name, one_article_etc)
+        if result:
+            chapter = result[0]["article_infomation"]["chapter_number"]
+            async for a in instance.chapter_greater_than(chapter):
+                # 每篇文章整合成一个文档，存入相应集合
+                one_article_etc = {
+                    "article_infomation": a, 
+                    "pub_time": a['pub_time'],
+                    "rss_time": datetime.fromtimestamp(0)
+                }
+                data.store2database(source_name, one_article_etc)
 
-            logger.info(f"{source_name} have new article: {a['article_name']}")
-            
-            there_is_new_article = True
+                logger.info(f"{source_name} have new article: {a['article_name']}")
+                
+                there_is_new_article = True
+        else:
+            async for a in instance.latest_chapter_for():
+                # 每篇文章整合成一个文档，存入相应集合
+                one_article_etc = {
+                    "article_infomation": a, 
+                    "pub_time": a['pub_time'],
+                    "rss_time": datetime.fromtimestamp(0)
+                }
+                data.store2database(source_name, one_article_etc)
+
+                logger.info(f"{source_name} have new article: {a['article_name']}")
+                
+                there_is_new_article = True
         
         # 生成 RSS 并保存到目录
         if there_is_new_article:
