@@ -124,8 +124,8 @@ class FanQie:
             else:
                 return
             
-# import api._v1
-# api._v1.register_c(FanQie)
+import api._v1
+api._v1.register_c(FanQie)
 
 
 async def test():
