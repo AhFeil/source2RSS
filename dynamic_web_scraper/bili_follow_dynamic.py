@@ -104,14 +104,14 @@ class BiliFoDynamic:
                     bvid = attributes["bvid"]
                     name = attributes["title"]
                     description = attributes["desc"]
-                    article_url = attributes["jump_url"].lstrip('/')
+                    article_url = "https:" + attributes["jump_url"]
                     image_link = attributes["cover"]
                 elif attributes := a["major"].get("opus"):
                     aid = "0000000000"
                     bvid = "BV"
                     name = author["name"] + "的专栏文章"
                     description = attributes["summary"]["rich_text_nodes"][0]["orig_text"]
-                    article_url = attributes["jump_url"].lstrip('/')
+                    article_url = "https:" + attributes["jump_url"]
                     image_link = attributes.get("pics", [{"url": "http://example.com"}])[0]["url"]
                 else:
                     continue

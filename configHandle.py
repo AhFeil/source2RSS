@@ -60,6 +60,7 @@ class Config:
 
         self.enabled_web_scraper = user_configs.get('enabled_web_scraper', "all")
         self.rss_dir = user_configs['rss_dir']
+        os.makedirs(self.rss_dir, exist_ok=True)
         self.domain_url = user_configs['domain_url']
         
         self.image_root = user_configs['image_root']
