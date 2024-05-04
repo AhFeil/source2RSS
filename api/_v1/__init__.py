@@ -1,1 +1,1 @@
-from ._private import register, register_d, register_c
+from ._private import register, register_c

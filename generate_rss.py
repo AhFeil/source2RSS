@@ -5,11 +5,11 @@ from itertools import groupby
 from feedgen.feed import FeedGenerator
 
 
-def generate_rss(collection, rss_dir, source_meta):
+def generate_rss(collection, sort_by_key: str, rss_dir, source_meta):
     """构建 rss。根据传入的 collection ，取出前 10 条最新的消息，格式化后以文件形式保存到 rss_dir 下面"""
     # 创建一个时区对象
     zone = timezone(timedelta(hours=8))
-    result = collection.find({}, {'article_infomation': 1}).sort('pub_time', -1).limit(10)   # 含有 '_id', 
+    result = collection.find({}, {'article_infomation': 1}).sort(sort_by_key, -1).limit(10)   # 含有 '_id', 
     result = list(result)
     # result 的结构是 [{ "_id":, "article_infomation": {} },    ]
     title = collection.name

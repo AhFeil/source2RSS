@@ -12,6 +12,7 @@ class CSLRXYZ:
     home_url = "http://cslrxyz.xyz"
     # 请求每页之间的间隔，秒
     page_turning_duration = 10
+    sort_by_key = "pub_time"
 
     # 数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用
     source_info = {
@@ -80,16 +81,38 @@ class CSLRXYZ:
             else:
                 return
 
+    async def first_add(self, amount: int = 10):
+        """接口.第一次添加时，要调用的接口"""
+        # 获取最新的 10 条，
+        i = 0
+        async for a in CSLRXYZ.parse():
+            if i < amount:
+                i += 1
+                yield a
+            else:
+                return
+
+    def get_source_info(self):
+        """接口.返回元信息，主要用于 RSS"""
+        return CSLRXYZ.source_info
+
+    def get_table_name(self):
+        """接口.返回表名或者collection名称，用于 RSS 文件的名称"""
+        return CSLRXYZ.title
+    
+    async def get_new(self, datetime_):
+        """接口.第一次添加时，要调用的接口"""
+        async for a in self.article_newer_than(datetime_):
+            yield a
+
 
 import api._v1
 api._v1.register(CSLRXYZ)
 
 
 async def test():
-    # async for a in CSLRXYZ.article_newer_than(datetime(2023, 4, 1)):
-    #     print(a)
-    # 判断结尾是否正常
-    async for a in CSLRXYZ.parse(20):
+    c = CSLRXYZ()
+    async for a in c.first_add():
         print(a)
 
 

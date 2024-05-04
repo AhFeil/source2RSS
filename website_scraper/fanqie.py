@@ -1,7 +1,6 @@
 import re
 import asyncio
 from datetime import datetime
-from dateutil import parser
 
 from typing import AsyncGenerator, Any
 
@@ -12,9 +11,12 @@ class FanQie:
     title = "番茄免费小说"
     home_url = "https://fanqienovel.com"
     admin_url = "http://82.157.53.75:1180"
+    sort_by_key = "chapter_number"
     # 请求每页之间的间隔，秒
     page_turning_duration = 2
-
+    # 设置超时和重试次数
+    timeout = httpx.Timeout(10.0)
+    
     def __init__(self, title, book_id) -> None:
         self.book_id = book_id
         book_info_url = f"{FanQie.admin_url}/info?book_id={book_id}"
@@ -27,11 +29,12 @@ class FanQie:
         }
 
     @classmethod
-    async def parse(cls, book_id: str) -> AsyncGenerator[dict, Any]:
+    async def parse(cls, book_id: str, old2new: bool=False, start_chapter: int=1) -> AsyncGenerator[dict, Any]:
         """从最新章节，yield 一篇一篇惰性返回，直到起始章节"""
         # 获得章节信息
         catalog_url = f"{cls.admin_url}/catalog?book_id={book_id}"
         async with httpx.AsyncClient(follow_redirects=True) as client:
+            client.timeout = FanQie.timeout
             response = await client.get(url=catalog_url)
         data_json = response.json()
         
@@ -56,11 +59,24 @@ class FanQie:
 
         catalog_list = data_json['data']['data'].get('catalog_data') or data_json['data']['data'].get('item_data_list')
 
-        for c in reversed(catalog_list):
+        if old2new:
+            # 反向，就是从第一篇开始返回，也就是 catalog_list 的原本顺序
+            pass
+        else:
+            catalog_list = reversed(catalog_list)
+        for i, c in enumerate(catalog_list):
+            # 从旧到最新篇，可以指定从哪一章开始。反过来，从新到旧，就不能指定
+            if old2new and i < start_chapter:
+                continue
             item_id = c["item_id"]
             content_url = f"{cls.admin_url}/content?item_id={item_id}"
             async with httpx.AsyncClient(follow_redirects=True) as client:
-                response = await client.get(url=content_url)
+                client.timeout = FanQie.timeout
+                try:
+                    response = await client.get(url=content_url)
+                except httpx.ConnectTimeout:
+                    await asyncio.sleep(60)
+                    response = await client.get(url=content_url)
             article_info = response.json()
 
             a = article_info["data"]["data"]
@@ -71,9 +87,11 @@ class FanQie:
             volume_name = novel_data["volume_name"]
             next_item_id = novel_data['next_item_id']
             pre_item_id = novel_data['pre_item_id']
-            if next_item_id == "":
-                pass
-            if pre_item_id == "":
+            # 旧到新，到没有下一章 item_id 停止
+            if old2new and next_item_id == "":
+                break
+            # 新到旧，到没有上一章 item_id 停止
+            if not old2new and pre_item_id == "":
                 break
             create_time = novel_data["create_time"]
             # 删除时区部分，单独处理
@@ -81,8 +99,12 @@ class FanQie:
             # 转换时间部分
             time_obj = datetime.strptime(s_time, "%Y-%m-%dT%H:%M:%S")
             
-            chapter = re.findall(pattern=r"第(.*?)章", string=chapter_title)[0]
+            chapter = re.findall(pattern=r"第(.*?)章", string=chapter_title) or re.findall(pattern=r"^(.*?)、", string=chapter_title) or [0]
+            chapter = chapter[0]
             chapter_number = int(chapter)
+            # 从旧到最新篇，修正，如果中间夹杂着通知类的章节，用这个补偿
+            if chapter_number < start_chapter:
+                continue
             article = {
                 "article_name": chapter_title,
                 "chapter": chapter_title,
@@ -96,26 +118,26 @@ class FanQie:
             yield article
 
             await asyncio.sleep(cls.page_turning_duration)
-    
-    async def article_newer_than(self, datetime_):
-        """获取的数据中，日期像是作者上传时的，而不是发出来的"""
-        async for a in FanQie.parse(self.book_id):
-            if a["pub_time"] > datetime_:
-                yield a
-            else:
-                return
 
     async def chapter_greater_than(self, chapter: int):
-        """获取的数据中，日期像是作者上传时的，而不是发出来的"""
+        """从新到旧，直到小于指定的 chapter"""
         async for a in FanQie.parse(self.book_id):
             if a["chapter_number"] > chapter:
                 yield a
             else:
                 return
 
+    async def chapter_after(self, chapter: int):
+        """从旧到新，从 chapter 开始返回，直到最新的，为下载全本小说而写"""
+        async for a in FanQie.parse(self.book_id, chapter + 1):
+            if a["chapter_number"] > chapter:
+                yield a
+            else:
+                return
 
-    async def latest_chapter_for(self, amount: int = 10):
-        """获取的数据中，日期像是作者上传时的，而不是发出来的"""
+    async def first_add(self, amount: int = 10):
+        """接口.第一次添加时，要调用的接口"""
+        # 获取最新的 10 条，
         i = 0
         async for a in FanQie.parse(self.book_id):
             if i < amount:
@@ -123,7 +145,22 @@ class FanQie:
                 yield a
             else:
                 return
-            
+
+    def get_source_info(self):
+        """接口.返回元信息，主要用于 RSS"""
+        return self.source_info
+
+    def get_table_name(self):
+        """接口.返回表名或者collection名称，用于 RSS 文件的名称"""
+        return self.source_info["title"]
+    
+    async def get_new(self, chapter: int):
+        """接口.第一次添加时，要调用的接口"""
+        async for a in self.chapter_greater_than(chapter):
+            yield a
+
+
+
 import api._v1
 api._v1.register_c(FanQie)
 

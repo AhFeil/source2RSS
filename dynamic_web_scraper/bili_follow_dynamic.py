@@ -21,6 +21,7 @@ class DataFetchError(httpx.RequestError):
 class BiliFoDynamic:
     title = "bilibili following dynamic"
     index_url = "https://www.bilibili.com"
+    sort_by_key = "pub_time"
     # 请求每页之间的间隔，秒
     page_turning_duration = 5
     # 关注动态到底是关注的所有 UP 主的最老的动态，因此不可能遍历，要限制一下
@@ -68,17 +69,45 @@ class BiliFoDynamic:
         # 返回拥有登录后的 cookie
         return api_client
 
-    async def article_newer_than(self, datetime_):
+    async def article_newer_than(self, datetime_, amount=None):
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=True)
             context = await browser.new_context(storage_state=self.state_path, viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent)
             api_client = await self.get_valid_client(context)
-            async for a in BiliFoDynamic.parse(api_client):
-                if a["pub_time"] > datetime_:
-                    yield a
-                else:
-                    return
+            if amount:
+                i = 0
+                async for a in BiliFoDynamic.parse(api_client):
+                    if i < amount:
+                        i += 1
+                        yield a
+                    else:
+                        return
+            else:
+                async for a in BiliFoDynamic.parse(api_client):
+                    if a["pub_time"] > datetime_:
+                        yield a
+                    else:
+                        return
 
+    async def first_add(self, amount: int = 10):
+        """接口.第一次添加时，要调用的接口"""
+        # 获取最新的 10 条，
+        async for a in self.article_newer_than(0, amount):
+            yield a
+
+    def get_source_info(self):
+        """接口.返回元信息，主要用于 RSS"""
+        return BiliFoDynamic.source_info
+
+    def get_table_name(self):
+        """接口.返回表名或者collection名称，用于 RSS 文件的名称"""
+        return BiliFoDynamic.title
+    
+    async def get_new(self, datetime_):
+        """接口.第一次添加时，要调用的接口"""
+        async for a in self.article_newer_than(datetime_):
+            yield a
+    
     @classmethod
     async def parse(cls, api_client, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码（实际不是页码因为是瀑布流，1 代表前 n 个），yield 一篇一篇惰性返回，直到最后一篇"""
@@ -112,7 +141,8 @@ class BiliFoDynamic:
                     name = author["name"] + "的专栏文章"
                     description = attributes["summary"]["rich_text_nodes"][0]["orig_text"]
                     article_url = "https:" + attributes["jump_url"]
-                    image_link = attributes.get("pics", [{"url": "http://example.com"}])[0]["url"]
+                    image = attributes.get("pics")
+                    image_link = image[0]["url"] if image else "http://example.com"
                 else:
                     continue
 
@@ -324,7 +354,7 @@ class BilibiliClient:
 
 
 import api._v1
-api._v1.register_d(BiliFoDynamic)
+api._v1.register(BiliFoDynamic)
 
 
 async def test():

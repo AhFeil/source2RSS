@@ -10,6 +10,7 @@ class BentoMLBlog:
     title = "BentoML Blog"
     home_url = "https://www.bentoml.com/blog"
     admin_url = "https://admin.bentoml.com"
+    sort_by_key = "pub_time"
 
     page_turning_duration = 5
 
@@ -100,6 +101,30 @@ class BentoMLBlog:
                 yield a
             else:
                 return
+
+    async def first_add(self, amount: int = 10):
+        """接口.第一次添加时，要调用的接口"""
+        # 获取最新的 10 条，
+        i = 0
+        async for a in BentoMLBlog.parse():
+            if i < amount:
+                i += 1
+                yield a
+            else:
+                return
+
+    def get_source_info(self):
+        """接口.返回元信息，主要用于 RSS"""
+        return BentoMLBlog.source_info
+
+    def get_table_name(self):
+        """接口.返回表名或者collection名称，用于 RSS 文件的名称"""
+        return BentoMLBlog.title
+    
+    async def get_new(self, datetime_):
+        """接口.第一次添加时，要调用的接口"""
+        async for a in self.article_newer_than(datetime_):
+            yield a
 
 
 import api._v1
