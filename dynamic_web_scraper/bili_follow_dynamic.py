@@ -1,5 +1,6 @@
 import json
 import time
+import logging
 from urllib.parse import quote, urlencode
 import asyncio
 from datetime import datetime, timedelta
@@ -13,38 +14,32 @@ from .login import BilibiliSign
 from utils import environment, image_
 
 
-class DataFetchError(httpx.RequestError):
-    """something error when fetch"""
-
-
 class BiliFoDynamic:
     title = "bilibili following dynamic"
     index_url = "https://www.bilibili.com"
     sort_by_key = "pub_time"
     # 请求每页之间的间隔，秒
     page_turning_duration = 5
-    # 关注动态到底是关注的所有 UP 主的最老的动态，因此不可能遍历，要限制一下
-    limit_page = datetime.now() - timedelta(days=7)
-
-    # 数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用
-    source_info = {
-        "title": title,
-        "link": index_url,
-        "description": "B 站个人动态",
-        "language": "zh-CN"
-    }
 
     def __init__(self, config_dict):
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.user_agent = environment.get_user_agent()
         self.state_path = config_dict["bili_context"]
         self.screenshot_root = config_dict["screenshot_root"]
         self.image_root = config_dict["image_root"]
-    
+        # 数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用
+        self.source_info = {
+            "title": f"{config_dict['user_name']} 的关注动态",
+            "link": BiliFoDynamic.index_url,
+            "description": f"{config_dict['user_name']} 的关注动态",
+            "language": "zh-CN"
+        }
+
     async def get_valid_client(self, context: BrowserContext):
         # stealth.min.js is a js script to prevent the website from detecting the crawler.
         await context.add_init_script(path=environment.get_init_script())
         page = await context.new_page()
-        api_client = await self.create_bilibili_client(await context.cookies(), page)
+        api_client = await self.create_bilibili_client(await context.cookies())
 
         # 首页
         try:   # 进入首页都超时的话，就直接返回空，这次不再爬取
@@ -81,16 +76,17 @@ class BiliFoDynamic:
             # 应对由于超时，playwright 关闭，导致阻塞在这个地方，永远无法其他协程
             if api_client is None:
                 return
+            self.logger.info("successfully get a valid client")
             if amount:
                 i = 0
-                async for a in BiliFoDynamic.parse(api_client):
+                async for a in BiliFoDynamic.parse(self.logger, api_client):
                     if i < amount:
                         i += 1
                         yield a
                     else:
                         return
             else:
-                async for a in BiliFoDynamic.parse(api_client):
+                async for a in BiliFoDynamic.parse(self.logger, api_client):
                     if a["pub_time"] > datetime_:
                         yield a
                     else:
@@ -104,11 +100,11 @@ class BiliFoDynamic:
 
     def get_source_info(self):
         """接口.返回元信息，主要用于 RSS"""
-        return BiliFoDynamic.source_info
+        return self.source_info
 
     def get_table_name(self):
         """接口.返回表名或者collection名称，用于 RSS 文件的名称"""
-        return BiliFoDynamic.title
+        return self.source_info['title']
     
     async def get_new(self, datetime_):
         """接口.第一次添加时，要调用的接口"""
@@ -116,8 +112,9 @@ class BiliFoDynamic:
             yield a
     
     @classmethod
-    async def parse(cls, api_client, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def parse(cls, logger, api_client, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码（实际不是页码因为是瀑布流，1 代表前 n 个），yield 一篇一篇惰性返回，直到最后一篇"""
+        logger.info(f"{cls.title} start to parse")
         offset = None
         while True:
             data = await api_client.get_dynamic(start_page, offset)
@@ -191,10 +188,10 @@ class BiliFoDynamic:
         return False
 
 
-    async def create_bilibili_client(self, cookies, page):
+    async def create_bilibili_client(self, cookies):
         cookie_str, cookie_dict = environment.convert_cookies(cookies)
         headers = {"User-Agent": self.user_agent, "Cookie": cookie_str}
-        bilibili_client_obj = BilibiliClient(headers=headers, cookie_dict=cookie_dict, page=page)
+        bilibili_client_obj = BilibiliClient(headers=headers, cookie_dict=cookie_dict)
         return bilibili_client_obj
 
 
@@ -207,29 +204,29 @@ class BilibiliClient:
         "Content-Type": "application/json;charset=UTF-8"
     }
     
-    def __init__(self, headers: Dict[str, str], cookie_dict: Dict[str, str], page, proxies=None, timeout=10):
+    def __init__(self, headers: Dict[str, str], cookie_dict: Dict[str, str], proxies=None, timeout=10):
         self.proxies = proxies
         self.timeout = timeout
         self.headers = BilibiliClient.headers | headers
         self._host = "https://api.bilibili.com"
         self.cookie_dict = cookie_dict
-        self.page = page
+        # self.page = page
 
     async def request(self, method, url, **kwargs) -> Any:
         async with httpx.AsyncClient(proxies=self.proxies) as client:
             response = await client.request(method, url, timeout=self.timeout, **kwargs)
         data: Dict = response.json()
         if data.get("code") != 0:
-            raise DataFetchError(data.get("message", "unkonw error"))
+            raise httpx.TimeoutException(data.get("message", "unkonw error"))
         else:
             return data.get("data", {})
 
     async def get(self, uri: str, params=None, enable_params_sign: bool= True) -> Dict:
         final_uri = uri
-        if enable_params_sign:
-            params = await self.pre_request_data(params)
-        if isinstance(params, dict):
-            final_uri = (f"{uri}?{urlencode(params)}")
+        # if enable_params_sign:
+        #     params = await self.pre_request_data(params)
+        # if isinstance(params, dict):
+        #     final_uri = (f"{uri}?{urlencode(params)}")
         return await self.request(method="GET", url=f"{self._host}{final_uri}", headers=self.headers)
 
     async def not_available(self) -> bool:
@@ -242,30 +239,30 @@ class BilibiliClient:
             print(e)
             return True
         
-    async def pre_request_data(self, req_data: Dict) -> Dict:
-        """请求参数签名
-        需要从 localStorage 拿 wbi_img_urls 这参数，值如下：
-        https://i0.hdslb.com/bfs/wbi/7cd084941338484aae1ad9425b84077c.png-https://i0.hdslb.com/bfs/wbi/4932caff0ff746eab6f01bf08b70ac45.png
-        """
-        if not req_data:
-            return {}
-        img_key, sub_key = await self.get_wbi_keys()
-        return BilibiliSign(img_key, sub_key).sign(req_data)
+    # async def pre_request_data(self, req_data: Dict) -> Dict:
+    #     """请求参数签名
+    #     需要从 localStorage 拿 wbi_img_urls 这参数，值如下：
+    #     https://i0.hdslb.com/bfs/wbi/7cd084941338484aae1ad9425b84077c.png-https://i0.hdslb.com/bfs/wbi/4932caff0ff746eab6f01bf08b70ac45.png
+    #     """
+    #     if not req_data:
+    #         return {}
+    #     img_key, sub_key = await self.get_wbi_keys()
+    #     return BilibiliSign(img_key, sub_key).sign(req_data)
 
-    async def get_wbi_keys(self) -> Tuple[str, str]:
-        """获取最新的 img_key 和 sub_key"""
-        local_storage = await self.page.evaluate("() => window.localStorage")
-        wbi_img_urls = local_storage.get("wbi_img_urls", "") or local_storage.get(
-            "wbi_img_url") + "-" + local_storage.get("wbi_sub_url")
-        if wbi_img_urls and "-" in wbi_img_urls:
-            img_url, sub_url = wbi_img_urls.split("-")
-        else:
-            resp = await self.request(method="GET", url=self._host + "/x/web-interface/nav")
-            img_url: str = resp['wbi_img']['img_url']
-            sub_url: str = resp['wbi_img']['sub_url']
-        img_key = img_url.rsplit('/', 1)[1].split('.')[0]
-        sub_key = sub_url.rsplit('/', 1)[1].split('.')[0]
-        return img_key, sub_key
+    # async def get_wbi_keys(self) -> Tuple[str, str]:
+    #     """获取最新的 img_key 和 sub_key"""
+    #     local_storage = await self.page.evaluate("() => window.localStorage")
+    #     wbi_img_urls = local_storage.get("wbi_img_urls", "") or local_storage.get(
+    #         "wbi_img_url") + "-" + local_storage.get("wbi_sub_url")
+    #     if wbi_img_urls and "-" in wbi_img_urls:
+    #         img_url, sub_url = wbi_img_urls.split("-")
+    #     else:
+    #         resp = await self.request(method="GET", url=self._host + "/x/web-interface/nav")
+    #         img_url: str = resp['wbi_img']['img_url']
+    #         sub_url: str = resp['wbi_img']['sub_url']
+    #     img_key = img_url.rsplit('/', 1)[1].split('.')[0]
+    #     sub_key = sub_url.rsplit('/', 1)[1].split('.')[0]
+    #     return img_key, sub_key
         
     async def post(self, uri: str, data: dict) -> Dict:
         data = await self.pre_request_data(data)
@@ -366,6 +363,7 @@ api._v1.register_c(BiliFoDynamic)
 
 async def test():
     config = {
+        "user_name": "AhFei",
         "image_root": "config_and_data_files/images",
         "screenshot_root": "config_and_data_files",
         "bili_context": "config_and_data_files/bili_context.json"
