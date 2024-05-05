@@ -1,3 +1,4 @@
+import logging
 from urllib.parse import quote
 import asyncio
 from datetime import datetime
@@ -51,9 +52,13 @@ class BentoMLBlog:
     }
     steady_query = '&'.join(f"{key}={value}" for key, value in steady_query_dict.items())
     
+    def __init__(self) -> None:
+        self.logger = logging.getLogger(self.__class__.__name__)
+        
     @classmethod
-    async def parse(cls, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码（实际不是页码因为是瀑布流，1 代表前 12 个），yield 一篇一篇惰性返回，直到最后一篇"""
+        logger.info(f"{cls.title} start to parse")
         while True:
             varied_query_dict = {"pagination[page]": start_page}
             query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items()) + '&' + cls.steady_query
@@ -94,9 +99,8 @@ class BentoMLBlog:
 
             await asyncio.sleep(cls.page_turning_duration)
     
-    @classmethod
-    async def article_newer_than(cls, datetime_):
-        async for a in BentoMLBlog.parse():
+    async def article_newer_than(self, datetime_):
+        async for a in BentoMLBlog.parse(self.logger):
             if a["pub_time"] > datetime_:
                 yield a
             else:
@@ -106,7 +110,7 @@ class BentoMLBlog:
         """接口.第一次添加时，要调用的接口"""
         # 获取最新的 10 条，
         i = 0
-        async for a in BentoMLBlog.parse():
+        async for a in BentoMLBlog.parse(self.logger):
             if i < amount:
                 i += 1
                 yield a

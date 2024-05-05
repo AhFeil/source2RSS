@@ -1,3 +1,4 @@
+import logging
 import asyncio
 from datetime import datetime
 
@@ -32,9 +33,13 @@ class CSLRXYZ:
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
     }
 
+    def __init__(self) -> None:
+        self.logger = logging.getLogger(self.__class__.__name__)
+        
     @classmethod
-    async def parse(cls, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
+        logger.info(f"{cls.title} start to parse")
         while True:
             url = f"http://cslrxyz.xyz/index.php/page/{start_page}/"
 
@@ -73,9 +78,8 @@ class CSLRXYZ:
             start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
     
-    @classmethod
-    async def article_newer_than(cls, datetime_):
-        async for a in CSLRXYZ.parse():
+    async def article_newer_than(self, datetime_):
+        async for a in CSLRXYZ.parse(self.logger):
             if a["pub_time"] > datetime_:
                 yield a
             else:
@@ -85,7 +89,7 @@ class CSLRXYZ:
         """接口.第一次添加时，要调用的接口"""
         # 获取最新的 10 条，
         i = 0
-        async for a in CSLRXYZ.parse():
+        async for a in CSLRXYZ.parse(self.logger):
             if i < amount:
                 i += 1
                 yield a

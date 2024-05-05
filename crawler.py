@@ -1,5 +1,6 @@
 import logging
 import asyncio
+import signal
 from itertools import chain
 
 from generate_rss import generate_rss
@@ -48,7 +49,6 @@ async def one_website(config, data, cls):
 async def chapter_mode(config, data, init_params, cls):
     """对多实例的抓取器，比如番茄的小说，B 站用户关注动态"""
     sort_by_key = cls.sort_by_key
-    print(init_params)
     for params in init_params:
         if isinstance(params, dict) or isinstance(params, str):
             instance = cls(params)
@@ -98,3 +98,29 @@ async def monitor_website(config, data, plugins):
         (one_website(config, data, cls) for cls in plugins["static"])
     )
     await asyncio.gather(*tasks)
+
+    logger.info("***Have finished all tasks***")
+
+
+async def main():
+    import preprocess
+
+    config = preprocess.config
+    data = preprocess.data
+    plugins = preprocess.plugins
+
+    # 开发环境下，每次都把集合清空
+    if not config.is_production:
+        logger.info("Clear All Collections")
+        data._clear_db()
+    
+    await monitor_website(config, data, plugins)
+
+
+if __name__ == "__main__":
+    def handler(sig, frame):
+        # 退出前清理环境
+        exit(0)
+    signal.signal(signal.SIGINT, handler)
+
+    asyncio.run(main())

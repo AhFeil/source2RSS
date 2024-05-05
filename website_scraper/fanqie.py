@@ -1,3 +1,4 @@
+import logging
 import re
 import asyncio
 from datetime import datetime
@@ -18,6 +19,7 @@ class FanQie:
     timeout = httpx.Timeout(10.0)
     
     def __init__(self, title, book_id) -> None:
+        self.logger = logging.getLogger(self.__class__.__name__)
         self.book_id = book_id
         book_info_url = f"{FanQie.admin_url}/info?book_id={book_id}"
         # 数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用
@@ -29,8 +31,9 @@ class FanQie:
         }
 
     @classmethod
-    async def parse(cls, book_id: str, old2new: bool=False, start_chapter: int=1) -> AsyncGenerator[dict, Any]:
+    async def parse(cls, logger, book_id: str, old2new: bool=False, start_chapter: int=1) -> AsyncGenerator[dict, Any]:
         """从最新章节，yield 一篇一篇惰性返回，直到起始章节"""
+        logger.info(f"{cls.title} start to parse")
         # 获得章节信息
         catalog_url = f"{cls.admin_url}/catalog?book_id={book_id}"
         async with httpx.AsyncClient(follow_redirects=True) as client:
@@ -121,7 +124,7 @@ class FanQie:
 
     async def chapter_greater_than(self, chapter: int):
         """从新到旧，直到小于指定的 chapter"""
-        async for a in FanQie.parse(self.book_id):
+        async for a in FanQie.parse(self.logger, self.book_id):
             if a["chapter_number"] > chapter:
                 yield a
             else:
@@ -129,7 +132,7 @@ class FanQie:
 
     async def chapter_after(self, chapter: int):
         """从旧到新，从 chapter 开始返回，直到最新的，为下载全本小说而写"""
-        async for a in FanQie.parse(self.book_id, old2new=True, start_chapter=chapter + 1):
+        async for a in FanQie.parse(self.logger, self.book_id, old2new=True, start_chapter=chapter + 1):
             if a["chapter_number"] > chapter:
                 yield a
             else:
@@ -139,7 +142,7 @@ class FanQie:
         """接口.第一次添加时，要调用的接口"""
         # 获取最新的 10 条，
         i = 0
-        async for a in FanQie.parse(self.book_id):
+        async for a in FanQie.parse(self.logger, self.book_id):
             if i < amount:
                 i += 1
                 yield a
@@ -173,6 +176,8 @@ async def test():
     book = FanQie("系统炸了，我成了系统", "6995119385308302344")
     async for a in book.chapter_after(5):
         print(a["article_name"], a["pub_time"], a["chapter_number"])
+
+
 
 if __name__ == "__main__":
     asyncio.run(test())
