@@ -66,4 +66,4 @@ class Config:
         self.image_root = user_configs['image_root']
         os.makedirs(self.image_root, exist_ok=True)
     
-        self.fanqie_books_id = user_configs['fanqie_books_id']
+        self.cls_init_params = user_configs['cls_init_params']

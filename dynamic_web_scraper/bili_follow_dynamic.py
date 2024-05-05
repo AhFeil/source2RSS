@@ -7,11 +7,10 @@ from typing import AsyncGenerator, Any, Callable, Dict, List, Optional, Tuple, U
 
 import httpx
 from playwright.async_api import BrowserContext, BrowserType, Page, async_playwright
+from playwright._impl._errors import TimeoutError as pw_TimeoutError
 
 from .login import BilibiliSign
 from utils import environment, image_
-
-from preprocess import config
 
 
 class DataFetchError(httpx.RequestError):
@@ -35,26 +34,31 @@ class BiliFoDynamic:
         "language": "zh-CN"
     }
 
-    def __init__(self):
+    def __init__(self, config_dict):
         self.user_agent = environment.get_user_agent()
-        self.state_path = config.bili_context
+        self.state_path = config_dict["bili_context"]
+        self.screenshot_root = config_dict["screenshot_root"]
+        self.image_root = config_dict["image_root"]
     
-    async def get_valid_client(self, context):
+    async def get_valid_client(self, context: BrowserContext):
         # stealth.min.js is a js script to prevent the website from detecting the crawler.
         await context.add_init_script(path=environment.get_init_script())
         page = await context.new_page()
         api_client = await self.create_bilibili_client(await context.cookies(), page)
 
         # 首页
-        await page.goto(self.index_url)
+        try:   # 进入首页都超时的话，就直接返回空，这次不再爬取
+            await page.goto(self.index_url, timeout=60000)
+        except pw_TimeoutError:
+            return None
         await page.wait_for_timeout(500)
-        await page.screenshot(path=f"{config.screenshot_root}/bili_index.png")
+        await page.screenshot(path=f"{self.screenshot_root}/bili_index.png")
         if await api_client.not_available():
             # API 客户端不可用的话，就登录
             base64_qrcode_img = await self.get_login_qrcode(page)
-            await page.screenshot(path=f"{config.screenshot_root}/bili_login.png")
+            await page.screenshot(path=f"{self.screenshot_root}/bili_login.png")
             # 将 base64 转化为图片保存
-            asyncio.get_running_loop().run_in_executor(None, image_.save_qrcode, base64_qrcode_img, config.image_root)
+            asyncio.get_running_loop().run_in_executor(None, image_.save_qrcode, base64_qrcode_img, self.image_root)
             
             print(f"Waiting for scan code login")
             flag = await self.check_login_state(context)
@@ -74,6 +78,9 @@ class BiliFoDynamic:
             browser = await p.chromium.launch(headless=True)
             context = await browser.new_context(storage_state=self.state_path, viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent)
             api_client = await self.get_valid_client(context)
+            # 应对由于超时，playwright 关闭，导致阻塞在这个地方，永远无法其他协程
+            if api_client is None:
+                return
             if amount:
                 i = 0
                 async for a in BiliFoDynamic.parse(api_client):
@@ -92,7 +99,7 @@ class BiliFoDynamic:
     async def first_add(self, amount: int = 10):
         """接口.第一次添加时，要调用的接口"""
         # 获取最新的 10 条，
-        async for a in self.article_newer_than(0, amount):
+        async for a in self.article_newer_than(None, amount):
             yield a
 
     def get_source_info(self):
@@ -354,12 +361,17 @@ class BilibiliClient:
 
 
 import api._v1
-api._v1.register(BiliFoDynamic)
+api._v1.register_c(BiliFoDynamic)
 
 
 async def test():
-    b = BiliFoDynamic()
-    async for a in b.article_newer_than(datetime(2024, 4, 20)):
+    config = {
+        "image_root": "config_and_data_files/images",
+        "screenshot_root": "config_and_data_files",
+        "bili_context": "config_and_data_files/bili_context.json"
+    }
+    b = BiliFoDynamic(config)
+    async for a in b.article_newer_than(datetime(2024, 4, 30)):
         print(a)
     
 
