@@ -4,28 +4,42 @@ import logging
 
 from ruamel.yaml import YAML
 from pymongo import MongoClient
+from enum import Enum
 from pydantic import BaseModel, field_validator
 
 
 class SourceMeta(BaseModel):
     title: str
-    link: str | None = "https://yanh.tech/"
-    description: str | None = f"这是一个 RSS 源， 由 source2RSS 项目程序生成"
-    language: str | None = "zh-CN"
-
+    link: str = "https://yanh.tech/"
+    description: str = f"这是一个 RSS 源， 由 source2RSS 项目程序生成"
+    language: str = "zh-CN"
 
 class ArticleInfo(BaseModel):
-    title: str
-    url: str | None = "https://yanh.tech/"
-    pub_date: float
-    summary: str | None = ""
-    cover: str | None = "https://yanh.tech/"
+    article_name: str 
+    article_url: str ="https://yanh.tech/"
+    pub_time: float = datetime.fromtimestamp(0)  # 时间戳
+    summary: str = ""
+    image_link: str = "https://yanh.tech/"
 
-    @field_validator('pub_date')
+    # 上面是 RSS 必需的,下面是补充、辅助的
+    # 用于排序,比如小说按照章节排更合适,虽然发布时间理应对应章节顺序 
+    chapter: int = 0
+    
+    @field_validator('pub_time')
     @classmethod
     def timestamp_to_datetime(cls, v):
         return datetime.fromtimestamp(float(v))
-    
+
+
+class SortKey(str, Enum):
+    pub_date = "pub_date"
+    chapter = "chapter"
+
+class PublishContent(BaseModel):
+    source_name: str
+    article_infomation: ArticleInfo
+    key4sort: SortKey = SortKey.pub_date
+
 
 class Data:
     def __init__(self, config) -> None:
@@ -42,6 +56,10 @@ class Data:
         """将原始 msg、文章信息和时间戳存入数据库"""
         collection = self.db[mp_name]
         collection.insert_one(one_article_doc)
+
+    def get_source_info(self, source_name: str):
+        """根据源名称返回源的元信息"""
+        return self.meta_collection.find_one({"title": source_name})
 
     def exist_source_meta(self, source_info: dict):
         # 确保存在元信息
@@ -75,5 +93,5 @@ if __name__ == "__main__":
     # config = preprocess.config
     # data = preprocess.data
 
-    m = ArticleInfo(title="a title", pub_date=1622644343)
-    print(m.pub_date)
+    m = ArticleInfo(title="a title", key4sort="chapter")
+    print(m)
