@@ -92,6 +92,7 @@ async def chapter_mode(config, data, init_params, cls):
 
 async def monitor_website(config, data, plugins):
     """控制总流程： 解析，整合，保存，生成 RSS"""
+    logger.info("***Start all tasks***")
 
     tasks = chain(
         (chapter_mode(config, data, config.cls_init_params[cls.__name__], cls) for cls in plugins["chapter_mode"]),
@@ -103,11 +104,7 @@ async def monitor_website(config, data, plugins):
 
 
 async def main():
-    import preprocess
-
-    config = preprocess.config
-    data = preprocess.data
-    plugins = preprocess.plugins
+    from preprocess import config, data, plugins
 
     # 开发环境下，每次都把集合清空
     if not config.is_production:
