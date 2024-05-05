@@ -1,4 +1,3 @@
-from datetime import datetime
 import logging
 import signal
 import asyncio
@@ -20,7 +19,7 @@ async def one_website(config, data, cls):
 
     result = collection.find({}, {sort_by_key: 1}).sort(sort_by_key, -1).limit(1)   # 含有 '_id', 
     result = list(result)
-    last_update_flag = result[0]["pub_time"] if result else False
+    last_update_flag = result[0][sort_by_key] if result else False
     
     got_new = False
     if not last_update_flag:
@@ -57,8 +56,9 @@ async def chapter_mode(config, data, fanqie_books_id, cls):
         data.exist_source_meta(source_info)
         
         collection = data.db[source_name]
-        last_update_flag = collection.find({}, {sort_by_key: 1}).sort(sort_by_key, -1).limit(1)   # 含有 '_id', 
-        last_update_flag = list(last_update_flag)
+        result = collection.find({}, {sort_by_key: 1}).sort(sort_by_key, -1).limit(1)   # 含有 '_id', 
+        result = list(result)
+        last_update_flag = result[0][sort_by_key] if result else False
 
         got_new = False
         if not last_update_flag:

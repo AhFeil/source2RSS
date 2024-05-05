@@ -74,7 +74,7 @@ class FanQie:
                 client.timeout = FanQie.timeout
                 try:
                     response = await client.get(url=content_url)
-                except httpx.ConnectTimeout:
+                except (httpx.ConnectTimeout, httpx.ReadTimeout):
                     await asyncio.sleep(60)
                     response = await client.get(url=content_url)
             article_info = response.json()
@@ -103,7 +103,7 @@ class FanQie:
             chapter = chapter[0]
             chapter_number = int(chapter)
             # 从旧到最新篇，修正，如果中间夹杂着通知类的章节，用这个补偿
-            if chapter_number < start_chapter:
+            if old2new and chapter_number < start_chapter:
                 continue
             article = {
                 "article_name": chapter_title,
@@ -129,7 +129,7 @@ class FanQie:
 
     async def chapter_after(self, chapter: int):
         """从旧到新，从 chapter 开始返回，直到最新的，为下载全本小说而写"""
-        async for a in FanQie.parse(self.book_id, chapter + 1):
+        async for a in FanQie.parse(self.book_id, old2new=True, start_chapter=chapter + 1):
             if a["chapter_number"] > chapter:
                 yield a
             else:
@@ -155,10 +155,9 @@ class FanQie:
         return self.source_info["title"]
     
     async def get_new(self, chapter: int):
-        """接口.第一次添加时，要调用的接口"""
+        """接口.第二次和之后，要调用的接口"""
         async for a in self.chapter_greater_than(chapter):
             yield a
-
 
 
 import api._v1
@@ -167,12 +166,12 @@ api._v1.register_c(FanQie)
 
 async def test():
     book = FanQie("我不是戏神", "7276384138653862966")
-    async for a in book.chapter_greater_than(590):
+    async for a in book.get_new(590):
         print(a["article_name"], a["pub_time"], a["chapter_number"])
 
     # 转载的
     book = FanQie("系统炸了，我成了系统", "6995119385308302344")
-    async for a in book.latest_chapter_for(5):
+    async for a in book.chapter_after(5):
         print(a["article_name"], a["pub_time"], a["chapter_number"])
 
 if __name__ == "__main__":
