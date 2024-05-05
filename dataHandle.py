@@ -4,7 +4,28 @@ import logging
 
 from ruamel.yaml import YAML
 from pymongo import MongoClient
+from pydantic import BaseModel, field_validator
 
+
+class SourceMeta(BaseModel):
+    title: str
+    link: str | None = "https://yanh.tech/"
+    description: str | None = f"这是一个 RSS 源， 由 source2RSS 项目程序生成"
+    language: str | None = "zh-CN"
+
+
+class ArticleInfo(BaseModel):
+    title: str
+    url: str | None = "https://yanh.tech/"
+    pub_date: float
+    summary: str | None = ""
+    cover: str | None = "https://yanh.tech/"
+
+    @field_validator('pub_date')
+    @classmethod
+    def timestamp_to_datetime(cls, v):
+        return datetime.fromtimestamp(float(v))
+    
 
 class Data:
     def __init__(self, config) -> None:
@@ -49,8 +70,10 @@ class Data:
 
 
 if __name__ == "__main__":
-    import preprocess
+    # import preprocess
 
-    config = preprocess.config
-    data = preprocess.data
+    # config = preprocess.config
+    # data = preprocess.data
 
+    m = ArticleInfo(title="a title", pub_date=1622644343)
+    print(m.pub_date)
