@@ -3,7 +3,7 @@ import asyncio
 import signal
 from itertools import chain
 
-from generate_rss import generate_rss
+from generate_rss import generate_rss_from_collection
 
 logger = logging.getLogger("crawler")
 
@@ -41,7 +41,7 @@ async def one_website(config, data, cls):
     
     # 生成 RSS 并保存到目录
     if got_new:
-        generate_rss(collection, sort_by_key, config.rss_dir, data.db[config.source_meta])
+        generate_rss_from_collection(source_info, collection, sort_by_key, config.rss_dir)
     else:
         logger.info(f"{source_name} didn't update")
 
@@ -85,7 +85,7 @@ async def chapter_mode(config, data, init_params, cls):
         
         # 生成 RSS 并保存到目录
         if got_new:
-            generate_rss(collection, sort_by_key, config.rss_dir, data.db[config.source_meta])
+            generate_rss_from_collection(source_info, collection, sort_by_key, config.rss_dir)
         else:
             logger.info(f"{source_name} didn't update")
 
