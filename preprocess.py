@@ -1,21 +1,12 @@
 # 添加命令行参数解析，调用 configHandle，加载插件，调用 dataHandle，实例一些全局类
-import argparse
-
+import os
 from configHandle import Config
 
-# 创建一个解析器
-parser = argparse.ArgumentParser(description="Your script description")
-# 添加你想要接收的命令行参数
-parser.add_argument('--config', action='append', required=False, 
-                    default=['./config_and_data_files/config.yaml', './config_and_data_files/pgm_config.yaml'], 
-                    help='Config Files Path')# 解析命令行参数
-args = parser.parse_args()
-# 将参数值赋给你的变量
-configfile = args.config
-
+configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default='config_and_data_files/config.yaml')
+pgm_configfile = os.getenv("SOURCE2RSS_PGM_CONFIG_FILE", default='config_and_data_files/pgm_config.yaml')
+absolute_configfiles = map(lambda x:os.path.join(os.getcwd(), x), (configfile, pgm_configfile))
 # 定义所有变量
-config = Config(configfile)
-
+config = Config(absolute_configfiles)
 
 
 import api._v1
