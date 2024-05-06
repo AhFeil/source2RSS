@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 from preprocess import config, data
 from run_as_scheduled import run_continuously
-from dataHandle import SourceMeta, PublishContent
+from dataHandle import SourceMeta, ArticleInfo, PublishMethod
 from generate_rss import generate_rss_from_collection
 
 from fastapi import FastAPI
@@ -34,18 +34,17 @@ async def add_rss(source_meta: SourceMeta):
 
 
 @app.post("/generate_rss")
-async def delivery(pub_content: PublishContent):
-    source_name = pub_content.source_name
-    key4sort = pub_content.key4sort
-    a = dict(pub_content.article_infomation)
-
-    one_article_etc = {
-        "article_infomation": a, 
-        key4sort: a[key4sort]
-    }
-    print(one_article_etc)
-    data.store2database(source_name, one_article_etc)
-    logger.info(f"{source_name} have new article: {pub_content.article_infomation.article_name}")
+async def delivery(articles: list[ArticleInfo], pub_method: PublishMethod):
+    source_name = pub_method.source_name
+    key4sort = pub_method.key4sort
+    for a in articles:
+        a = a.model_dump()
+        one_article_etc = {
+            "article_infomation": a, 
+            key4sort: a[key4sort]
+        }
+        data.store2database(source_name, one_article_etc)
+        logger.info(f"{source_name} have new article: {a['article_name']}")
     
     source_info = data.get_source_info(source_name)
     if source_info:

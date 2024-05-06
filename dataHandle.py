@@ -5,25 +5,35 @@ import logging
 from ruamel.yaml import YAML
 from pymongo import MongoClient
 from enum import Enum
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, HttpUrl, field_validator
 
 
 class SourceMeta(BaseModel):
     title: str
-    link: str = "https://yanh.tech/"
+    link: HttpUrl = "https://yanh.tech/"
     description: str = f"这是一个 RSS 源， 由 source2RSS 项目程序生成"
     language: str = "zh-CN"
 
 class ArticleInfo(BaseModel):
     article_name: str 
-    article_url: str ="https://yanh.tech/"
+    article_url: HttpUrl ="https://yanh.tech/"
     pub_time: float = datetime.fromtimestamp(0)  # 时间戳
     summary: str = ""
-    image_link: str = "https://yanh.tech/"
+    image_link: HttpUrl = "https://yanh.tech/"
 
     # 上面是 RSS 必需的,下面是补充、辅助的
     # 用于排序,比如小说按照章节排更合适,虽然发布时间理应对应章节顺序 
     chapter: int = 0
+    
+    def model_dump(self):
+        return {
+            "article_name": self.article_name,
+            "article_url": str(self.article_url),
+            "pub_time": self.pub_time,
+            "summary": self.summary,
+            "image_link": str(self.image_link),
+            "chapter": self.chapter
+        }
     
     @field_validator('pub_time')
     @classmethod
@@ -35,9 +45,8 @@ class SortKey(str, Enum):
     pub_date = "pub_date"
     chapter = "chapter"
 
-class PublishContent(BaseModel):
+class PublishMethod(BaseModel):
     source_name: str
-    article_infomation: ArticleInfo
     key4sort: SortKey = SortKey.pub_date
 
 
