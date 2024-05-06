@@ -8,6 +8,19 @@ from generate_rss import generate_rss_from_collection
 logger = logging.getLogger("crawler")
 
 
+async def save_articles(data, source_name, sort_by_key, article_source) -> bool:
+    got_new = False
+    async for a in article_source:
+        # 每篇文章整合成一个文档，存入相应集合
+        one_article_etc = {
+            "article_infomation": a, 
+            sort_by_key: a[sort_by_key]
+        }
+        data.store2database(source_name, one_article_etc)
+        logger.info(f"{source_name} have new article: {a['article_name']}")
+        got_new = True
+    return got_new
+
 async def one_website(config, data, cls):
     """对某个网站的文章进行更新"""
     instance = cls()
@@ -21,7 +34,6 @@ async def one_website(config, data, cls):
     result = list(result)
     last_update_flag = result[0][sort_by_key] if result else False
     
-    got_new = False
     if not last_update_flag:
         # 若是第一次，数据库中没有数据
         got_new = True
@@ -29,15 +41,11 @@ async def one_website(config, data, cls):
     else:
         article_source = instance.get_new(last_update_flag)
     
-    async for a in article_source:
-        # 每篇文章整合成一个文档，存入相应集合
-        one_article_etc = {
-            "article_infomation": a, 
-            sort_by_key: a[sort_by_key]
-        }
-        data.store2database(source_name, one_article_etc)
-        logger.info(f"{source_name} have new article: {a['article_name']}")
-        got_new = True
+    try:
+        got_new = asyncio.wait_for(save_articles(data, source_name, sort_by_key, article_source), 60)
+    except asyncio.TimeoutError:
+        got_new = False
+        logger.info(f"Processing {source_name} articles took too long.")
     
     # 生成 RSS 并保存到目录
     if got_new:
