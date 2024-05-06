@@ -76,7 +76,7 @@ class BiliFoDynamic:
             # 应对由于超时，playwright 关闭，导致阻塞在这个地方，永远无法其他协程
             if api_client is None:
                 return
-            self.logger.info("successfully get a valid client")
+            self.logger.info("Successfully get a valid bilibilli client")
             if amount:
                 i = 0
                 async for a in BiliFoDynamic.parse(self.logger, api_client):
