@@ -117,7 +117,10 @@ class BiliFoDynamic:
         logger.info(f"{cls.title} start to parse")
         offset = None
         while True:
-            data = await api_client.get_dynamic(start_page, offset)
+            try:
+                data = await api_client.get_dynamic(start_page, offset)
+            except httpx.ConnectTimeout:
+                return
 
             if not data["has_more"]:
                 return

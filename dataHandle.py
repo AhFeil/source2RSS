@@ -14,6 +14,14 @@ class SourceMeta(BaseModel):
     description: str = f"这是一个 RSS 源， 由 source2RSS 项目程序生成"
     language: str = "zh-CN"
 
+    def model_dump(self):
+        return {
+            "title": self.title,
+            "link": str(self.link),
+            "description": self.description,
+            "language": self.language
+        }
+    
 class ArticleInfo(BaseModel):
     article_name: str 
     article_url: HttpUrl ="https://yanh.tech/"
