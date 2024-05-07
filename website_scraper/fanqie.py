@@ -90,12 +90,6 @@ class FanQie:
             volume_name = novel_data["volume_name"]
             next_item_id = novel_data['next_item_id']
             pre_item_id = novel_data['pre_item_id']
-            # 旧到新，到没有下一章 item_id 停止
-            if old2new and next_item_id == "":
-                break
-            # 新到旧，到没有上一章 item_id 停止
-            if not old2new and pre_item_id == "":
-                break
             create_time = novel_data["create_time"]
             # 删除时区部分，单独处理
             s_time, s_tz = create_time.rsplit("+", 1)
@@ -120,6 +114,13 @@ class FanQie:
 
             yield article
 
+            # 旧到新，到没有下一章 item_id 停止
+            if old2new and next_item_id == "":
+                break
+            # 新到旧，到没有上一章 item_id 停止
+            if not old2new and pre_item_id == "":
+                break
+            
             await asyncio.sleep(cls.page_turning_duration)
 
     async def chapter_greater_than(self, chapter: int):
