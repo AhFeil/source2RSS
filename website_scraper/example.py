@@ -2,13 +2,13 @@ import logging
 from urllib.parse import quote
 import asyncio
 from datetime import datetime
-
+from abc import ABC, abstractmethod
 from typing import AsyncGenerator, Any
 
 import httpx
 
 
-class WebsiteScraper:
+class WebsiteScraper(ABC):
     title = "技焉洲"
     home_url = "https://yanh.tech/"
     admin_url = "https://yanh.tech/wp-content"
@@ -16,49 +16,50 @@ class WebsiteScraper:
     # 请求每页之间的间隔，秒
     page_turning_duration = 5
 
-    # 数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用
-    source_info = {
-        "title": title,
-        "link": home_url,
-        "description": "Linux，单片机，编程",
-        "language": "zh-CN"
-    }
-
     # https://curlconverter.com/
     headers = {
-        'Accept': '*/*',
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-        'Connection': 'keep-alive',
         'Content-Type': 'application/json',
-        'DNT': '1',
         'Origin': 'https://yanh.tech',
         'Referer': 'https://yanh.tech',
-        'Sec-Fetch-Dest': 'empty',
-        'Sec-Fetch-Mode': 'cors',
-        'Sec-Fetch-Site': 'same-site',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
-        'sec-ch-ua': '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"',
-        'sec-ch-ua-mobile': '?0',
-        'sec-ch-ua-platform': '"Windows"',
     }
-
-    steady_query_dict = {
-    }
-    steady_query = '&'.join(f"{key}={value}" for key, value in steady_query_dict.items())
     
+    @abstractmethod
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
+        raise NotImplementedError
+
+    @abstractmethod
+    @property
+    def source_info(self):
+        """数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用"""
+        source_info = {
+            "title": self.__class__.title,
+            "link": self.__class__.home_url,
+            "description": "Linux，单片机，编程",
+            "language": "zh-CN"
+        }
+        raise NotImplementedError
+        return source_info
+
+
+    @property
+    def table_name(self):
+        """返回表名或者collection名称，以及用于 RSS 文件的名称"""
+        return self.source_info["title"]
     
+    @abstractmethod
     @classmethod
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
-        """给起始页码（实际不是页码因为是瀑布流，1 代表前 12 个），yield 一篇一篇惰性返回，直到最后一篇"""
-        logger.info(f"{cls.title} start to parse")
+        """按照从新到旧的顺序返回"""
         while True:
             varied_query_dict = {"pagination[page]": start_page}
             query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items()) + '&' + cls.steady_query
             encoded_query = quote(query, safe='[]=&')
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
 
+            logger.info(f"{cls.title} start to parse page {start_page}")
             async with httpx.AsyncClient(follow_redirects=True) as client:
                 response = await client.get(url=url, headers=cls.headers)
             articles = response.json()
@@ -91,37 +92,23 @@ class WebsiteScraper:
 
             start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
-    
-    async def article_newer_than(self, datetime_):
-        async for a in WebsiteScraper.parse(self.logger):
-            if a["pub_time"] > datetime_:
-                yield a
-            else:
-                return
 
     async def first_add(self, amount: int = 10):
-        """接口.第一次添加时，要调用的接口"""
-        # 获取最新的 10 条，
-        i = 0
-        async for a in WebsiteScraper.parse(self.logger):
-            if i < amount:
-                i += 1
+        """接口.第一次添加时用的，比如获取最新的 10 条"""
+        async for a in self.__class__.parse(self.logger):
+            if amount > 0:
+                amount -= 1
                 yield a
             else:
                 return
-
-    def get_source_info(self):
-        """接口.返回元信息，主要用于 RSS"""
-        return WebsiteScraper.source_info
-
-    def get_table_name(self):
-        """接口.返回表名或者collection名称，用于 RSS 文件的名称"""
-        return WebsiteScraper.title
     
-    async def get_new(self, datetime_):
+    async def get_new(self, flag: datetime | int):
         """接口.第一次添加时，要调用的接口"""
-        async for a in self.article_newer_than(datetime_):
-            yield a
+        async for a in self.__class__.parse(self.logger):
+            if a[self.__class__.sort_by_key] > flag:
+                yield a
+            else:
+                return
 
 
 import api._v1
