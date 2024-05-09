@@ -3,6 +3,7 @@ import asyncio
 import signal
 from itertools import chain
 
+from website_scraper.example import FailtoGet
 from generate_rss import generate_rss_from_collection
 
 logger = logging.getLogger("crawler")
@@ -31,18 +32,18 @@ async def goto_uniform_flow(config, data, instance, sort_by_key):
     result = list(result)
     last_update_flag = result[0][sort_by_key] if result else False
     
-    if not last_update_flag:
-        # 若是第一次，数据库中没有数据
-        article_source = instance.first_add()
-    else:
-        article_source = instance.get_new(last_update_flag)
+    # 若是第一次，数据库中没有数据
+    article_source = instance.first_add() if not last_update_flag else instance.get_new(last_update_flag)
     
     try:
         got_new = await asyncio.wait_for(save_articles(data, source_name, sort_by_key, article_source), 60)
     except asyncio.TimeoutError:
         got_new = False
         logger.info(f"Processing {source_name} articles took too long.")
-    
+    except FailtoGet:
+        got_new = False
+        logger.info(f"FailtoGet: Processing {source_name} 网络出错")
+
     # 生成 RSS 并保存到目录
     if got_new:
         generate_rss_from_collection(source_info, collection, sort_by_key, config.rss_dir)
@@ -61,13 +62,18 @@ async def chapter_mode(config, data, cls, init_params: list):
     """对多实例的抓取器，比如番茄的小说，B 站用户关注动态"""
     sort_by_key = cls.sort_by_key
     for params in init_params:
-        if isinstance(params, dict) or isinstance(params, str):
-            instance = cls(params)
-        elif isinstance(params, list):
-            instance = cls(*params)
+        try:
+            if isinstance(params, dict) or isinstance(params, str):
+                instance = cls(params)
+            elif isinstance(params, list):
+                instance = cls(*params)
+            else:
+                instance = cls()
+        except FailtoGet:
+            got_new = False
+            logger.info(f"FailtoGet: 初始化多实例情况时网络出错")
         else:
-            instance = cls()
-        await goto_uniform_flow(config, data, instance, sort_by_key)
+            await goto_uniform_flow(config, data, instance, sort_by_key)
 
 
 async def monitor_website(config, data, plugins):

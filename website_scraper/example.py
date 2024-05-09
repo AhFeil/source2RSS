@@ -8,6 +8,9 @@ from typing import AsyncGenerator, Any
 import httpx
 
 
+class FailtoGet(Exception):
+    pass
+
 class WebsiteScraper(ABC):
     title = "技焉洲"
     home_url = "https://yanh.tech/"
@@ -29,6 +32,7 @@ class WebsiteScraper(ABC):
         self.logger = logging.getLogger(self.__class__.__name__)
 
     @property
+    @abstractmethod
     def source_info(self):
         """数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用"""
         return {
@@ -43,6 +47,7 @@ class WebsiteScraper(ABC):
         return self.source_info["title"]
     
     @classmethod
+    @abstractmethod
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """按照从新到旧的顺序返回"""
         while True:
@@ -51,9 +56,8 @@ class WebsiteScraper(ABC):
             encoded_query = quote(query, safe='[]=&')
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
             logger.info(f"{cls.title} start to parse page {start_page}")
+            # 若出现 FailtoGet，则由调度那里接收并跳过
             response = await cls.request(url)
-            if response is None:
-                return
 
             articles = response.json()
             # 超出结尾了
@@ -92,7 +96,7 @@ class WebsiteScraper(ABC):
             try:
                 response = await client.get(url=url, headers=cls.headers)
             except (httpx.ConnectTimeout, httpx.ReadTimeout):
-                return
+                raise FailtoGet
         return response
     
     async def first_add(self, amount: int = 10):
@@ -120,7 +124,7 @@ class WebsiteScraper(ABC):
 async def test():
     w = WebsiteScraper()
     print(w.source_info)
-    print(w.title)
+    print(w.table_name)
     async for a in w.first_add():
         print(a)
     print("----------")
