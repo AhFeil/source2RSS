@@ -12,9 +12,9 @@ class WebsiteScraper(ABC):
     title = "技焉洲"
     home_url = "https://yanh.tech/"
     admin_url = "https://yanh.tech/wp-content"
-    sort_by_key = "pub_time"
     # 请求每页之间的间隔，秒
     page_turning_duration = 5
+    sort_by_key = "pub_time"
 
     # https://curlconverter.com/
     headers = {
@@ -25,12 +25,9 @@ class WebsiteScraper(ABC):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
     }
     
-    @abstractmethod
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
-        raise NotImplementedError
 
-    @abstractmethod
     @property
     def source_info(self):
         """数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用"""
@@ -40,30 +37,28 @@ class WebsiteScraper(ABC):
             "description": "Linux，单片机，编程",
             "language": "zh-CN"
         }
-        raise NotImplementedError
         return source_info
-
 
     @property
     def table_name(self):
         """返回表名或者collection名称，以及用于 RSS 文件的名称"""
         return self.source_info["title"]
     
-    @abstractmethod
     @classmethod
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """按照从新到旧的顺序返回"""
         while True:
             varied_query_dict = {"pagination[page]": start_page}
-            query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items()) + '&' + cls.steady_query
+            query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items())
             encoded_query = quote(query, safe='[]=&')
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
-
             logger.info(f"{cls.title} start to parse page {start_page}")
-            async with httpx.AsyncClient(follow_redirects=True) as client:
-                response = await client.get(url=url, headers=cls.headers)
-            articles = response.json()
+            response = await cls.request(url)
+            if response is None:
+                return
 
+            articles = response.json()
+            # 超出结尾了
             if not articles["data"]:
                 return
 
@@ -93,6 +88,15 @@ class WebsiteScraper(ABC):
             start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
 
+    @classmethod
+    async def request(cls, url: str) -> httpx.Response | None:
+        async with httpx.AsyncClient(follow_redirects=True) as client:
+            try:
+                response = await client.get(url=url, headers=cls.headers)
+            except (httpx.ConnectTimeout, httpx.ReadTimeout):
+                return
+        return response
+    
     async def first_add(self, amount: int = 10):
         """接口.第一次添加时用的，比如获取最新的 10 条"""
         async for a in self.__class__.parse(self.logger):
@@ -111,12 +115,21 @@ class WebsiteScraper(ABC):
                 return
 
 
-import api._v1
-api._v1.register(WebsiteScraper)
+# import api._v1
+# api._v1.register(WebsiteScraper)
 
 
 async def test():
-    pass
+    c = WebsiteScraper()
+    print(c.source_info)
+    print(c.title)
+    async for a in c.first_add():
+        print(a)
+    print("----------")
+    async for a in c.get_new(datetime(2024, 4, 1)):
+        print(a)
+    print("----------")
+
 
 if __name__ == "__main__":
     asyncio.run(test())
