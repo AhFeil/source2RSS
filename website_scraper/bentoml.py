@@ -54,8 +54,6 @@ class BentoMLBlog(WebsiteScraper):
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
             logger.info(f"{cls.title} start to parse page {start_page}")
             response = await cls.request(url)
-            if response is None:
-                return
             
             articles = response.json()
             if not articles["data"]:
@@ -95,7 +93,7 @@ api._v1.register(BentoMLBlog)
 async def test():
     w = BentoMLBlog()
     print(w.source_info)
-    print(w.title)
+    print(w.table_name)
     async for a in w.first_add():
         print(a)
     print("----------")

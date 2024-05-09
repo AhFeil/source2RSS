@@ -35,8 +35,6 @@ class CSLRXYZ(WebsiteScraper):
             url = f"http://cslrxyz.xyz/index.php/page/{start_page}/"
             logger.info(f"{cls.title} start to parse page {start_page}")
             response = await cls.request(url)
-            if response is None:
-                return
             
             soup = BeautifulSoup(response.text, features="lxml")
             all_articles = soup.find_all('article', class_='excerpt')
@@ -77,7 +75,7 @@ api._v1.register(CSLRXYZ)
 async def test():
     c = CSLRXYZ()
     print(c.source_info)
-    print(c.title)
+    print(c.table_name)
     async for a in c.first_add():
         print(a)
     print("----------")
@@ -88,5 +86,5 @@ async def test():
 
 if __name__ == "__main__":
     asyncio.run(test())
-
+    # python -m website_scraper.cslrxyz
 
