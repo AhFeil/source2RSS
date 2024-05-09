@@ -31,13 +31,11 @@ class WebsiteScraper(ABC):
     @property
     def source_info(self):
         """数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用"""
-        source_info = {
+        return {
             "title": self.__class__.title,
             "link": self.__class__.home_url,
             "description": "Linux，单片机，编程",
-            "language": "zh-CN"
-        }
-        return source_info
+            "language": "zh-CN"}
 
     @property
     def table_name(self):
@@ -120,18 +118,18 @@ class WebsiteScraper(ABC):
 
 
 async def test():
-    c = WebsiteScraper()
-    print(c.source_info)
-    print(c.title)
-    async for a in c.first_add():
+    w = WebsiteScraper()
+    print(w.source_info)
+    print(w.title)
+    async for a in w.first_add():
         print(a)
     print("----------")
-    async for a in c.get_new(datetime(2024, 4, 1)):
+    async for a in w.get_new(datetime(2024, 4, 1)):
         print(a)
     print("----------")
 
 
 if __name__ == "__main__":
     asyncio.run(test())
-
+    # python -m website_scraper.example
 
