@@ -23,7 +23,7 @@ async def save_articles(data, source_name, sort_by_key, article_source) -> bool:
 
 async def goto_uniform_flow(config, data, instance, sort_by_key):
     # 确保 source 的元信息在数据库中
-    source_info, source_name = instance.get_source_info(), instance.get_table_name()
+    source_info, source_name = instance.source_info, instance.table_name
     data.exist_source_meta(source_info)
 
     collection = data.db[source_name]
