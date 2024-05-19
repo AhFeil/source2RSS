@@ -109,7 +109,8 @@ class FanQie(WebsiteScraper):
                 "article_name": chapter_title,
                 "chapter": chapter_title,
                 "chapter_number": chapter_number,
-                "summary": content,
+                "summary": content[0:100],
+                "content": content,
                 "article_url": f"{cls.home_url}/reader/{item_id}?enter_from=page",
                 "image_link": "",
                 "pub_time": time_obj

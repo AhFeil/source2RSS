@@ -36,9 +36,13 @@ def generate_rss(source_info: dict, articles: list[dict], rss_dir: str):
         fe.title(title)
         fe.link(href=url)
         fe.pubDate(pub_date)
-        fe.content(summary, type="CDATA")
         fe.description(summary[0:100])
         fe.enclosure(cover, 0, 'image/jpeg')
+
+        if content := article.get("content"):
+            lines = content.split("\n")
+            content = ''.join(f"<p>{l}</p>" if l else "<br />" for l in lines)
+            fe.content(content, type="CDATA")
 
     # 生成 RSS feed
     rss_feed = fg.rss_str(pretty=True)
