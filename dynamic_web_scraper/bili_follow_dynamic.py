@@ -18,7 +18,7 @@ class BiliFoDynamic(WebsiteScraper):
     title = "bilibili following dynamic"
     home_url = "https://www.bilibili.com"
     page_turning_duration = 5
-    sort_by_key = "pub_time"
+    key4sort = "pub_time"
 
     def __init__(self, config_dict):
         super().__init__()
@@ -36,13 +36,14 @@ class BiliFoDynamic(WebsiteScraper):
             "title": f"{self.config_dict['user_name']} 的关注动态",
             "link": self.__class__.home_url,
             "description": f"{self.config_dict['user_name']} 的关注动态",
-            "language": "zh-CN"}
+            "language": "zh-CN",
+            "key4sort": self.__class__.key4sort}
 
     async def get_valid_client(self, context: BrowserContext):
         # stealth.min.js is a js script to prevent the website from detecting the crawler.
         await context.add_init_script(path=environment.get_init_script())
         page = await context.new_page()
-        api_client = self.create_bilibili_client(await context.cookies())
+        api_client = BiliFoDynamic.create_bilibili_client(self.user_agent, await context.cookies())
 
         # 首页
         try:   # 进入首页都超时的话，就直接返回空，这次不再爬取
@@ -59,10 +60,14 @@ class BiliFoDynamic(WebsiteScraper):
             # 将 base64 转化为图片保存
             asyncio.get_running_loop().run_in_executor(None, image_.save_qrcode, base64_qrcode_img, self.image_root)
             
-            print(f"Waiting for scan code login")
-            flag = await self.check_login_state(context)
-            print(f"登录状态 {flag}")
-            if not flag:
+            self.logger.warning(f"Waiting for scan code login")
+            for _ in range(60):
+                if await api_client.not_available():
+                    time.sleep(3)
+                else:
+                    break
+            else:
+                self.logger.info(f"登录状态 False")
                 raise FailtoGet
             
             await context.storage_state(path=self.state_path)
@@ -170,18 +175,10 @@ class BiliFoDynamic(WebsiteScraper):
         base64_qrcode_img = str(await elements.get_property("src"))
         return base64_qrcode_img
 
-    async def check_login_state(self, context) -> bool:
-        for _ in range(60):
-            _, cookie_dict = environment.convert_cookies(await context.cookies())
-            if cookie_dict.get("SESSDATA", "") or cookie_dict.get("DedeUserID"):
-                return True
-            time.sleep(1)
-        return False
-
-
-    def create_bilibili_client(self, cookies):
+    @classmethod
+    def create_bilibili_client(user_agent: str, cookies):
         cookie_str, cookie_dict = environment.convert_cookies(cookies)
-        headers = {"User-Agent": self.user_agent, "Cookie": cookie_str}
+        headers = {"User-Agent": user_agent, "Cookie": cookie_str}
         return BilibiliClient(headers=headers, cookie_dict=cookie_dict)
 
 
