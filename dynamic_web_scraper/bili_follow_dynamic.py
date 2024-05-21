@@ -64,6 +64,8 @@ class BiliFoDynamic(WebsiteScraper):
             for _ in range(60):
                 if await api_client.not_available():
                     time.sleep(3)
+                    cookie_str, cookie_dict = environment.convert_cookies(await context.cookies())
+                    api_client.update_cookies(cookie_str, cookie_dict)
                 else:
                     break
             else:
