@@ -73,9 +73,7 @@ class BiliFoDynamic(WebsiteScraper):
                 raise FailtoGet
             
             await context.storage_state(path=self.state_path)
-            # 登录后更新
-            cookie_str, cookie_dict = environment.convert_cookies(await context.cookies())
-            api_client.update_cookies(cookie_str, cookie_dict)
+
         # 返回拥有登录后的 cookie
         return api_client
 

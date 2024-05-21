@@ -57,7 +57,9 @@ async def goto_remote_flow(config, data, instance, url):
     rss_info = await get_rss_info(f"{url}rss_info/test/{source_name}/")
     rss_info = rss_info.json()
     last_update_flag = rss_info["last_update_flag"]
-    
+    if key4sort in {"pub_time"}:
+        last_update_flag = datetime.fromtimestamp(last_update_flag)
+
     # 若是第一次，数据库中没有数据
     article_source = instance.first_add() if not last_update_flag else instance.get_new(last_update_flag)
 

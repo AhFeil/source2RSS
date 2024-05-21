@@ -42,6 +42,8 @@ async def get_info(user_name: str, source_name: str):
     result = collection.find({}, {key4sort: 1}).sort(key4sort, -1).limit(1)
     result = list(result)
     last_update_flag = result[0][key4sort] if result else False
+    if key4sort in {"pub_time"}:
+        last_update_flag = last_update_flag.timestamp()
     return {"last_update_flag": last_update_flag}
 
 
