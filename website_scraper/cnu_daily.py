@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from typing import AsyncGenerator, Any
 
@@ -92,7 +93,6 @@ async def test():
 
 
 if __name__ == "__main__":
-    import asyncio
     asyncio.run(test())
     # python -m website_scraper.cnu_daily
 

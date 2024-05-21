@@ -36,7 +36,7 @@ def generate_rss(source_info: dict, articles: list[dict], rss_dir: str):
         fe.title(title)
         fe.link(href=url)
         fe.pubDate(pub_date)
-        fe.description(summary[0:100])
+        fe.description(summary)
         fe.enclosure(cover, 0, 'image/jpeg')
 
         if content := article.get("content"):
