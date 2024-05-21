@@ -55,6 +55,7 @@ class ArticleInfo(BaseModel):
 
 class SortKey(str, Enum):
     pub_date = "pub_date"
+    pub_time = "pub_time"
     chapter_number = "chapter_number"
 
 class PublishMethod(BaseModel):

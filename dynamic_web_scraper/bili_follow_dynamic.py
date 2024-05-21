@@ -18,7 +18,7 @@ class BiliFoDynamic(WebsiteScraper):
     title = "bilibili following dynamic"
     home_url = "https://www.bilibili.com"
     page_turning_duration = 5
-    key4sort = "pub_date"
+    key4sort = "pub_time"
 
     def __init__(self, config_dict):
         super().__init__()
@@ -93,7 +93,7 @@ class BiliFoDynamic(WebsiteScraper):
                         return
             else:
                 async for a in BiliFoDynamic.parse(self.logger, api_client):
-                    if a["pub_date"] > datetime_:
+                    if a["pub_time"] > datetime_:
                         yield a
                     else:
                         return
@@ -157,7 +157,7 @@ class BiliFoDynamic(WebsiteScraper):
                     "summary": description,
                     "article_url": article_url,
                     "image_link": image_link,
-                    "pub_date": time_obj
+                    "pub_time": time_obj
                 }
 
                 yield article
