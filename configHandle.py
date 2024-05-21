@@ -59,6 +59,7 @@ class Config:
         self.mongo_dbname = user_configs['mongo_dbname']
 
         self.enabled_web_scraper = user_configs.get('enabled_web_scraper', "all")
+        self.remote_pub_scraper = user_configs.get('remote_pub_scraper', {})
         self.rss_dir = user_configs['rss_dir']
         os.makedirs(self.rss_dir, exist_ok=True)
         self.domain_url = user_configs['domain_url']

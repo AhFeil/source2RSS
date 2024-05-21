@@ -4,9 +4,20 @@
 
 为不提供 RSS 的网站编写程序提供 RSS
 
-```
-uvicorn main:app --host 0.0.0.0 --port 7500
-```
+
+
+
+可以选择在一台电脑上只运行 crawler，将数据发给 source2RSS API ，让它生成 RSS
+
+
+
+
+
+
+
+
+
+
 
 
 通过插件架构，方便添加新网站的刮削器
