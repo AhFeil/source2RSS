@@ -24,14 +24,15 @@ class SourceMeta(BaseModel):
     
 class ArticleInfo(BaseModel):
     article_name: str 
-    article_url: HttpUrl ="https://yanh.tech/"
+    article_url: HttpUrl | str ="https://yanh.tech/"   # 这个应该是网址或者空字符串
     pub_time: float = datetime.fromtimestamp(0)  # 时间戳
     summary: str = ""
-    image_link: HttpUrl = "https://yanh.tech/"
+    content: str = ""
+    image_link: HttpUrl | str = "https://yanh.tech/"
 
     # 上面是 RSS 必需的,下面是补充、辅助的
     # 用于排序,比如小说按照章节排更合适,虽然发布时间理应对应章节顺序 
-    chapter: int = 0
+    chapter_number: int = 0
     
     def model_dump(self):
         return {
@@ -39,8 +40,9 @@ class ArticleInfo(BaseModel):
             "article_url": str(self.article_url),
             "pub_time": self.pub_time,
             "summary": self.summary,
+            "content": self.content,
             "image_link": str(self.image_link),
-            "chapter": self.chapter
+            "chapter_number": self.chapter_number
         }
     
     @field_validator('pub_time')
@@ -51,10 +53,10 @@ class ArticleInfo(BaseModel):
 
 class SortKey(str, Enum):
     pub_date = "pub_date"
-    chapter = "chapter"
+    chapter_number = "chapter_number"
 
 class PublishMethod(BaseModel):
-    source_name: str
+    source_name: str | None = None
     key4sort: SortKey = SortKey.pub_date
 
 
@@ -90,6 +92,7 @@ class Data:
             "link": "",
             "description": "",
             "language": ""
+            "key4sort": ""
         }
         """
         self.meta_collection.insert_one(source_info)
@@ -110,5 +113,5 @@ if __name__ == "__main__":
     # config = preprocess.config
     # data = preprocess.data
 
-    m = ArticleInfo(title="a title", key4sort="chapter")
+    m = ArticleInfo(title="a title", key4sort="chapter_number")
     print(m)
