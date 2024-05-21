@@ -9,7 +9,7 @@ class CNUDaily(WebsiteScraper):
     title = "CNU 每日精选"
     home_url = "http://www.cnu.cc/"
     page_turning_duration = 5
-    sort_by_key = "pub_time"
+    key4sort = "pub_time"
 
     headers = {
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
@@ -27,7 +27,8 @@ class CNUDaily(WebsiteScraper):
             "title": self.__class__.title,
             "link": self.__class__.home_url,
             "description": "CNU 每日精选",
-            "language": "zh-CN"}
+            "language": "zh-CN",
+            "key4sort": self.__class__.key4sort}
 
     @classmethod
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:

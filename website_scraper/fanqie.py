@@ -12,7 +12,7 @@ class FanQie(WebsiteScraper):
     home_url = "https://fanqienovel.com"
     admin_url = "http://82.157.53.75:1180"
     page_turning_duration = 2
-    sort_by_key = "chapter_number"
+    key4sort = "chapter_number"
     headers = {}
     
     def __init__(self, book_title, book_id) -> None:
@@ -60,7 +60,8 @@ class FanQie(WebsiteScraper):
             "author": author,
             "abstract": abstract,
             "source": source,
-            "create_time": create_time}
+            "create_time": create_time,
+            "key4sort": FanQie.key4sort}
     
 
     @classmethod

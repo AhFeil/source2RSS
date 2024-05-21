@@ -10,7 +10,7 @@ class CSLRXYZ(WebsiteScraper):
     title = "二语习得英语学习中文网"
     home_url = "http://cslrxyz.xyz"
     page_turning_duration = 10
-    sort_by_key = "pub_time"
+    key4sort = "pub_time"
 
     headers = {
         'Accept-Language': 'zh-CN,en-US',
@@ -24,7 +24,8 @@ class CSLRXYZ(WebsiteScraper):
             "title": self.__class__.title,
             "link": self.__class__.home_url,
             "description": "分享英语学习方法、工具使用和影评",
-            "language": "zh-CN"
+            "language": "zh-CN",
+            "key4sort": self.__class__.key4sort
         }
         return source_info
         

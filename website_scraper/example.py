@@ -17,7 +17,7 @@ class WebsiteScraper(ABC):
     admin_url = "https://yanh.tech/wp-content"
     # 请求每页之间的间隔，秒
     page_turning_duration = 5
-    sort_by_key = "pub_time"
+    key4sort = "pub_time"
 
     # https://curlconverter.com/
     headers = {
@@ -39,7 +39,8 @@ class WebsiteScraper(ABC):
             "title": self.__class__.title,
             "link": self.__class__.home_url,
             "description": "Linux，单片机，编程",
-            "language": "zh-CN"}
+            "language": "zh-CN",
+            "key4sort": self.__class__.key4sort}
 
     @property
     def table_name(self):

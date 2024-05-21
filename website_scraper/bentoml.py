@@ -11,7 +11,7 @@ class BentoMLBlog(WebsiteScraper):
     home_url = "https://www.bentoml.com/blog"
     admin_url = "https://admin.bentoml.com"
     page_turning_duration = 5
-    sort_by_key = "pub_time"
+    key4sort = "pub_time"
 
     headers = {
         'Accept-Language': 'en-US,en;q=0.9',
@@ -42,8 +42,9 @@ class BentoMLBlog(WebsiteScraper):
             "title": self.__class__.title,
             "link": self.__class__.home_url,
             "description": "Dive into the transformative world of AI application development with us! From expert insights to innovative use cases, we bring you the latest in efficiently deploying AI at scale.",
-            "language": "En"}
-    
+            "language": "En",
+            "key4sort": self.__class__.key4sort}
+
     @classmethod
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         while True:
