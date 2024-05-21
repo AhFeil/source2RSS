@@ -176,7 +176,7 @@ class BiliFoDynamic(WebsiteScraper):
         return base64_qrcode_img
 
     @classmethod
-    def create_bilibili_client(user_agent: str, cookies):
+    def create_bilibili_client(cls, user_agent: str, cookies):
         cookie_str, cookie_dict = environment.convert_cookies(cookies)
         headers = {"User-Agent": user_agent, "Cookie": cookie_str}
         return BilibiliClient(headers=headers, cookie_dict=cookie_dict)
