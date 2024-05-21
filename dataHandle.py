@@ -13,13 +13,15 @@ class SourceMeta(BaseModel):
     link: HttpUrl = "https://yanh.tech/"
     description: str = f"这是一个 RSS 源， 由 source2RSS 项目程序生成"
     language: str = "zh-CN"
+    key4sort: str = "pub_time"
 
     def model_dump(self):
         return {
             "title": self.title,
             "link": str(self.link),
             "description": self.description,
-            "language": self.language
+            "language": self.language,
+            "key4sort": self.key4sort
         }
     
 class ArticleInfo(BaseModel):
