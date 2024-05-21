@@ -112,7 +112,7 @@ class WebsiteScraper(ABC):
     async def get_new(self, flag: datetime | int):
         """接口.第一次添加时，要调用的接口"""
         async for a in self.__class__.parse(self.logger):
-            if a[self.__class__.sort_by_key] > flag:
+            if a[self.__class__.key4sort] > flag:
                 yield a
             else:
                 return
