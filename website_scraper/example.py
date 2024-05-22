@@ -96,7 +96,7 @@ class WebsiteScraper(ABC):
         async with httpx.AsyncClient(follow_redirects=True) as client:
             try:
                 response = await client.get(url=url, headers=cls.headers)
-            except (httpx.ConnectTimeout, httpx.ReadTimeout):
+            except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout):
                 raise FailtoGet
         return response
     
