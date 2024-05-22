@@ -3,6 +3,7 @@ httpx
 pymongo
 feedgen
 schedule
+pytz
 beautifulsoup4
 pytest-playwright
 Pillow
