@@ -52,9 +52,10 @@ class Config:
 
         # 用户配置
         self.is_production = user_configs['is_production']
-        self.run_everyday_at = user_configs.get("run_everyday_at", "06:00")
+        run_everyday_at = user_configs.get("run_everyday_at", "06:00")
+        self.run_everyday_at = [run_everyday_at] if isinstance(run_everyday_at, str) else run_everyday_at
+        self.timezone = user_configs.get('timezone')
         self.WAIT = user_configs.get("WAIT", 1800) if self.is_production else 1
-
         self.mongodb_uri = user_configs['mongodb_uri']
         self.mongo_dbname = user_configs['mongo_dbname']
 

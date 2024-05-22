@@ -40,9 +40,10 @@ job = sync_wrapper
 
 
 if config.is_production:
-    point = config.run_everyday_at
-    # schedule.every().day.at(point).do(job)
-    schedule.every().hour.do(job)
+    for point in config.run_everyday_at:
+        schedule.every().day.at(point, config.timezone).do(job)
+    for job_info in schedule.get_jobs():
+        print(job_info.next_run)
 else:
     schedule.every(config.run_test_every_seconds).seconds.do(job)
 
