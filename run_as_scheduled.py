@@ -34,7 +34,13 @@ def run_continuously(interval=1):
 
 
 def sync_wrapper():
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except:
+        import traceback
+        with open("unpredictable_exception.txt", 'a', encoding="utf-8") as f:
+            print(traceback.format_exc())
+            f.write(traceback.format_exc())
 
 job = sync_wrapper
 
