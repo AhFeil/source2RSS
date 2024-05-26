@@ -135,7 +135,7 @@ class BiliFoDynamic(WebsiteScraper):
                 if attributes := a["major"].get("archive"):
                     aid = attributes["aid"]
                     bvid = attributes["bvid"]
-                    name = attributes["title"]
+                    name = attributes["title"] + " - " + author["name"]
                     description = attributes["desc"]
                     article_url = "https:" + attributes["jump_url"]
                     image_link = attributes["cover"]
