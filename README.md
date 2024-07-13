@@ -1,7 +1,7 @@
 # source2RSS
 
 
-source2RSS 是一个信息源转 RSS 的框架，支持两大类信息源： 
+source2RSS 是一个信息源转 RSS 的 Python 框架，支持两大类信息源： 
 1. 参考官方自带的抓取器，继承抽象基类编写抓取器，并作为插件供主程序调用，提供网站信息流
 2. 提供 API 接收合法格式的 JSON 数据
 
@@ -18,6 +18,16 @@ source2RSS 依赖 MongoDB 保存源的信息流和源的元信息，并在信息
 安装步骤在博客： [信息源转 RSS 框架 - source2RSS 的安装步骤 - 技焉洲 (yanh.tech)](https://yanh.tech/2024/07/deployment-process-for-source2rss-a-framework-for-converting-information-source-into-rss/)
 
 
+## 现有的抓取器
+
+可以前往此网页查看已有的 RSS 源： [Index of /source2rss/ (vfly2.com)](https://rss.vfly2.com/source2rss/)
+
+除了几个博客和静态网站，最有用的可能是 B站动态 和 番茄小说。
+
+B站动态的使用：在配置文件中启用，并添加一些初始化信息后，扫二维码登录。
+
+番茄小说需要有一个 root 权限的手机，下载番茄小说APP，然后还要安装 Magisk 和 LSPosed，最后在 LSPosed 加载一个模块，就能开启一个番茄小说的 API。本项目中的抓取器正是基于这个 API 获取的数据。
+
 
 
 ## 思路
@@ -31,7 +41,9 @@ source2RSS 依赖 MongoDB 保存源的信息流和源的元信息，并在信息
 
 不看细节，看思路：【抓取器提供信息流】-【MongoDB 保存信息流（最终效果是存储着信息源的所有文章）】-【根据表中数据生成最新的 RSS 文件】-【Nginx 公开访问】
 
-API 的工作流程类似，只是信息流变成了收到的数据，定期执行变为了被动触发
+API 的工作流程类似，只是信息流变成了收到的数据，定期执行变为了被动触发。
+
+使用 FastAPI 监听传入的信息源，在新线程中运行定期抓取。
 
 ---
 
