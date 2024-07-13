@@ -40,7 +40,7 @@ class CareerTsinghua(WebsiteScraper):
         source_info = {
             "title": self.__class__.title,
             "link": self.__class__.home_url,
-            "description": self.__class__.title,
+            "description": "清华大学学生职业发展指导中心的招聘信息，本源不会显示置顶文章",
             "language": "zh-CN",
             "key4sort": self.__class__.key4sort
         }

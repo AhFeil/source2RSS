@@ -85,8 +85,19 @@ class Data:
 
     def exist_source_meta(self, source_info: dict):
         # 确保存在元信息
-        if not self.meta_collection.find_one({"title": source_info["title"]}):
+        may_exist= self.meta_collection.find_one({"title": source_info["title"]}, {"_id": 0})
+        if not may_exist:
+            # 元信息不存在就添加
             self._add_source2meta(source_info)
+            self.logger.info(f"{source_info['title']} Add into source_meta")
+        elif may_exist != source_info:
+            # 元信息不一致就更新
+            self.meta_collection.delete_one({"title": source_info["title"]})
+            self._add_source2meta(source_info)
+            self.logger.info(f"{source_info['title']} Update its source_meta")
+        else:
+            # 元信息保持不变就跳过
+            pass
 
     def _add_source2meta(self, source_info: dict):
         """添加某个来源的元信息
@@ -99,7 +110,6 @@ class Data:
         }
         """
         self.meta_collection.insert_one(source_info)
-        self.logger.info(f"{source_info['title']} Add into source_meta")
 
     def _clear_db(self):
         # 清空 collection，仅开发时使用
