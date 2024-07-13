@@ -15,7 +15,7 @@ source2RSS 依赖 MongoDB 保存源的信息流和源的元信息，并在信息
 > 用 Python 抓取和提取结构简单的网站数据并不困难，一般半小时就够，但是还需要制成 RSS、保留历史文章、定期运行等功能才能实际使用。
 > 这个框架，就是为此目的开发的，只需要关注信息源的抓取和格式化，其余的交给框架，最终返回 RSS 文件。
 
-安装步骤在博客： [信息源转 RSS 框架 - source2RSS 的安装步骤 - 技焉洲 (yanh.tech)](https://yanh.tech/2024/07/deployment-process-for-source2rss-a-framework-for-converting-information-source-into-rss/)
+安装步骤在博客： [信息源转 RSS 框架 - source2RSS 的安装步骤 - 技焉洲 (yanh.tech)](https://yanh.tech/2024/07/deployment-process-for-source2rss/)
 
 
 ## 现有的抓取器
@@ -27,6 +27,10 @@ source2RSS 依赖 MongoDB 保存源的信息流和源的元信息，并在信息
 B站动态的使用：在配置文件中启用，并添加一些初始化信息后，扫二维码登录。
 
 番茄小说需要有一个 root 权限的手机，下载番茄小说APP，然后还要安装 Magisk 和 LSPosed，最后在 LSPosed 加载一个模块，就能开启一个番茄小说的 API。本项目中的抓取器正是基于这个 API 获取的数据。
+
+
+## API 接收的合法 JSON 数据
+
 
 
 
