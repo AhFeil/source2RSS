@@ -57,7 +57,7 @@ def generate_rss_from_collection(source_info, collection: str, rss_dir):
     """从 collection 中取出前 10 条最新的消息，调用 generate_rss 生成 RSS 文件"""
     # 创建一个时区对象
     key4sort = source_info["key4sort"]
-    result = collection.find({}, {'article_infomation': 1}).sort(key4sort, -1).limit(10)   # 含有 '_id', 由新到旧、由大到小排序
+    result = collection.find({}, {'article_infomation': 1}).sort(key4sort, -1).limit(50)   # 含有 '_id', 由新到旧、由大到小排序
     result = list(result)
     # result 的结构是 [{ "_id":, "article_infomation": {} },    ]
     generate_rss(source_info, result, rss_dir)
