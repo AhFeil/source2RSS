@@ -21,7 +21,7 @@ enabled_web_scraper: ["website_scraper.bentoml", "website_scraper.cslrxyz", "web
 # 定时运行的时间
 run_everyday_at: ["06:00", "12:00", "19:00", "22:00", "23:00", "23:23", "00:00"]
 timezone: Asia/Shanghai
-WAIT: 1800
+WAIT: 900
 
 
 cls_init_params:
