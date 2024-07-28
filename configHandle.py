@@ -63,7 +63,6 @@ class Config:
         self.remote_pub_scraper = user_configs.get('remote_pub_scraper', {})
         self.rss_dir = user_configs['rss_dir']
         os.makedirs(self.rss_dir, exist_ok=True)
-        self.domain_url = user_configs['domain_url']
         
         self.image_root = user_configs['image_root']
         os.makedirs(self.image_root, exist_ok=True)

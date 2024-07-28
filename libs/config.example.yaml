@@ -10,10 +10,10 @@ rss_dir: config_and_data_files/rss/
 # 运行中获取的图片默认保存的位置
 image_root: config_and_data_files/images
 # 启用需要的抓取器
-enabled_web_scraper: ["website_scraper.bentoml", "website_scraper.cslrxyz", "website_scraper.cnu_daily", "website_scraper.career_tsinghua"]
+enabled_web_scraper: ["website_scraper.bentoml", "website_scraper.cslrxyz", "website_scraper.cnu_daily", "website_scraper.career_tsinghua", "website_scraper.daily_blog"]
 
-# 全部可用的官方抓取器，比上面的多了 番茄小说 和 B站动态，这两个需要额外配置才能使用
-# enabled_web_scraper: ["website_scraper.bentoml", "website_scraper.cslrxyz", "website_scraper.fanqie", "website_scraper.cnu_daily", "website_scraper.career_tsinghua", "dynamic_web_scraper.bili_follow_dynamic"]
+# 除上面外的抓取器，多了 番茄小说 和 B站动态，这两个需要额外配置才能使用
+# ["website_scraper.fanqie", "dynamic_web_scraper.bili_follow_dynamic"]
 # 给远程发送数据的用这个（比如 B站动态 放在国内机器上，配置下面一条就会在抓取后把新消息传给其他机器）
 # remote_pub_scraper: {BiliFoDynamic: http://1.2.3.5:7500/}
 
