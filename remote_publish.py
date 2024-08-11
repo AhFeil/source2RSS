@@ -36,17 +36,28 @@ async def save_articles(source_name, key4sort, article_source, url) -> bool:
     got_new = False
     articles = []
     pub_method = {"key4sort": key4sort}
-    async for a in article_source:
-        articles.append(a)
-        logger.info(f"{source_name} have new article: {a['article_name']}")
-        got_new = True
+
+    try:
+        async for a in article_source:
+            articles.append(a)
+            logger.info(f"{source_name} have new article: {a['article_name']}")
+            got_new = True
+    except asyncio.TimeoutError:
+        logger.info(f"Processing {source_name} articles took too long.")
+    except FailtoGet:
+        logger.info(f"FailtoGet: Processing {source_name} 网络出错")
+    except Exception as e:
+        logger.warning("Processing %s Unpredictable Exception: %s", source_name, e)
 
     if got_new:
-        res = await push2rss(articles, pub_method, url)
-        logger.info(f"{source_name} return info {res.content}")
+        try:
+            res = await push2rss(articles, pub_method, url)
+        except Exception as e:
+            logger.warning("Server is inaccessible %s", e)
+        else:
+            logger.info(f"{source_name} return info {res.content}")
     else:
         logger.info(f"{source_name} didn't update")
-
 
 async def goto_remote_flow(config, data, instance, url):
     # 确保 source 的元信息在数据库中
@@ -63,15 +74,7 @@ async def goto_remote_flow(config, data, instance, url):
     # 若是第一次，数据库中没有数据
     article_source = instance.first_add() if not last_update_flag else instance.get_new(last_update_flag)
 
-    print(f"{url}rss_items/test/{source_name}/")
-    try:
-        await asyncio.wait_for(save_articles(source_name, key4sort, article_source, f"{url}rss_items/test/{source_name}/"), 120)
-    except asyncio.TimeoutError:
-        logger.info(f"Processing {source_name} articles took too long.")
-    except FailtoGet:
-        logger.info(f"FailtoGet: Processing {source_name} 网络出错")
-    # except Exception as e:
-    #     logger.info(f"Processing {source_name} 未知异常： {e}")
+    await asyncio.wait_for(save_articles(source_name, key4sort, article_source, f"{url}rss_items/test/{source_name}/"), 120)
 
 
 

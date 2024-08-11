@@ -9,15 +9,22 @@ logger = logging.getLogger("local_publish")
 
 async def save_articles(data, source_name, key4sort, article_source) -> bool:
     got_new = False
-    async for a in article_source:
-        # 每篇文章整合成一个文档，存入相应集合
-        one_article_etc = {
-            "article_infomation": a, 
-            key4sort: a[key4sort]
-        }
-        data.store2database(source_name, one_article_etc)
-        logger.info(f"{source_name} have new article: {a['article_name']}")
-        got_new = True
+    try:
+        async for a in article_source:
+            # 每篇文章整合成一个文档，存入相应集合
+            one_article_etc = {
+                "article_infomation": a, 
+                key4sort: a[key4sort]
+            }
+            data.store2database(source_name, one_article_etc)
+            logger.info(f"{source_name} have new article: {a['article_name']}")
+            got_new = True
+    except asyncio.TimeoutError:
+        logger.info(f"Processing {source_name} articles took too long.")
+    except FailtoGet:
+        logger.info(f"FailtoGet: Processing {source_name} 网络出错")
+    except Exception as e:
+        logger.warning("Unpredictable Exception: %s", e)
     return got_new
 
 async def goto_uniform_flow(config, data, instance):
@@ -34,14 +41,7 @@ async def goto_uniform_flow(config, data, instance):
     # 若是第一次，数据库中没有数据
     article_source = instance.first_add() if not last_update_flag else instance.get_new(last_update_flag)
     
-    try:
-        got_new = await asyncio.wait_for(save_articles(data, source_name, key4sort, article_source), 60)
-    except asyncio.TimeoutError:
-        got_new = False
-        logger.info(f"Processing {source_name} articles took too long.")
-    except FailtoGet:
-        got_new = False
-        logger.info(f"FailtoGet: Processing {source_name} 网络出错")
+    got_new = await asyncio.wait_for(save_articles(data, source_name, key4sort, article_source), 60)
 
     # 生成 RSS 并保存到目录
     if got_new:

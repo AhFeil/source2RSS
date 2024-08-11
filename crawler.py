@@ -26,7 +26,6 @@ async def chapter_mode(config, data, cls, init_params: list):
             else:
                 instance = cls()
         except FailtoGet:
-            got_new = False
             logger.info(f"FailtoGet: 初始化多实例情况时网络出错")
         else:
             if url := config.remote_pub_scraper.get(cls.__name__):
