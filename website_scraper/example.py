@@ -46,6 +46,11 @@ class WebsiteScraper(ABC):
     def table_name(self):
         """返回表名或者collection名称，以及用于 RSS 文件的名称"""
         return self.source_info["title"]
+
+    @property
+    def max_wait_time(self):
+        """返回在本次执行中，从执行开始到结束占用最长时间，单位秒"""
+        return self.__class__.page_turning_duration * 20
     
     @classmethod
     @abstractmethod
