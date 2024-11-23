@@ -1,6 +1,6 @@
 import re
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import AsyncGenerator, Any
 
 import httpx
@@ -46,6 +46,9 @@ class FanQie(WebsiteScraper):
         abstract = book_info_json["abstract"]
         book_name = book_info_json["book_name"]
         create_time = book_info_json["create_time"]
+        # 删除时区部分，单独处理
+        # s_time, _ = create_time.rsplit("+", 1)
+        # time_obj = datetime.strptime(s_time, "%Y-%m-%dT%H:%M:%S")
         last_chapter_title = book_info_json["last_chapter_title"]
         source = book_info_json["source"]   # 番茄转载的小说，来源网站
         abstract = book_info_json["abstract"]
@@ -72,6 +75,9 @@ class FanQie(WebsiteScraper):
             pass
         else:
             catalog_list = reversed(catalog_list)
+        last_chapter_order = -1
+        n = 0
+        current_time = datetime.now()
         for i, c in enumerate(catalog_list, start=1):
             if old2new and i < start_chapter:
                 # 从旧到最新篇，可以指定从哪一章开始。从新到旧不能指定
@@ -95,17 +101,18 @@ class FanQie(WebsiteScraper):
             volume_name = novel_data["volume_name"]
             next_item_id = novel_data['next_item_id']
             pre_item_id = novel_data['pre_item_id']
-            create_time = novel_data["create_time"]
-            # 删除时区部分，单独处理
-            s_time, _ = create_time.rsplit("+", 1)
-            # 转换时间部分
-            time_obj = datetime.strptime(s_time, "%Y-%m-%dT%H:%M:%S")
+            real_chapter_order = int(novel_data['real_chapter_order'])
             
             chapter = re.findall(pattern=r"第(.*?)章", string=chapter_title) or re.findall(pattern=r"^(.*?)、", string=chapter_title) or [0]
             chapter_number = int(chapter[0])
             if old2new and chapter_number < start_chapter:
                 # 从旧到最新篇，修正，如果中间夹杂着通知类的章节，用这个补偿
                 continue
+
+            # 抓取时若有两篇新的，如先是 21 章，然后 20 章，则 n 是 0 和 -1，这样旧的时间就小；反过来先 20 再 21，则 n = 0， n = 1，满足
+            n += 0 if last_chapter_order == -1 else real_chapter_order - last_chapter_order
+            amend_pub_time = current_time + timedelta(minutes=2 * n)
+
             article = {
                 "article_name": chapter_title,
                 "chapter": chapter_title,
@@ -114,7 +121,7 @@ class FanQie(WebsiteScraper):
                 "content": content,
                 "article_url": f"{cls.home_url}/reader/{item_id}?enter_from=page",
                 "image_link": "",
-                "pub_time": time_obj
+                "pub_time": amend_pub_time
             }
 
             yield article
@@ -126,6 +133,7 @@ class FanQie(WebsiteScraper):
             if not old2new and pre_item_id == "":
                 break
             
+            last_chapter_order = real_chapter_order
             await asyncio.sleep(cls.page_turning_duration)
 
 
