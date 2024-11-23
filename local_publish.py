@@ -26,14 +26,14 @@ async def save_articles(data, source_name, key4sort, article_source) -> bool:
         logger.info(f"FailtoGet: Processing {source_name} 网络出错")
     except Exception as e:
         logger.warning("Unpredictable Exception: %s", e)
-
-    if got_new:
-        # 获得文章后，按从旧到新、从小到大的顺序放入 DB，这样即便中间出错中断，下次更新时会从中断处补充
-        try:
-            for one_article_etc in reversed(all_article_etc):
-                data.store2database(source_name, one_article_etc)
-        except Exception as e:
-            logger.warning("data.store2database(source_name, a) Unpredictable Exception: %s", e)
+    else:
+        if got_new:
+            # 获得文章后，按从旧到新、从小到大的顺序放入 DB，这样即便中间出错中断，下次更新时会从中断处补充
+            try:
+                for one_article_etc in reversed(all_article_etc):
+                    data.store2database(source_name, one_article_etc)
+            except Exception as e:
+                logger.warning("data.store2database(source_name, a) Unpredictable Exception: %s", e)
     return got_new
 
 async def goto_uniform_flow(config, data, instance: WebsiteScraper):
