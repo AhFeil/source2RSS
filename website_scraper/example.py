@@ -60,6 +60,14 @@ class WebsiteScraper(ABC):
             # 若出现 FailtoGet，则由调度那里接收并跳过
             response = await cls.request(url)
 
+            # 初次适配使用，保存网站数据
+            # with open("for_test.html", 'w', encoding='utf-8') as f:
+            #     f.write(response.text)
+            # break
+            # 初次适配使用，读取网站数据
+            # with open("for_test.html", 'r', encoding='utf-8') as f:
+            #     response_text = f.read()
+            
             articles = response.json()
             # 超出结尾了
             if not articles["data"]:
