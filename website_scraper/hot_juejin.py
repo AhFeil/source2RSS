@@ -45,7 +45,7 @@ class HotJuejin(WebsiteScraper):
         logger.info(f"{cls.title} start to parse page 1")   # 只有一页
         response = await cls.request(url)
         articles = response.json()
-        if not articles["data"]:
+        if articles and not articles["data"]:
             return
         
         # 首次全读，其他时候按照文章 id 排序，从大到小读
@@ -71,12 +71,16 @@ class HotJuejin(WebsiteScraper):
                 soup = BeautifulSoup(html_content, features="lxml")
 
                 meta_info = soup.find('div', class_='meta-box')
-                time = meta_info.find('time', class_="time")["datetime"]
+                time = meta_info.find('time', class_="time")
+                if time:
+                    time = time["datetime"]
+                else:
+                    continue
                 time_obj = datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
                 description = soup.find('div', class_='message')
                 description = description.p.text if description else ""
                 image_link = soup.find('img', class_='medium-zoom-image')
-                image_link = image_link["src"] if ["src"] else "http://example.com"
+                image_link = image_link["src"] if image_link else "http://example.com"
 
                 article = {
                     "article_name": title,
