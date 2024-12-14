@@ -4,7 +4,7 @@ from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
-
+from playwright._impl._errors import TimeoutError
 from utils import environment
 from .example import WebsiteScraper
 
@@ -65,8 +65,12 @@ class HotJuejin(WebsiteScraper):
                 title = a["content"]["title"]
                 content_id = a["content"]["content_id"]
                 article_url = f"{cls.home_url}/post/{content_id}"
+                try:
+                    await page.goto(article_url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
+                except TimeoutError as e:
+                    logger.warning(f"Page navigation timed out: {e}")
+                    continue
 
-                await page.goto(article_url, timeout=60000, wait_until='networkidle')   # 单位毫秒共 60 秒
                 html_content = await page.content()
                 soup = BeautifulSoup(html_content, features="lxml")
 
