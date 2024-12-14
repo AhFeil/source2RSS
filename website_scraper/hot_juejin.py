@@ -39,6 +39,10 @@ class HotJuejin(WebsiteScraper):
             "language": "zh-CN",
             "key4sort": self.__class__.key4sort}
 
+    @property
+    def max_wait_time(self):
+        return HotJuejin.page_turning_duration * 60
+    
     @classmethod
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         url = f"{cls.admin_url}/article_rank?{cls.steady_query}"
