@@ -136,14 +136,8 @@ class FanQie(WebsiteScraper):
             last_chapter_order = real_chapter_order
             await asyncio.sleep(cls.page_turning_duration)
 
-
-    async def chapter_greater_than(self, chapter: int):
-        """从新到旧，直到小于指定的 chapter"""
-        async for a in FanQie.parse(self.logger, self.catalog_list):
-            if a["chapter_number"] > chapter:
-                yield a
-            else:
-                return
+    def custom_parameter_of_parse(self) -> list:
+        return [self.catalog_list]
 
     async def chapter_after(self, chapter: int):
         """从旧到新，从 chapter 开始返回，直到最新的，为下载全本小说而写"""
@@ -152,22 +146,6 @@ class FanQie(WebsiteScraper):
                 yield a
             else:
                 return
-
-    async def first_add(self, amount: int = 6):
-        """接口.第一次添加时，要调用的接口"""
-        # 获取最新的 10 条，
-        i = 0
-        async for a in FanQie.parse(self.logger, self.catalog_list):
-            if i < amount:
-                i += 1
-                yield a
-            else:
-                return
-    
-    async def get_new(self, chapter: int):
-        """接口.第二次和之后，要调用的接口"""
-        async for a in self.chapter_greater_than(chapter):
-            yield a
 
 
 import api._v1
@@ -198,5 +176,3 @@ async def test():
 if __name__ == "__main__":
     asyncio.run(test())
     # python -m website_scraper.fanqie
-
-

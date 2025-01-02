@@ -33,11 +33,10 @@ def load_plugins():
     else:
         usable_web_scraper = available_web_scraper
     
-    print("import plugins: ", end='')
+    print("import plugins: ")
     for usable_web_scraper in enabled_web_scraper & available_web_scraper:
-        print(usable_web_scraper, end=',')
+        print(usable_web_scraper)
         importlib.import_module(usable_web_scraper)
-    print()
     
 load_plugins()
 

@@ -29,7 +29,7 @@ class MangaCopy(WebsiteScraper):
         'sec-fetch-user': '?1',
     }
 
-    def __init__(self, book_title = "花咲家的性福生活", book_id = "huaxoajiedexinfushenghuo") -> None:
+    def __init__(self, book_title, book_id) -> None:
         super().__init__()
         self.book_id = book_id
         self.book_title = book_title
@@ -37,9 +37,9 @@ class MangaCopy(WebsiteScraper):
     @property
     def source_info(self):
         return {
-            "title": self.__class__.title,
-            "link": self.__class__.home_url,
-            "description": "欢迎各位小伙伴来到小站！ 为了躲避某种不可抗力的影响，我们开设了这间网站，为大家提供不插眼、不缺页的良好阅读体验。目前我們沒有提供什麽大不了的服務，所以收到的每一份資金都會用於基本營運，不求盈利。 小站所有作品来自网友上传，如有侵权（请版权主确认您在新加坡拥有作品的互联网刊载权哦），随时留言小站,我们会在24小时内核对权属进行处理。",
+            "title": self.book_title,
+            "link": f"{self.__class__.home_url}/comic/{self.book_id}",
+            "description": f"拷貝漫畫下的作品 —— {self.book_title}",
             "language": "zh-CN",
             "key4sort": self.__class__.key4sort}
     
@@ -90,28 +90,16 @@ class MangaCopy(WebsiteScraper):
                 }
                 yield article
 
-    async def first_add(self, amount: int = 10):
-        async for a in self.__class__.parse(self.logger, self.book_id):
-            if amount > 0:
-                amount -= 1
-                yield a
-            else:
-                return
-    
-    async def get_new(self, flag: int):
-        async for a in self.__class__.parse(self.logger, self.book_id):
-            if a[self.__class__.key4sort] > flag:
-                yield a
-            else:
-                return
+    def custom_parameter_of_parse(self) -> list:
+        return [self.book_id]
 
 
 import api._v1
-api._v1.register(MangaCopy)
+api._v1.register_c(MangaCopy)
 
 
 async def test():
-    w = MangaCopy()
+    w = MangaCopy("花咲家的性福生活", "huaxoajiedexinfushenghuo")
     print(w.source_info)
     print(w.table_name)
     async for a in w.first_add():

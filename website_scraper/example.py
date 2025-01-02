@@ -113,9 +113,13 @@ class WebsiteScraper(ABC):
                 raise FailtoGet
         return response
     
+    def custom_parameter_of_parse(self) -> list:
+        """调用 parse 时，额外需要提供的参数"""
+        return []
+
     async def first_add(self, amount: int = 10):
         """接口.第一次添加时用的，比如获取最新的 10 条"""
-        async for a in self.__class__.parse(self.logger):
+        async for a in self.__class__.parse(self.logger, *self.custom_parameter_of_parse()):
             if amount > 0:
                 amount -= 1
                 yield a
@@ -124,7 +128,7 @@ class WebsiteScraper(ABC):
     
     async def get_new(self, flag: datetime | int):
         """接口.第一次添加时，要调用的接口"""
-        async for a in self.__class__.parse(self.logger):
+        async for a in self.__class__.parse(self.logger, *self.custom_parameter_of_parse()):
             if a[self.__class__.key4sort] > flag:
                 yield a
             else:
