@@ -23,7 +23,7 @@ class NewsLetter(WebsiteScraper):
     def source_info(self):
         return {
             "title": f"NewsLetter of {self.newsletter_name}",
-            "link": self.from_email,
+            "link": self.website,
             "description": self.desc or "DescriptionLack",   # 不能为空，否则无法生成 RSS
             "language": "En",
             "key4sort": self.__class__.key4sort}
@@ -38,7 +38,7 @@ class NewsLetter(WebsiteScraper):
                     continue
                 article = {
                     "article_name": mail.subject,
-                    "summary": mail.plain,
+                    "summary": mail.plain or mail.html,
                     "article_url": website,
                     "image_link": "http://example.com",
                     "pub_time": mail.date.replace(tzinfo=None)   # 去除时区信息，否则无法对比
