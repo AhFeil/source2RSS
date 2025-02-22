@@ -105,8 +105,8 @@ class WebsiteScraper(ABC):
             await asyncio.sleep(cls.page_turning_duration)
 
     @classmethod
-    async def request(cls, url: str) -> httpx.Response | None:
-        async with httpx.AsyncClient(follow_redirects=True) as client:
+    async def request(cls, url: str, verify=True) -> httpx.Response | None:
+        async with httpx.AsyncClient(follow_redirects=True, verify=verify) as client:
             try:
                 response = await client.get(url=url, headers=cls.headers)
             except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout):
