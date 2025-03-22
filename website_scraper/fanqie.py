@@ -65,7 +65,6 @@ class FanQie(WebsiteScraper):
             "source": source,
             "create_time": create_time,
             "key4sort": FanQie.key4sort}
-    
 
     @classmethod
     async def parse(cls, logger, catalog_list: list, old2new: bool=False, start_chapter: int=1) -> AsyncGenerator[dict, Any]:
