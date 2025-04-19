@@ -1,12 +1,11 @@
 import asyncio
-from datetime import datetime
 from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
 from playwright._impl._errors import TimeoutError
+
+from .example import WebsiteScraper, AsyncBrowserManager
 from utils import environment
-from .example import WebsiteScraper
 
 
 class GatesNotes(WebsiteScraper):
@@ -32,23 +31,26 @@ class GatesNotes(WebsiteScraper):
             "key4sort": self.__class__.key4sort
         }
         return source_info
-        
+
     @classmethod
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
-        """返回首页前 5 个封面文章"""
+        """返回首页前几个封面文章"""
         logger.info(f"{cls.title} start to parse page {start_page}")
+        html_content = ""
         user_agent = environment.get_user_agent(cls.home_url)
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=user_agent)
+        async with AsyncBrowserManager(user_agent) as context:
             page = await context.new_page()
             try:
                 await page.goto(cls.home_url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
             except TimeoutError as e:
                 logger.warning(f"Page navigation timed out: {e}")
-                return
             else:
                 html_content = await page.content()
+            finally:
+                await page.close()
+
+        if not html_content:
+            return
         soup = BeautifulSoup(html_content, features="lxml")
         # 找到 4 个文章所在 div，遍历所有<div class="TGN_site_ArticleItem">元素
         articles_title = soup.find_all('div', class_='articleHeadline')
@@ -72,6 +74,7 @@ api._v1.register(GatesNotes)
 
 
 async def test():
+    from datetime import datetime
     c = GatesNotes()
     print(c.source_info)
     print(c.table_name)

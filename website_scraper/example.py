@@ -6,11 +6,45 @@ from abc import ABC, abstractmethod
 from typing import Generator, AsyncGenerator, Any
 
 import httpx
+from playwright.async_api import async_playwright
 
 
 class FailtoGet(Exception):
     pass
 
+
+class AsyncBrowserManager:
+    _browser = None
+    _playwright = None
+    _users = 0
+    _lock = asyncio.Lock()
+
+    def __init__(self, user_agent=None):
+        self.user_agent = user_agent
+        self.context = None
+
+    async def __aenter__(self):
+        # 协程并发下，如果不加锁，有可能会实例化多个 _browser 或其他非预期状况
+        # 这里加锁并不会导致同时只有一个协程能使用浏览器
+        async with AsyncBrowserManager._lock:
+            # 首次使用时初始化浏览器和 Playwright
+            if AsyncBrowserManager._browser is None:
+                AsyncBrowserManager._playwright = await async_playwright().start()
+                AsyncBrowserManager._browser = await AsyncBrowserManager._playwright.chromium.launch(headless=True)
+            AsyncBrowserManager._users += 1
+        self.context = await AsyncBrowserManager._browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent)
+        return self.context
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        async with AsyncBrowserManager._lock:
+            await self.context.close()
+            AsyncBrowserManager._users -= 1
+            # 所有用户都退出后清理资源
+            if AsyncBrowserManager._users == 0 and AsyncBrowserManager._browser:
+                await AsyncBrowserManager._browser.close()
+                await AsyncBrowserManager._playwright.stop()
+                AsyncBrowserManager._browser = None
+                AsyncBrowserManager._playwright = None
 
 
 class WebsiteScraper(ABC):
@@ -29,7 +63,7 @@ class WebsiteScraper(ABC):
         'Referer': 'https://yanh.tech',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
     }
-    
+
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
 
