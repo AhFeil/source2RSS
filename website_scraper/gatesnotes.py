@@ -3,6 +3,9 @@ from datetime import datetime
 from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
+from playwright.async_api import async_playwright
+from playwright._impl._errors import TimeoutError
+from utils import environment
 from .example import WebsiteScraper
 
 
@@ -34,44 +37,31 @@ class GatesNotes(WebsiteScraper):
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """返回首页前 5 个封面文章"""
         logger.info(f"{cls.title} start to parse page {start_page}")
-        response = await cls.request(cls.home_url)
-        soup = BeautifulSoup(response.text, features="lxml")
-        first_artc = soup.find('div', class_='heromodule_hero', 
-                       attrs={'data-module-name': 'Homepage hero', 'data-module-type': 'single_hero_module'})
-        url = first_artc.find('a', href=True)['href']
-        image_link = first_artc.find('img', src=True)['src']
-        title = first_artc.find('div', class_='heromodule_title').text
-        description = first_artc.find('div', class_='heromodule_description').p.text
-        date_str = first_artc.find('div', class_='heromodule_herobydate').text
-        time_obj = datetime.strptime(date_str, "%B %d, %Y")
-        article = {
-            "article_name": title,
-            "summary": description,
-            "article_url": cls.home_url + url,
-            "image_link": image_link,
-            "pub_time": time_obj
-        }
-        yield article
-
+        user_agent = environment.get_user_agent(cls.home_url)
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            context = await browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=user_agent)
+            page = await context.new_page()
+            try:
+                await page.goto(cls.home_url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
+            except TimeoutError as e:
+                logger.warning(f"Page navigation timed out: {e}")
+                return
+            else:
+                html_content = await page.content()
+        soup = BeautifulSoup(html_content, features="lxml")
         # 找到 4 个文章所在 div，遍历所有<div class="TGN_site_ArticleItem">元素
-        four_articles = soup.find('div', class_='TGN_site_ArticleItems FourSquareTGN_site_ArticleItems', attrs={'data-module-name': 'Homepage recent articles', 'data-module-type': 'feature_module'}).find_all('div', class_="TGN_site_ArticleItem")
-        for article in four_articles:
-            url = cls.home_url + article.find('a', href=True)['href']
-            image_link = article.find('img', src=True)['src']
-            title = article.find('div', class_='TGN_site_ArticleItemtitle').text
-            description = article.find('div', class_='TGN_site_ArticleItemdescription').p.text
-
-            await asyncio.sleep(cls.page_turning_duration)
-            response = await cls.request(url)
-            article_soup = BeautifulSoup(response.text, features="lxml")
-            date_str = article_soup.find('div', class_="article_top_dateline").text.strip()
-            time_obj = datetime.strptime(date_str, "%B %d, %Y")
-
+        articles_title = soup.find_all('div', class_='articleHeadline')
+        articles_desc = soup.find_all('div', class_='articleDesc')
+        articles_url = soup.find_all('a', class_=lambda cls_: cls_ and cls_.startswith('articleLeftF'))
+        articles_img = soup.find_all('video', class_=lambda cls_: cls_ and cls_.startswith('TabletOnly articleBackF'))
+        articles_times = WebsiteScraper.get_time_obj()
+        for title, description, url, image_link, time_obj in zip(articles_title, articles_desc, articles_url, articles_img, articles_times):
             article = {
-                "article_name": title,
-                "summary": description,
-                "article_url": url,
-                "image_link": image_link,
+                "article_name": title.text,
+                "summary": description.text,
+                "article_url": url["href"],
+                "image_link": image_link["src"],
                 "pub_time": time_obj
             }
             yield article
@@ -96,4 +86,3 @@ async def test():
 if __name__ == "__main__":
     asyncio.run(test())
     # python -m website_scraper.gatesnotes
-

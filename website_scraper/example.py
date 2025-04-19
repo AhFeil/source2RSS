@@ -1,15 +1,17 @@
 import logging
 from urllib.parse import quote
 import asyncio
-from datetime import datetime
+from datetime import datetime, timedelta
 from abc import ABC, abstractmethod
-from typing import AsyncGenerator, Any
+from typing import Generator, AsyncGenerator, Any
 
 import httpx
 
 
 class FailtoGet(Exception):
     pass
+
+
 
 class WebsiteScraper(ABC):
     title = "技焉洲"
@@ -112,7 +114,14 @@ class WebsiteScraper(ABC):
             except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout):
                 raise FailtoGet
         return response
-    
+
+    @staticmethod
+    def get_time_obj(reverse: bool = False, count: int = 20, interval: int = 2) -> Generator[datetime, None, None]:
+        """生成时间对象序列，默认时间越来越新，具体是每次增加 2 分钟，reverse=True时间越来越旧"""
+        current_time = datetime.now()
+        step = interval * (-1 if reverse else 1)
+        return (current_time + timedelta(minutes=step * n) for n in range(count))
+
     def custom_parameter_of_parse(self) -> list:
         """调用 parse 时，额外需要提供的参数"""
         return []
