@@ -4,10 +4,9 @@ from datetime import datetime
 from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
 from playwright._impl._errors import TimeoutError
 from utils import environment
-from .example import WebsiteScraper
+from .example import WebsiteScraper, AsyncBrowserManager
 
 
 class MangaCopy(WebsiteScraper):
@@ -47,48 +46,52 @@ class MangaCopy(WebsiteScraper):
     async def parse(cls, logger, book_id: str) -> AsyncGenerator[dict, Any]:
         url = f"{cls.home_url}/comic/{book_id}"
         logger.info(f"{cls.title} start to parse page")   # 只有一页
+        html_content = ""
+
         user_agent = environment.get_user_agent(cls.home_url)
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=user_agent)
+        async with AsyncBrowserManager(user_agent) as context:
             page = await context.new_page()
             try:
                 await page.goto(url, timeout=60000, wait_until='networkidle')   # 单位是毫秒，共 1 分钟
             except TimeoutError as e:
                 logger.warning(f"Page navigation timed out: {e}")
-                return
+            else:
+                html_content = await page.content()
+            finally:
+                await page.close()
+        if not html_content:
+            return
 
-            html_content = await page.content()
-            soup = BeautifulSoup(html_content, features="lxml")
-            articles = soup.find('div', id='default全部')
-            if not articles:
-                return
-            articles = articles.find_all('a', style=re.compile(r'display:\s*(block|none);'))
-            articles_with_num = [(num, a) for num, a in enumerate(articles, start=1)]
+        soup = BeautifulSoup(html_content, features="lxml")
+        articles = soup.find('div', id='default全部')
+        if not articles:
+            return
+        articles = articles.find_all('a', style=re.compile(r'display:\s*(block|none);'))
+        articles_with_num = [(num, a) for num, a in enumerate(articles, start=1)]
 
-            for li in soup.find_all('li'):
-                t: str = li.text.strip()
-                if t.startswith("最後更新："):
-                    time_obj = datetime.strptime(t.split('\n', 2)[1], "%Y-%m-%d")
-                    break
+        for li in soup.find_all('li'):
+            t: str = li.text.strip()
+            if t.startswith("最後更新："):
+                time_obj = datetime.strptime(t.split('\n', 2)[1], "%Y-%m-%d")
+                break
 
-            description = soup.find('p', class_='intro')
-            description = description.text if description else ""
-            image_link = soup.find('img')
-            image_link = image_link["src"] if image_link else "http://example.com"
+        description = soup.find('p', class_='intro')
+        description = description.text if description else ""
+        image_link = soup.find('img')
+        image_link = image_link["src"] if image_link else "http://example.com"
 
-            for num, a in reversed(articles_with_num):
-                title = a["title"]
-                article_url = f"{cls.home_url}{a['href']}"
-                article = {
-                    "article_name": title,
-                    "summary": description,
-                    "article_url": article_url,
-                    "image_link": image_link,
-                    "chapter_number": num,
-                    "pub_time": time_obj
-                }
-                yield article
+        for num, a in reversed(articles_with_num):
+            title = a["title"]
+            article_url = f"{cls.home_url}{a['href']}"
+            article = {
+                "article_name": title,
+                "summary": description,
+                "article_url": article_url,
+                "image_link": image_link,
+                "chapter_number": num,
+                "pub_time": time_obj
+            }
+            yield article
 
     def custom_parameter_of_parse(self) -> list:
         return [self.book_id]

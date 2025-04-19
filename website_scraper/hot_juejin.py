@@ -3,10 +3,10 @@ from datetime import datetime
 from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
-from playwright.async_api import async_playwright
 from playwright._impl._errors import TimeoutError
 from utils import environment
-from .example import WebsiteScraper
+from .example import WebsiteScraper, AsyncBrowserManager
+
 
 # 逻辑有缺陷，目前是每次运行将热榜按照  排序，取最新的，不会缺少新写的上热榜，但是旧的上热榜会缺少
 class HotJuejin(WebsiteScraper):
@@ -60,9 +60,7 @@ class HotJuejin(WebsiteScraper):
             articles.sort(key=lambda x: x["content"]["content_id"], reverse=True)
 
         user_agent = environment.get_user_agent(cls.home_url)
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
-            context = await browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=user_agent)
+        async with AsyncBrowserManager(user_agent) as context:
             page = await context.new_page()
 
             for a in articles:
@@ -100,6 +98,7 @@ class HotJuejin(WebsiteScraper):
 
                 yield article
                 await asyncio.sleep(cls.page_turning_duration)
+            await page.close()
 
 
 import api._v1

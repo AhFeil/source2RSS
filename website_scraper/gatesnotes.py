@@ -37,6 +37,7 @@ class GatesNotes(WebsiteScraper):
         """返回首页前几个封面文章"""
         logger.info(f"{cls.title} start to parse page {start_page}")
         html_content = ""
+
         user_agent = environment.get_user_agent(cls.home_url)
         async with AsyncBrowserManager(user_agent) as context:
             page = await context.new_page()
@@ -48,9 +49,9 @@ class GatesNotes(WebsiteScraper):
                 html_content = await page.content()
             finally:
                 await page.close()
-
         if not html_content:
             return
+
         soup = BeautifulSoup(html_content, features="lxml")
         # 找到 4 个文章所在 div，遍历所有<div class="TGN_site_ArticleItem">元素
         articles_title = soup.find_all('div', class_='articleHeadline')
