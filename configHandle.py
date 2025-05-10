@@ -69,3 +69,6 @@ class Config:
         os.makedirs(self.image_root, exist_ok=True)
     
         self.cls_init_params = user_configs['cls_init_params']
+
+    def get_params(self, class_name: str) -> list:
+        return self.cls_init_params[class_name]

@@ -54,9 +54,11 @@ def generate_rss(source_info: dict, articles: list[dict], rss_dir: str):
 
 def generate_rss_from_collection(source_info, collection: str, rss_dir):
     """从 collection 中取出前 10 条最新的消息，调用 generate_rss 生成 RSS 文件"""
-    # 创建一个时区对象
     key4sort = source_info["key4sort"]
-    result = collection.find({}, {'article_infomation': 1}).sort(key4sort, -1).limit(50)   # 含有 '_id', 由新到旧、由大到小排序
-    result = list(result)
+    try:
+        result = collection.find({}, {'article_infomation': 1}).sort(key4sort, -1).limit(50)   # 含有 '_id', 由新到旧、由大到小排序
+    except Exception as e:
+        print("Unpredictable Exception when get articles from collection")
     # result 的结构是 [{ "_id":, "article_infomation": {} },    ]
-    generate_rss(source_info, result, rss_dir)
+    else:
+        generate_rss(source_info, list(result), rss_dir)

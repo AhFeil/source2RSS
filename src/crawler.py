@@ -12,7 +12,7 @@ logger = logging.getLogger("crawler")
 async def one_website(config, data, cls):
     """对某个网站的文章进行更新"""
     instance = cls()
-    await goto_uniform_flow(config, data, instance)
+    await goto_uniform_flow(data, instance, config.rss_dir)
 
 
 async def chapter_mode(config, data, cls, init_params: list):
@@ -33,23 +33,23 @@ async def chapter_mode(config, data, cls, init_params: list):
                 from src.remote_publish import goto_remote_flow
                 await goto_remote_flow(config, data, instance, url)
             else:
-                await goto_uniform_flow(config, data, instance)
+                await goto_uniform_flow(data, instance, config.rss_dir)
 
 
 async def monitor_website(config, data, plugins):
     """控制总流程： 解析，整合，保存，生成 RSS"""
-    logger.info("***Start all tasks***")
+    logger.info("***Start all scrapers***")
 
     tasks = chain(
-        (chapter_mode(config, data, cls, config.cls_init_params[cls.__name__]) for cls in plugins["chapter_mode"]),
+        (chapter_mode(config, data, cls, config.get_params(cls.__name__)) for cls in plugins["chapter_mode"]),
         (one_website(config, data, cls) for cls in plugins["static"])
     )
     await asyncio.gather(*tasks)
 
-    logger.info("***Have finished all tasks***")
+    logger.info("***Have finished all scrapers***")
 
 
-async def main():
+async def start_to_crawl():
     from preprocess import config, data, plugins
 
     # 开发环境下，每次都把集合清空
@@ -66,5 +66,5 @@ if __name__ == "__main__":
         exit(0)
     signal.signal(signal.SIGINT, handler)
 
-    asyncio.run(main())
+    asyncio.run(start_to_crawl())
     # python -m src.crawler

@@ -5,14 +5,14 @@ import threading
 import schedule
 
 import preprocess
-from src.crawler import main
+from src.crawler import start_to_crawl
 
 
 config = preprocess.config
 
 
 # https://schedule.readthedocs.io/en/stable/background-execution.html
-def run_continuously(interval=1):
+def run_continuously():
     """Continuously run, while executing pending jobs at each
     elapsed time interval.
     @return cease_continuous_run: threading. Event which can
@@ -26,7 +26,7 @@ def run_continuously(interval=1):
         def run(cls):
             while not cease_continuous_run.is_set():
                 schedule.run_pending()
-                time.sleep(interval)
+                time.sleep(config.WAIT)
 
     continuous_thread = ScheduleThread()
     continuous_thread.start()
@@ -35,11 +35,10 @@ def run_continuously(interval=1):
 
 def sync_wrapper():
     try:
-        asyncio.run(main())
+        asyncio.run(start_to_crawl())
     except:
         import traceback
         with open("unpredictable_exception.txt", 'a', encoding="utf-8") as f:
-            print(traceback.format_exc())
             f.write(traceback.format_exc())
 
 job = sync_wrapper

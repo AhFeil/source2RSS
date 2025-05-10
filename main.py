@@ -15,7 +15,7 @@ logger = logging.getLogger("main")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Start the background thread
-    stop_run_continuously = run_continuously(config.WAIT)
+    stop_run_continuously = run_continuously()
 
     # Do some other things...
     yield
