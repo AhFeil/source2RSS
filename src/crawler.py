@@ -3,8 +3,8 @@ import asyncio
 import signal
 from itertools import chain
 
-from website_scraper.example import FailtoGet
-from local_publish import goto_uniform_flow
+from src.website_scraper import FailtoGet
+from src.local_publish import goto_uniform_flow
 
 logger = logging.getLogger("crawler")
 
@@ -30,7 +30,7 @@ async def chapter_mode(config, data, cls, init_params: list):
         else:
             if url := config.remote_pub_scraper.get(cls.__name__):
                 # 指定了远程发布网址，则通过 source2RSS 生成 RSS
-                from remote_publish import goto_remote_flow
+                from src.remote_publish import goto_remote_flow
                 await goto_remote_flow(config, data, instance, url)
             else:
                 await goto_uniform_flow(config, data, instance)
@@ -67,3 +67,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, handler)
 
     asyncio.run(main())
+    # python -m src.crawler

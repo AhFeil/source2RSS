@@ -4,11 +4,9 @@ import json
 import httpx
 from datetime import datetime
 
-from website_scraper.example import FailtoGet
-
+from src.website_scraper import FailtoGet
 
 logger = logging.getLogger("remote_publish")
-
 
 
 async def exist_source_meta(source_info, url):

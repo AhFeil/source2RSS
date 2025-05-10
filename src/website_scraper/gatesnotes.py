@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 from playwright._impl._errors import TimeoutError
 
 from .example import WebsiteScraper, AsyncBrowserManager
-from utils import environment
+from src.utils import environment
 
 
 class GatesNotes(WebsiteScraper):

@@ -4,7 +4,6 @@ from datetime import datetime, timezone, timedelta
 from feedgen.feed import FeedGenerator
 
 
-
 def generate_rss(source_info: dict, articles: list[dict], rss_dir: str):
     """构建 rss。根据传入的 articles ，格式化为 RSS 后以文件形式保存到 rss_dir 下面"""
     zone = timezone(timedelta(hours=8))

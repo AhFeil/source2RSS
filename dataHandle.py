@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 import logging
 
@@ -31,11 +30,9 @@ class ArticleInfo(BaseModel):
     summary: str = ""
     content: str = ""
     image_link: HttpUrl | str = "https://yanh.tech/"
-
     # 上面是 RSS 必需的,下面是补充、辅助的
-    # 用于排序,比如小说按照章节排更合适,虽然发布时间理应对应章节顺序 
-    chapter_number: int = 0
-    
+    chapter_number: int = 0   # 用于排序,比如小说按照章节排更合适
+
     def model_dump(self):
         return {
             "article_name": self.article_name,
@@ -118,13 +115,3 @@ class Data:
         for collection_name in collections:
             collection = self.db[collection_name]
             collection.delete_many({})
-
-
-if __name__ == "__main__":
-    # import preprocess
-
-    # config = preprocess.config
-    # data = preprocess.data
-
-    m = ArticleInfo(title="a title", key4sort="chapter_number")
-    print(m)

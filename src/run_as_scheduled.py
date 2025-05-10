@@ -5,7 +5,7 @@ import threading
 import schedule
 
 import preprocess
-from crawler import main
+from src.crawler import main
 
 
 config = preprocess.config
@@ -44,7 +44,6 @@ def sync_wrapper():
 
 job = sync_wrapper
 
-
 if config.is_production:
     for point in config.run_everyday_at:
         schedule.every().day.at(point, config.timezone).do(job)
@@ -54,9 +53,7 @@ else:
     schedule.every(config.run_test_every_seconds).seconds.do(job)
 
 
-
 if __name__ == "__main__":
     while True:
         schedule.run_pending()
         time.sleep(config.WAIT)
-

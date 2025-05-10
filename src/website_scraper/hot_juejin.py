@@ -4,7 +4,7 @@ from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
 from playwright._impl._errors import TimeoutError
-from utils import environment
+from src.utils import environment
 from .example import WebsiteScraper, AsyncBrowserManager
 
 

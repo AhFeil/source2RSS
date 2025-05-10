@@ -8,7 +8,7 @@ from ruamel.yaml import YAML, YAMLError
 
 
 class Config:
-    def __init__(self, configs_path: list[str]=["./configs.yaml", "./pgm_configs.yaml"]) -> None:
+    def __init__(self, configs_path: list[str]) -> None:
         self.yaml = YAML()
         self.configs_path = configs_path
         self.reload()
@@ -59,7 +59,8 @@ class Config:
         self.mongodb_uri = user_configs['mongodb_uri']
         self.mongo_dbname = user_configs['mongo_dbname']
 
-        self.enabled_web_scraper = user_configs.get('enabled_web_scraper', "all")
+        enabled_web_scraper = user_configs.get('enabled_web_scraper', [])
+        self.enabled_web_scraper = [f"src.{scraper}" for scraper in enabled_web_scraper]
         self.remote_pub_scraper = user_configs.get('remote_pub_scraper', {})
         self.rss_dir = user_configs['rss_dir']
         os.makedirs(self.rss_dir, exist_ok=True)

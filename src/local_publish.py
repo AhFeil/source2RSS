@@ -1,8 +1,8 @@
 import logging
 import asyncio
 
-from website_scraper.example import FailtoGet, WebsiteScraper
-from generate_rss import generate_rss_from_collection
+from src.website_scraper import FailtoGet, WebsiteScraper
+from src.generate_rss import generate_rss_from_collection
 
 logger = logging.getLogger("local_publish")
 
