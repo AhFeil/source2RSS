@@ -1,7 +1,7 @@
 import logging
 import asyncio
 
-from src.website_scraper import FailtoGet, WebsiteScraper
+from src.website_scraper import FailtoGet, WebsiteScraper, LocateInfo
 from src.generate_rss import generate_rss_from_collection
 
 logger = logging.getLogger("local_publish")
@@ -46,11 +46,11 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, rss_dir):
     # 确保 source 的元信息在数据库中
     data.exist_source_meta(source_info)
     collection = data.db[source_name]
-    result = collection.find({}, {key4sort: 1}).sort(key4sort, -1).limit(1)   # 含有 '_id', 
+    result = collection.find({}, {key4sort: 1, "article_infomation": 1}).sort(key4sort, -1).limit(1)   # 含有 '_id', 
     result = list(result)
     if result:
-        last_update_flag = result[0][key4sort]
-        article_source = instance.get_new(last_update_flag)
+        flags: LocateInfo = {"article_name": result[0]["article_infomation"]["article_name"], key4sort: result[0][key4sort]}
+        article_source = instance.get_new(flags)
     else:
         # 若是第一次，数据库中没有数据
         article_source = instance.first_add()

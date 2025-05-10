@@ -4,7 +4,7 @@ from typing import AsyncGenerator, Any
 from bs4 import BeautifulSoup
 from playwright._impl._errors import TimeoutError
 
-from .example import WebsiteScraper, AsyncBrowserManager
+from .example import WebsiteScraper, AsyncBrowserManager, LocateInfo
 from src.utils import environment
 
 
@@ -58,7 +58,7 @@ class GatesNotes(WebsiteScraper):
         articles_desc = soup.find_all('div', class_='articleDesc')
         articles_url = soup.find_all('a', class_=lambda cls_: cls_ and cls_.startswith('articleLeftF'))
         articles_img = soup.find_all('video', class_=lambda cls_: cls_ and cls_.startswith('TabletOnly articleBackF'))
-        articles_times = WebsiteScraper.get_time_obj()
+        articles_times = WebsiteScraper.get_time_obj(True)
         for title, description, url, image_link, time_obj in zip(articles_title, articles_desc, articles_url, articles_img, articles_times):
             article = {
                 "article_name": title.text,
@@ -68,6 +68,13 @@ class GatesNotes(WebsiteScraper):
                 "pub_time": time_obj
             }
             yield article
+
+    async def get_new(self, flags: LocateInfo):
+        async for a in GatesNotes.parse(self.logger):
+            if a["article_name"] != flags["article_name"]:
+                yield a
+            else:
+                return
 
 
 import api._v1

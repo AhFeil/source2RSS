@@ -4,6 +4,7 @@ import asyncio
 from datetime import datetime, timedelta
 from abc import ABC, abstractmethod
 from typing import Generator, AsyncGenerator, Any
+from typing import TypedDict
 
 import httpx
 from playwright.async_api import async_playwright
@@ -12,6 +13,11 @@ from playwright.async_api import async_playwright
 class FailtoGet(Exception):
     pass
 
+class LocateInfo(TypedDict):
+    article_name: str
+    pub_time: datetime | None = None
+    time4sort: datetime | None = None
+    chapter_number: int | None = None
 
 class AsyncBrowserManager:
     _browser = None
@@ -168,11 +174,11 @@ class WebsiteScraper(ABC):
                 yield a
             else:
                 return
-    
-    async def get_new(self, flag: datetime | int):
+
+    async def get_new(self, flags: LocateInfo):
         """接口.第一次添加时，要调用的接口"""
         async for a in self.__class__.parse(self.logger, *self.custom_parameter_of_parse()):
-            if a[self.__class__.key4sort] > flag:
+            if a[self.__class__.key4sort] > flags[self.__class__.key4sort]:
                 yield a
             else:
                 return

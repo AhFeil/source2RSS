@@ -1,2 +1,2 @@
 
-from .example import FailtoGet, WebsiteScraper
+from .example import FailtoGet, WebsiteScraper, LocateInfo
