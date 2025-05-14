@@ -24,8 +24,10 @@ class AsyncBrowserManager:
     _playwright = None
     _users = 0
     _lock = asyncio.Lock()
+    _logger = logging.getLogger("AsyncBrowserManager")
 
-    def __init__(self, user_agent=None):
+    def __init__(self, id: str, user_agent=None):
+        self.id = id
         self.user_agent = user_agent
         self.context = None
 
@@ -37,6 +39,7 @@ class AsyncBrowserManager:
             if AsyncBrowserManager._browser is None:
                 AsyncBrowserManager._playwright = await async_playwright().start()
                 AsyncBrowserManager._browser = await AsyncBrowserManager._playwright.chromium.launch(headless=True)
+                AsyncBrowserManager._logger.info("create browser for " + self.id)
             AsyncBrowserManager._users += 1
         self.context = await AsyncBrowserManager._browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent)
         return self.context
@@ -46,11 +49,27 @@ class AsyncBrowserManager:
             await self.context.close()
             AsyncBrowserManager._users -= 1
             # 所有用户都退出后清理资源
-            if AsyncBrowserManager._users == 0 and AsyncBrowserManager._browser:
+            if AsyncBrowserManager._users == 0 and AsyncBrowserManager._browser is not None:
                 await AsyncBrowserManager._browser.close()
                 await AsyncBrowserManager._playwright.stop()
                 AsyncBrowserManager._browser = None
                 AsyncBrowserManager._playwright = None
+                AsyncBrowserManager._logger.info("destroy browser by " + self.id)
+
+    @staticmethod
+    async def get_html_or_none(id, url, user_agent):
+        html_content = None
+        async with AsyncBrowserManager(id, user_agent) as context:
+            page = await context.new_page()
+            try:
+                await page.goto(url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
+            except TimeoutError as e:
+                AsyncBrowserManager._logger.warning(f"Page navigation of {id} timed out: {e}")
+            else:
+                html_content = await page.content()
+            finally:
+                await page.close()
+        return html_content
 
 
 class WebsiteScraper(ABC):
@@ -168,11 +187,12 @@ class WebsiteScraper(ABC):
 
     async def first_add(self, amount: int = 10):
         """接口.第一次添加时用的，比如获取最新的 10 条"""
+        if amount <= 0:
+            return
         async for a in self.__class__.parse(self.logger, *self.custom_parameter_of_parse()):
-            if amount > 0:
-                amount -= 1
-                yield a
-            else:
+            amount -= 1
+            yield a
+            if amount <= 0:
                 return
 
     async def get_new(self, flags: LocateInfo):
@@ -182,25 +202,3 @@ class WebsiteScraper(ABC):
                 yield a
             else:
                 return
-
-
-# import api._v1
-# api._v1.register(WebsiteScraper)
-
-
-async def test():
-    w = WebsiteScraper()
-    print(w.source_info)
-    print(w.table_name)
-    async for a in w.first_add():
-        print(a)
-    print("----------")
-    async for a in w.get_new(datetime(2024, 4, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.example
-

@@ -36,20 +36,10 @@ class GatesNotes(WebsiteScraper):
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """返回首页前几个封面文章"""
         logger.info(f"{cls.title} start to parse page {start_page}")
-        html_content = ""
 
         user_agent = environment.get_user_agent(cls.home_url)
-        async with AsyncBrowserManager(user_agent) as context:
-            page = await context.new_page()
-            try:
-                await page.goto(cls.home_url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
-            except TimeoutError as e:
-                logger.warning(f"Page navigation timed out: {e}")
-            else:
-                html_content = await page.content()
-            finally:
-                await page.close()
-        if not html_content:
+        html_content = await AsyncBrowserManager.get_html_or_none(cls.title, cls.home_url, user_agent)
+        if html_content is None:
             return
 
         soup = BeautifulSoup(html_content, features="lxml")

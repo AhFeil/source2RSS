@@ -60,45 +60,40 @@ class HotJuejin(WebsiteScraper):
             articles.sort(key=lambda x: x["content"]["content_id"], reverse=True)
 
         user_agent = environment.get_user_agent(cls.home_url)
-        async with AsyncBrowserManager(user_agent) as context:
-            page = await context.new_page()
+        for a in articles:
+            title = a["content"]["title"]
+            content_id = a["content"]["content_id"]
+            article_url = f"{cls.home_url}/post/{content_id}"
 
-            for a in articles:
-                title = a["content"]["title"]
-                content_id = a["content"]["content_id"]
-                article_url = f"{cls.home_url}/post/{content_id}"
-                try:
-                    await page.goto(article_url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
-                except TimeoutError as e:
-                    logger.warning(f"Page navigation timed out: {e}")
-                    continue
+            html_content = await AsyncBrowserManager.get_html_or_none(cls.title, article_url, user_agent)
+            if html_content is None:
+                continue
+            soup = BeautifulSoup(html_content, features="lxml")
 
-                html_content = await page.content()
-                soup = BeautifulSoup(html_content, features="lxml")
+            meta_info = soup.find('div', class_='meta-box')
+            time = meta_info.find('time', class_="time")
+            if time:
+                time = time["datetime"]
+            else:
+                continue
+            time_obj = datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
+            description = soup.find('div', class_='message')
+            description = description.p.text if description else ""
+            image_link = soup.find('img', class_='medium-zoom-image')
+            image_link = image_link["src"] if image_link else "http://example.com"
 
-                meta_info = soup.find('div', class_='meta-box')
-                time = meta_info.find('time', class_="time")
-                if time:
-                    time = time["datetime"]
-                else:
-                    continue
-                time_obj = datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
-                description = soup.find('div', class_='message')
-                description = description.p.text if description else ""
-                image_link = soup.find('img', class_='medium-zoom-image')
-                image_link = image_link["src"] if image_link else "http://example.com"
+            article = {
+                "article_name": title,
+                "summary": description,
+                "article_url": article_url,
+                "image_link": image_link,
+                "pub_time": time_obj
+            }
 
-                article = {
-                    "article_name": title,
-                    "summary": description,
-                    "article_url": article_url,
-                    "image_link": image_link,
-                    "pub_time": time_obj
-                }
-
-                yield article
-                await asyncio.sleep(cls.page_turning_duration)
-            await page.close()
+            yield article
+            await asyncio.sleep(cls.page_turning_duration)
+            # 此时，浏览器被销毁，唤醒后浏览器再被创建，非常耗时
+            # 如果把 for 循环放在 with 里面，用同一个 context，怀疑外部直接退出 async for 时，这里处理会有不当，所以暂时改成先 for 再 with
 
 
 import api._v1
