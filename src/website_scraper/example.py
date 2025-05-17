@@ -3,8 +3,7 @@ from urllib.parse import quote
 import asyncio
 from datetime import datetime, timedelta
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Generator, AsyncGenerator, Any
-from typing import TypedDict
+from typing import Generator, AsyncGenerator, Any, TypedDict, Self
 
 import httpx
 from playwright.async_api import async_playwright
@@ -16,11 +15,14 @@ from api._v2 import Plugins
 class FailtoGet(Exception):
     pass
 
+class CreateByInvalidParam(Exception):
+    pass
+
 class LocateInfo(TypedDict):
     article_name: str
-    pub_time: datetime | None = None
-    time4sort: datetime | None = None
-    chapter_number: int | None = None
+    pub_time: datetime | None
+    time4sort: datetime | None
+    chapter_number: int | None
 
 class AsyncBrowserManager:
     _browser = None
@@ -60,7 +62,7 @@ class AsyncBrowserManager:
                 AsyncBrowserManager._logger.info("destroy browser by " + self.id)
 
     @staticmethod
-    async def get_html_or_none(id, url, user_agent):
+    async def get_html_or_none(id: str, url: str, user_agent):
         html_content = None
         async with AsyncBrowserManager(id, user_agent) as context:
             page = await context.new_page()
@@ -84,14 +86,16 @@ class ScraperMeta(ABCMeta):
             # 获取插件名称（优先使用类属性name，否则使用类名）
             plugin_name = getattr(cls, 'name', name)
             if ScraperMeta._is_init_overridden(cls):
+                cls.is_variety = True
                 api._v1.register_c(cls)
             else:
+                cls.is_variety = False
                 api._v1.register(cls)
             Plugins.register(plugin_name, cls)
 
     @staticmethod
-    def _is_init_overridden(cls):
-        return '__init__' in cls.__dict__
+    def _is_init_overridden(cls_instance):
+        return '__init__' in cls_instance.__dict__
 
 
 class WebsiteScraper(ABC, metaclass=ScraperMeta):
@@ -101,6 +105,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     # 请求每页之间的间隔，秒
     page_turning_duration = 5
     key4sort = "pub_time"
+    is_variety = False   # 创建时是否需要传入额外参数
 
     # https://curlconverter.com/
     headers = {
@@ -110,6 +115,10 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         'Referer': 'https://yanh.tech',
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
     }
+
+    @classmethod
+    async def create(cls) -> Self:
+        return cls()
 
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -188,13 +197,14 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             await asyncio.sleep(cls.page_turning_duration)
 
     @classmethod
-    async def request(cls, url: str, verify=True) -> httpx.Response | None:
+    async def request(cls, url: str, verify=True) -> httpx.Response:
         async with httpx.AsyncClient(follow_redirects=True, verify=verify) as client:
             try:
                 response = await client.get(url=url, headers=cls.headers)
             except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout):
                 raise FailtoGet
-        return response
+            else:
+                return response
 
     @staticmethod
     def get_time_obj(reverse: bool = False, count: int = 20, interval: int = 2) -> Generator[datetime, None, None]:

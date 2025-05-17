@@ -1,12 +1,10 @@
 import re
 import asyncio
 from datetime import datetime
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator, Any, Self
 
 from bs4 import BeautifulSoup
-from playwright._impl._errors import TimeoutError
-from src.utils import environment
-from .example import WebsiteScraper, AsyncBrowserManager
+from .example import WebsiteScraper, AsyncBrowserManager, CreateByInvalidParam
 
 
 class MangaCopy(WebsiteScraper):
@@ -28,10 +26,16 @@ class MangaCopy(WebsiteScraper):
         'sec-fetch-user': '?1',
     }
 
-    def __init__(self, book_title, book_id) -> None:
+    @classmethod
+    async def create(cls, book_title: str, book_id: str) -> Self:
+        book_url = f"{cls.home_url}/comic/{book_id}"
+        if await cls.book_exists(book_url):
+            return cls(book_title, book_id, book_url)
+        raise CreateByInvalidParam
+
+    def __init__(self, book_title, book_id, book_url) -> None:
         super().__init__()
-        self.book_id = book_id
-        self.book_title = book_title
+        self.book_id, self.book_title, self.book_url = book_id, book_title, book_url
 
     @property
     def source_info(self):
@@ -41,25 +45,12 @@ class MangaCopy(WebsiteScraper):
             "description": f"拷貝漫畫下的作品 —— {self.book_title}",
             "language": "zh-CN",
             "key4sort": self.__class__.key4sort}
-    
-    @classmethod
-    async def parse(cls, logger, book_id: str) -> AsyncGenerator[dict, Any]:
-        url = f"{cls.home_url}/comic/{book_id}"
-        logger.info(f"{cls.title} start to parse page")   # 只有一页
-        html_content = ""
 
-        user_agent = environment.get_user_agent(cls.home_url)
-        async with AsyncBrowserManager(user_agent) as context:
-            page = await context.new_page()
-            try:
-                await page.goto(url, timeout=60000, wait_until='networkidle')   # 单位是毫秒，共 1 分钟
-            except TimeoutError as e:
-                logger.warning(f"Page navigation timed out: {e}")
-            else:
-                html_content = await page.content()
-            finally:
-                await page.close()
-        if not html_content:
+    @classmethod
+    async def parse(cls, logger, book_title: str, book_url: str) -> AsyncGenerator[dict, Any]:
+        logger.info(f"{cls.title} start to parse page")
+        html_content = await AsyncBrowserManager.get_html_or_none(book_title, book_url, cls.headers["User-Agent"])
+        if html_content is None:
             return
 
         soup = BeautifulSoup(html_content, features="lxml")
@@ -94,21 +85,23 @@ class MangaCopy(WebsiteScraper):
             yield article
 
     def custom_parameter_of_parse(self) -> list:
-        return [self.book_id]
+        return [self.book_title, self.book_url]
+
+    @classmethod
+    async def book_exists(cls, book_url: str):
+        response = await cls.request(book_url)
+        return response.status_code == 200
 
 
 async def test():
-    w = MangaCopy("花咲家的性福生活", "huaxoajiedexinfushenghuo")
+    w = await MangaCopy.create("花咲家的性福生活", "huaxoajiedexinfushenghuo")
     print(w.source_info)
     print(w.table_name)
     async for a in w.first_add():
-        print(a)
-    print("----------")
-    async for a in w.get_new(40):
         print(a)
     print("----------")
 
 
 if __name__ == "__main__":
     asyncio.run(test())
-    # python -m website_scraper.mangacopy
+    # .env/bin/python -m src.website_scraper.mangacopy

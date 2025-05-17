@@ -10,7 +10,7 @@ from pydantic import BaseModel, HttpUrl, field_validator
 
 class SourceMeta(BaseModel):
     title: str
-    link: HttpUrl = "https://yanh.tech/"
+    link: HttpUrl = "https://yanh.tech/" # type: ignore
     description: str = f"这是一个 RSS 源， 由 source2RSS 项目程序生成"
     language: str = "zh-CN"
     key4sort: str = "pub_time"
@@ -27,7 +27,7 @@ class SourceMeta(BaseModel):
 class ArticleInfo(BaseModel):
     article_name: str 
     article_url: HttpUrl | str ="https://yanh.tech/"   # 这个应该是网址或者空字符串
-    pub_time: float = datetime.fromtimestamp(0)  # 时间戳
+    pub_time: datetime = datetime.fromtimestamp(0)  # 时间戳
     summary: str = ""
     content: str = ""
     image_link: HttpUrl | str = "https://yanh.tech/"
@@ -79,10 +79,14 @@ class Data:
         return self._rss.get(source_file_name)
 
     def get_rss_list(self) -> list[str]:
-        return sorted([rss for rss in self._rss])
+        return sorted([rss for rss in self._rss if rss.endswith(".xml")])
 
-    def set_rss(self, source_file_name: str, rss: str):
-        self._rss[source_file_name] = rss
+    def set_rss(self, source_file_name: str, rss: bytes, cls_id_or_none: str | None):
+        """将RSS文件名和RSS内容映射，如果是单例，还将类名和RSS内容映射"""
+        rss_str = rss.decode()
+        self._rss[source_file_name] = rss_str
+        if cls_id_or_none:
+            self._rss[cls_id_or_none] = rss_str
         rss_filepath = Path(self.config.rss_dir) / source_file_name
         with open(rss_filepath, 'wb') as rss_file:
             rss_file.write(rss)

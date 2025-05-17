@@ -1,10 +1,9 @@
 import re
 import asyncio
 from datetime import datetime, timedelta
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator, Any, Self
 
-import httpx
-from .example import WebsiteScraper, FailtoGet
+from .example import WebsiteScraper, FailtoGet, CreateByInvalidParam
 
 
 class FanQie(WebsiteScraper):
@@ -13,30 +12,28 @@ class FanQie(WebsiteScraper):
     admin_url = "http://82.157.53.75:1180"
     page_turning_duration = 2
     key4sort = "chapter_number"
-    headers = {}
-    
-    def __init__(self, book_title, book_id) -> None:
-        super().__init__()
-        self.book_id = book_id
-        self.book_title = book_title
-        self.book_info_json, self.catalog_list = FanQie.get_catalog(self.logger, book_id)
 
     @classmethod
-    def get_catalog(cls, logger, book_id: str) -> tuple[dict]:
+    async def create(cls, book_title: str, book_id: str) -> Self:
+        book_info_json, catalog_list = await cls.get_catalog(book_id)
+        if book_info_json and catalog_list:
+            return cls(book_title, book_id, book_info_json, catalog_list)
+        raise CreateByInvalidParam
+
+    def __init__(self, *args) -> None:
+        super().__init__()
+        self.book_title, self.book_id, self.book_info_json, self.catalog_list = args
+
+    @classmethod
+    async def get_catalog(cls, book_id: str) -> tuple[dict, list]:
         """获取章节信息"""
         catalog_url = f"{cls.admin_url}/catalog?book_id={book_id}"
-        logger.info(f"{cls.title} start to parse catalog")
-        with httpx.Client() as client:
-            try:
-                response = client.get(url=catalog_url)
-            except (httpx.ConnectTimeout, httpx.ReadTimeout):
-                raise FailtoGet
-        
+        response = await cls.request(catalog_url)
         data_json = response.json()
         book_info_json = data_json['data']['data']['book_info']
         catalog_list = data_json['data']['data'].get('catalog_data') or data_json['data']['data'].get('item_data_list')
         return book_info_json, catalog_list
-    
+
     @property
     def source_info(self):
         """数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用"""

@@ -87,7 +87,7 @@ class BentoMLBlog(WebsiteScraper):
 
 
 async def test():
-    w = BentoMLBlog()
+    w = await BentoMLBlog.create()
     print(w.source_info)
     print(w.table_name)
     async for a in w.first_add():

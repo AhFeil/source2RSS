@@ -28,7 +28,7 @@ class OldStone(WebsiteScraper):
             "key4sort": self.__class__.key4sort
         }
         return source_info
-        
+
     @classmethod
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""

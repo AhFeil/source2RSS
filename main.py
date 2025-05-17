@@ -1,14 +1,17 @@
 import logging
+from typing import Annotated
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, Query, HTTPException
 from fastapi.responses import PlainTextResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from preprocess import data
+from preprocess import Plugins, data
 from dataHandle import SourceMeta, ArticleInfo, PublishMethod
 from src.run_as_scheduled import run_continuously
 from src.generate_rss import generate_rss_from_collection
+from src.local_publish import goto_uniform_flow
+from src.website_scraper import WebsiteScraper, CreateByInvalidParam, FailtoGet
 
 
 logger = logging.getLogger("main")
@@ -42,6 +45,32 @@ async def get_rss(source_file_name: str):
     if rss is None:
         raise HTTPException(status_code=404, detail="Not Found")
     return rss
+
+# 需要鉴权
+@app.get("/query_rss/{cls_id}/", response_class=PlainTextResponse)
+async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = []):
+    cls: WebsiteScraper | None = Plugins.get_plugin_or_none(cls_id)
+    if cls is None:
+        raise HTTPException(status_code=404, detail="Not Found")
+    if not cls.is_variety:
+        rss = await get_rss(cls.__name__)
+        return rss
+
+    try:
+        instance = await cls.create(*q)
+    except TypeError:
+        raise HTTPException(status_code=400, detail="Bad Request")   # 参数数目不对
+    except CreateByInvalidParam:
+        raise HTTPException(status_code=422, detail="Unprocessable Entity")
+    except FailtoGet:
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    except Exception as e:
+        logger.error(f"fail when query rss {cls_id}: {e}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+    else:
+        source_file_name = await goto_uniform_flow(data, instance)
+        rss = await get_rss(source_file_name)
+        return rss
 
 
 # 现在无法覆盖原有数据

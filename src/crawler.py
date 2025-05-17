@@ -3,7 +3,7 @@ import asyncio
 import signal
 from itertools import chain
 
-from src.website_scraper import FailtoGet
+from src.website_scraper import FailtoGet, CreateByInvalidParam
 from src.local_publish import goto_uniform_flow
 
 logger = logging.getLogger("crawler")
@@ -11,7 +11,7 @@ logger = logging.getLogger("crawler")
 
 async def one_website(data, cls):
     """对某个网站的文章进行更新"""
-    instance = cls()
+    instance = await cls.create()
     await goto_uniform_flow(data, instance)
 
 
@@ -20,11 +20,13 @@ async def chapter_mode(config, data, cls, init_params: list):
     for params in init_params:
         try:
             if isinstance(params, dict) or isinstance(params, str):
-                instance = cls(params)
+                instance = await cls.create(params)
             elif isinstance(params, list):
-                instance = cls(*params)
+                instance = await cls.create(*params)
             else:
-                instance = cls()
+                instance = await cls.create()
+        except CreateByInvalidParam:
+            logger.info(f"FailtoGet: 初始化多实例情况时网络出错")
         except FailtoGet:
             logger.info(f"FailtoGet: 初始化多实例情况时网络出错")
         else:
