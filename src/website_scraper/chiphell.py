@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
-from .example import WebsiteScraper
+from .example import WebsiteScraper, AsyncBrowserManager
 
 
 class Chiphell(WebsiteScraper):
@@ -15,8 +15,9 @@ class Chiphell(WebsiteScraper):
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36 Edg/133.0.0.0',
-        'sec-ch-ua': '"Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36 Edg/136.0.0.0',
+        'cache-control': 'max-age=0',
+        'sec-ch-ua': '"Chromium";v="136", "Microsoft Edge";v="136", "Not.A/Brand";v="99"',
         'sec-ch-ua-platform': '"Windows"',
     }
 
@@ -35,8 +36,11 @@ class Chiphell(WebsiteScraper):
     async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         logger.info(f"{cls.title} start to parse page")
-        response = await cls.request(Chiphell.home_url, False)
-        soup = BeautifulSoup(response.text, features="lxml")
+        html_content = await AsyncBrowserManager.get_html_or_none(cls.title, cls.home_url, cls.headers["User-Agent"])
+        if html_content is None:
+            return
+
+        soup = BeautifulSoup(html_content, features="lxml")
         test_room = soup.find('div', class_='chip_index_pingce cl')
         if not test_room:
             return
@@ -86,4 +90,4 @@ async def test():
 
 if __name__ == "__main__":
     asyncio.run(test())
-    # python -m website_scraper.chiphell
+    # .env/bin/python -m src.website_scraper.chiphell
