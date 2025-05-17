@@ -1,8 +1,9 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import PlainTextResponse
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import PlainTextResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from preprocess import data
 from dataHandle import SourceMeta, ArticleInfo, PublishMethod
@@ -26,10 +27,16 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+templates = Jinja2Templates(directory='templates')
 
+
+@app.get("/source2rss", response_class=HTMLResponse)
+async def get_rss_list(request: Request):
+    context = {"rss_list": data.get_rss_list()}
+    return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
 @app.get("/source2rss/{source_file_name}/", response_class=PlainTextResponse)
-async def get_info(source_file_name: str):
+async def get_rss(source_file_name: str):
     rss = data.get_rss_or_None(source_file_name)
     if rss is None:
         raise HTTPException(status_code=404, detail="Not Found")

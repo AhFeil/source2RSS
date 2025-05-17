@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>source2RSS</title>
+    <style>
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        .subtitle {
+            text-align: center;
+            font-size: 12px;
+        }
+        .divider {
+            border-top: 1px dashed #000;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to visit source2RSS!</h1>
+        <p class="subtitle">by AhFei</p>
+        <p class="subtitle">GitHub: <a href="https://github.com/ahfeil/source2RSS">https://github.com/ahfeil/source2RSS</a></p>
+        <p class="subtitle">自建: <a href="https://yanh.tech/2024/07/deployment-process-for-source2rss">信息源转 RSS 框架 - source2RSS 的安装步骤</a></p>
+        <div class="divider"></div>
+
+        {% for rss_file_name in rss_list %}
+            <p class="list-item">
+                <a href="source2rss/{{ rss_file_name }}">{{ rss_file_name }}</a>
+            </p>
+        {% endfor %}
+    </div>
+</body>
+</html>

@@ -78,6 +78,9 @@ class Data:
     def get_rss_or_None(self, source_file_name: str) -> str | None:
         return self._rss.get(source_file_name)
 
+    def get_rss_list(self) -> list[str]:
+        return [rss for rss in self._rss]
+
     def set_rss(self, source_file_name: str, rss: str):
         self._rss[source_file_name] = rss
         rss_filepath = Path(self.config.rss_dir) / source_file_name
