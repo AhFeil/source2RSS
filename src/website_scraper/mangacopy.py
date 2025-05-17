@@ -97,10 +97,6 @@ class MangaCopy(WebsiteScraper):
         return [self.book_id]
 
 
-import api._v1
-api._v1.register_c(MangaCopy)
-
-
 async def test():
     w = MangaCopy("花咲家的性福生活", "huaxoajiedexinfushenghuo")
     print(w.source_info)

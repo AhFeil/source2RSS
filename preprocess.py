@@ -10,6 +10,7 @@ absolute_configfiles = map(lambda x:os.path.join(os.getcwd(), x), (configfile, p
 config = Config(absolute_configfiles)
 
 
+from api._v2 import Plugins
 import api._v1
 plugins = api._v1._private.plugins
 

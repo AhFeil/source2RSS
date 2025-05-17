@@ -77,10 +77,6 @@ class CNUDaily(WebsiteScraper):
             await asyncio.sleep(cls.page_turning_duration)
 
 
-import api._v1
-api._v1.register(CNUDaily)
-
-
 async def test():
     w = CNUDaily()
     print(w.source_info)

@@ -50,10 +50,6 @@ class NewsLetter(WebsiteScraper):
         return [self.from_email, self.website, self.mailbox]
 
 
-import api._v1
-api._v1.register_c(NewsLetter)
-
-
 async def test():
     froms = {"from_email": "", "website": "", "desc": "", "name": "Test"}
     w = NewsLetter(froms, host='imap.gmail.com', port=993, username="", password="")

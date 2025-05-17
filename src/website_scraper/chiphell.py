@@ -72,10 +72,6 @@ class Chiphell(WebsiteScraper):
             yield article
 
 
-import api._v1
-api._v1.register(Chiphell)
-
-
 async def test():
     c = Chiphell()
     print(c.source_info)

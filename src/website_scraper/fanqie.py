@@ -147,10 +147,6 @@ class FanQie(WebsiteScraper):
                 return
 
 
-import api._v1
-api._v1.register_c(FanQie)
-
-
 async def test():
     book = FanQie("我不是戏神", "7276384138653862966")
     print(book.source_info)

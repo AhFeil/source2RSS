@@ -96,10 +96,6 @@ class HotJuejin(WebsiteScraper):
             # 如果把 for 循环放在 with 里面，用同一个 context，怀疑外部直接退出 async for 时，这里处理会有不当，所以暂时改成先 for 再 with
 
 
-import api._v1
-api._v1.register(HotJuejin)
-
-
 async def test():
     w = HotJuejin()
     print(w.source_info)

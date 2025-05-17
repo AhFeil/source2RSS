@@ -64,9 +64,6 @@ class YoutubeChannel(WebsiteScraper):
     def custom_parameter_of_parse(self) -> list:
         return [self.channel_name]
 
-import api._v1
-api._v1.register_c(YoutubeChannel)
-
 
 async def test():
     c = YoutubeChannel("LearnEnglishWithTVSeries")

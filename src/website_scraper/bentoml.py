@@ -86,10 +86,6 @@ class BentoMLBlog(WebsiteScraper):
             await asyncio.sleep(cls.page_turning_duration)
 
 
-import api._v1
-api._v1.register(BentoMLBlog)
-
-
 async def test():
     w = BentoMLBlog()
     print(w.source_info)

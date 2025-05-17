@@ -66,10 +66,6 @@ class GatesNotes(WebsiteScraper):
                 return
 
 
-import api._v1
-api._v1.register(GatesNotes)
-
-
 async def test():
     from datetime import datetime
     c = GatesNotes()

@@ -69,10 +69,6 @@ class OldStone(WebsiteScraper):
             await asyncio.sleep(cls.page_turning_duration)
 
 
-import api._v1
-api._v1.register(OldStone)
-
-
 async def test():
     c = OldStone()
     print(c.source_info)

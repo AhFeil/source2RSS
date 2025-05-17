@@ -2,12 +2,15 @@ import logging
 from urllib.parse import quote
 import asyncio
 from datetime import datetime, timedelta
-from abc import ABC, abstractmethod
+from abc import ABC, ABCMeta, abstractmethod
 from typing import Generator, AsyncGenerator, Any
 from typing import TypedDict
 
 import httpx
 from playwright.async_api import async_playwright
+
+import api._v1
+from api._v2 import Plugins
 
 
 class FailtoGet(Exception):
@@ -72,7 +75,26 @@ class AsyncBrowserManager:
         return html_content
 
 
-class WebsiteScraper(ABC):
+class ScraperMeta(ABCMeta):
+    """元类，用于自动注册插件类"""
+    def __init__(cls, name, bases, attrs):
+        super().__init__(name, bases, attrs)
+        # 排除基类自身，并确保是PluginBase的子类
+        if name != "WebsiteScraper" and issubclass(cls, WebsiteScraper):
+            # 获取插件名称（优先使用类属性name，否则使用类名）
+            plugin_name = getattr(cls, 'name', name)
+            if ScraperMeta._is_init_overridden(cls):
+                api._v1.register_c(cls)
+            else:
+                api._v1.register(cls)
+            Plugins.register(plugin_name, cls)
+
+    @staticmethod
+    def _is_init_overridden(cls):
+        return '__init__' in cls.__dict__
+
+
+class WebsiteScraper(ABC, metaclass=ScraperMeta):
     title = "技焉洲"
     home_url = "https://yanh.tech/"
     admin_url = "https://yanh.tech/wp-content"

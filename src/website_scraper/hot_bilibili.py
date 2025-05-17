@@ -67,10 +67,6 @@ class HotBilibili(WebsiteScraper):
             yield article
 
 
-import api._v1
-api._v1.register(HotBilibili)
-
-
 async def test():
     w = HotBilibili()
     print(w.source_info)

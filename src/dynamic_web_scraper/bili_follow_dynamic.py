@@ -276,11 +276,6 @@ class BilibiliClient:
         return await self.get(uri, params, enable_params_sign=False)
 
 
-
-import api._v1
-api._v1.register_c(BiliFoDynamic)
-
-
 async def test():
     config = {
         "user_name": "AhFei",

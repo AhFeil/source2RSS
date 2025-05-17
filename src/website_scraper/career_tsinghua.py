@@ -116,9 +116,6 @@ class CareerTsinghua(WebsiteScraper):
                 raise FailtoGet
         return response
     
-import api._v1
-api._v1.register(CareerTsinghua)
-
 
 async def test():
     c = CareerTsinghua()

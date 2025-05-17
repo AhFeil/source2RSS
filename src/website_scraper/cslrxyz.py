@@ -69,10 +69,6 @@ class CSLRXYZ(WebsiteScraper):
             await asyncio.sleep(cls.page_turning_duration)
 
 
-import api._v1
-api._v1.register(CSLRXYZ)
-
-
 async def test():
     c = CSLRXYZ()
     print(c.source_info)
