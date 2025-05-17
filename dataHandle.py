@@ -79,7 +79,7 @@ class Data:
         return self._rss.get(source_file_name)
 
     def get_rss_list(self) -> list[str]:
-        return [rss for rss in self._rss]
+        return sorted([rss for rss in self._rss])
 
     def set_rss(self, source_file_name: str, rss: str):
         self._rss[source_file_name] = rss

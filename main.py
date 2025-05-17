@@ -31,6 +31,7 @@ templates = Jinja2Templates(directory='templates')
 
 
 @app.get("/source2rss", response_class=HTMLResponse)
+@app.get("/source2rss/", response_class=HTMLResponse)
 async def get_rss_list(request: Request):
     context = {"rss_list": data.get_rss_list()}
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
