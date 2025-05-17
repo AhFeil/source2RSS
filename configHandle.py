@@ -14,6 +14,8 @@ class Config:
         self.reload()
 
         # 用户不应该考虑的配置，开发者可以改的
+        self.rss_dir = "config_and_data_files/rss"
+        os.makedirs(self.rss_dir, exist_ok=True)
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
         self.run_test_every_seconds = 10
         self.bili_context = "config_and_data_files/bili_context.json"
@@ -62,8 +64,6 @@ class Config:
         enabled_web_scraper = user_configs.get('enabled_web_scraper', [])
         self.enabled_web_scraper = [f"src.{scraper}" for scraper in enabled_web_scraper]
         self.remote_pub_scraper = user_configs.get('remote_pub_scraper', {})
-        self.rss_dir = user_configs['rss_dir']
-        os.makedirs(self.rss_dir, exist_ok=True)
         
         self.image_root = user_configs['image_root']
         os.makedirs(self.image_root, exist_ok=True)

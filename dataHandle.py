@@ -1,3 +1,4 @@
+from pathlib import Path
 from datetime import datetime
 import logging
 
@@ -22,7 +23,7 @@ class SourceMeta(BaseModel):
             "language": self.language,
             "key4sort": self.key4sort
         }
-    
+
 class ArticleInfo(BaseModel):
     article_name: str 
     article_url: HttpUrl | str ="https://yanh.tech/"   # 这个应该是网址或者空字符串
@@ -66,10 +67,25 @@ class Data:
         self.logger = logging.getLogger("dataHandle")
         self.yaml = YAML()
 
+        # 内存里的RSS数据
+        self._rss: dict[str, str] = Data._load_files_to_dict(config.rss_dir)
+
         # MongoDB
         self.m = MongoClient(config.mongodb_uri)
         self.db = self.m[config.mongo_dbname]
         self.meta_collection = self.db[self.config.source_meta]
+
+    def get_rss_or_None(self, source_file_name: str) -> str | None:
+        return self._rss.get(source_file_name)
+
+    def set_rss(self, source_file_name: str, rss: str):
+        self._rss[source_file_name] = rss
+        rss_filepath = Path(self.config.rss_dir) / source_file_name
+        with open(rss_filepath, 'wb') as rss_file:
+            rss_file.write(rss)
+
+    def rss_is_absent(self, source_file_name: str) -> bool:
+        return source_file_name not in self._rss
 
     def store2database(self, mp_name: str, one_article_doc: dict):
         """将原始 msg、文章信息和时间戳存入数据库"""
@@ -115,3 +131,13 @@ class Data:
         for collection_name in collections:
             collection = self.db[collection_name]
             collection.delete_many({})
+
+    @staticmethod
+    def _load_files_to_dict(directory):
+        path = Path(directory)
+        file_dict = {}
+        for file_path in path.iterdir():  # 遍历目录中的条目
+            if file_path.is_file():
+                file_content = file_path.read_text(encoding='utf-8')
+                file_dict[file_path.name] = file_content
+        return file_dict

@@ -5,8 +5,6 @@ is_production: true
 mongodb_uri: mongodb://try:password@1.2.3.4:27017/source2rss
 mongo_dbname: source2rss
 
-# RSS 文件要放的位置
-rss_dir: config_and_data_files/rss/
 # 运行中获取的图片默认保存的位置
 image_root: config_and_data_files/images
 # 启用需要的抓取器
@@ -31,6 +29,12 @@ cls_init_params:
   - [系统炸了，我成了系统, 6995119385308302344]
   - [魔法之工业革命, 6955828180326288397]
   - [病毒武器库, 6991806777125768229]
+
+  YoutubeChannel:
+  - [alanbecker]
+
+  MangaCopy:
+  - [花咲家的性福生活, huaxoajiedexinfushenghuo]
 
   # B 站动态单个用户的配置示例
   BiliFoDynamic:

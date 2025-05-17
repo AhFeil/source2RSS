@@ -39,7 +39,11 @@ async def save_articles(data, source_name, key4sort, article_source) -> bool:
         logger.warning("data.store2database(source_name, a) Unpredictable Exception: %s", e)
     return store_a_new_one
 
-async def goto_uniform_flow(data, instance: WebsiteScraper, rss_dir):
+def format_source_name(t: str) -> tuple[str, str]:
+    """title会作为网址的一部分，因此不能出现空格等"""
+    return t.replace(' ', '_')
+
+async def goto_uniform_flow(data, instance: WebsiteScraper):
     """不对外抛错"""
     source_info, source_name, max_wait_time = instance.source_info, instance.table_name, instance.max_wait_time
     key4sort = source_info["key4sort"]
@@ -61,8 +65,11 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, rss_dir):
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long when save_articles")
 
-    # 生成 RSS 并保存到目录
-    if got_new:
-        generate_rss_from_collection(source_info, collection, rss_dir)
+    source_name = format_source_name(source_info["title"])
+    source_file_name = f"{source_name}.xml"
+    if got_new | data.rss_is_absent(source_file_name):
+        # 当有新内容或文件缺失的情况下，会生成 RSS 并保存
+        rss_feed = generate_rss_from_collection(source_info, collection)
+        data.set_rss(source_file_name, rss_feed)
     else:
-        logger.info(f"{source_name} didn't update")
+        logger.info(f"{source_name} exists and doesn't update")

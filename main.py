@@ -1,9 +1,10 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
+from fastapi.responses import PlainTextResponse
 
-from preprocess import config, data
+from preprocess import data
 from dataHandle import SourceMeta, ArticleInfo, PublishMethod
 from src.run_as_scheduled import run_continuously
 from src.generate_rss import generate_rss_from_collection
@@ -25,6 +26,14 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
+
+
+@app.get("/source2rss/{source_file_name}/", response_class=PlainTextResponse)
+async def get_info(source_file_name: str):
+    rss = data.get_rss_or_None(source_file_name)
+    if rss is None:
+        raise HTTPException(status_code=404, detail="Not Found")
+    return rss
 
 
 # 现在无法覆盖原有数据
@@ -64,7 +73,7 @@ async def delivery(user_name: str, source_name: str, articles: list[ArticleInfo]
     source_info = data.get_source_info(source_name)
     if source_info:
         # 生成 RSS 并保存到目录
-        generate_rss_from_collection(source_info, data.db[source_name], config.rss_dir)
+        generate_rss_from_collection(source_info, data.db[source_name])
         return {"state": "true", "link": "https://rss.vfly2.com/source2rss/"}
     else:
         return {"state": "false", "notice": "please /add_rss firstly"}

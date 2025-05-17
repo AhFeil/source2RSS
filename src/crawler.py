@@ -9,10 +9,10 @@ from src.local_publish import goto_uniform_flow
 logger = logging.getLogger("crawler")
 
 
-async def one_website(config, data, cls):
+async def one_website(data, cls):
     """对某个网站的文章进行更新"""
     instance = cls()
-    await goto_uniform_flow(data, instance, config.rss_dir)
+    await goto_uniform_flow(data, instance)
 
 
 async def chapter_mode(config, data, cls, init_params: list):
@@ -33,7 +33,7 @@ async def chapter_mode(config, data, cls, init_params: list):
                 from src.remote_publish import goto_remote_flow
                 await goto_remote_flow(config, data, instance, url)
             else:
-                await goto_uniform_flow(data, instance, config.rss_dir)
+                await goto_uniform_flow(data, instance)
 
 
 async def monitor_website(config, data, plugins):
@@ -42,7 +42,7 @@ async def monitor_website(config, data, plugins):
 
     tasks = chain(
         (chapter_mode(config, data, cls, config.get_params(cls.__name__)) for cls in plugins["chapter_mode"]),
-        (one_website(config, data, cls) for cls in plugins["static"])
+        (one_website(data, cls) for cls in plugins["static"])
     )
     await asyncio.gather(*tasks)
 
@@ -67,4 +67,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, handler)
 
     asyncio.run(start_to_crawl())
-    # python -m src.crawler
+    # .env/bin/python -m src.crawler
