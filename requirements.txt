@@ -9,3 +9,4 @@ beautifulsoup4
 pytest-playwright
 Pillow
 fastapi[all]
+cachetools

@@ -67,7 +67,12 @@ class Config:
         
         self.image_root = user_configs['image_root']
         os.makedirs(self.image_root, exist_ok=True)
-    
+
+        self.query_cache_maxsize = user_configs.get('query_cache_maxsize', 100)
+        self.query_cache_ttl_s = user_configs.get('query_cache_ttl_s', 3600)
+        self.query_username = user_configs.get('query_username', "vfly2")
+        self.query_password = user_configs.get('query_password', "123456")
+
         self.cls_init_params = user_configs['cls_init_params']
 
     def get_params(self, class_name: str) -> list:

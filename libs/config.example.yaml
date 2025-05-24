@@ -7,6 +7,11 @@ mongo_dbname: source2rss
 
 # 运行中获取的图片默认保存的位置
 image_root: config_and_data_files/images
+query_cache_maxsize: 100
+query_cache_ttl_s: 3600
+query_username: vfly2
+query_password: "123456"
+
 # 启用需要的抓取器
 enabled_web_scraper: ["website_scraper.bentoml", "website_scraper.cslrxyz", "website_scraper.cnu_daily", "website_scraper.career_tsinghua"]
 
