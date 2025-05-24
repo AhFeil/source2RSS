@@ -84,20 +84,3 @@ class BentoMLBlog(WebsiteScraper):
 
             start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
-
-
-async def test():
-    w = await BentoMLBlog.create()
-    print(w.source_info)
-    print(w.table_name)
-    async for a in w.first_add():
-        print(a)
-    print("----------")
-    async for a in w.get_new(datetime(2024, 4, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.bentoml

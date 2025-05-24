@@ -162,11 +162,6 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             yield a
 
     # ***公开属性***
-    title = "技焉洲"
-    home_url = "https://yanh.tech/"
-    admin_url = "https://yanh.tech/wp-content"
-    # 请求每页之间的间隔，秒
-    page_turning_duration = 5
     key4sort = "pub_time"
     # 下面属性由元类自动判别赋值
     support_old2new: bool = False
@@ -174,6 +169,11 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
 
     # ***内部方法和属性***
+    title = "技焉洲"
+    home_url = "https://yanh.tech/"
+    admin_url = "https://yanh.tech/wp-content"
+    # 请求每页之间的间隔，秒
+    page_turning_duration = 5
     # https://curlconverter.com/
     headers = {
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
