@@ -40,7 +40,7 @@ def generate_rss(source_info: dict, articles: list[dict]) -> bytes:
     rss_feed = fg.rss_str(pretty=True)
     return rss_feed
 
-def generate_rss_from_collection(source_info, collection: str):
+def generate_rss_from_collection(source_info, collection):
     """从 collection 中取出前 10 条最新的消息，调用 generate_rss 生成 RSS 文件"""
     key4sort = source_info["key4sort"]
     try:

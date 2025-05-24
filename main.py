@@ -113,13 +113,16 @@ async def add_rss(user_name: str, source_name: str, source_meta: SourceMeta):
 @app.get("/rss_info/{user_name}/{source_name}/")
 async def get_info(user_name: str, source_name: str):
     source_info = data.get_source_info(source_name)
+    if source_info is None:
+        return {"last_update_flag": False}
+
     key4sort = source_info["key4sort"]
     collection = data.db[source_name]
     result = collection.find({}, {key4sort: 1}).sort(key4sort, -1).limit(1)
     result = list(result)
     last_update_flag = result[0][key4sort] if result else False
     if key4sort in {"pub_time"}:
-        last_update_flag = last_update_flag.timestamp()
+        last_update_flag = last_update_flag.timestamp() # type: ignore
     return {"last_update_flag": last_update_flag}
 
 

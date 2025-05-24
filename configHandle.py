@@ -2,15 +2,15 @@ import sys
 import os
 import json
 import logging.config
-from typing import Generator, Any
+from typing import Generator, Iterable
 
 from ruamel.yaml import YAML, YAMLError
 
 
 class Config:
-    def __init__(self, configs_path: list[str]) -> None:
+    def __init__(self, configs_path: Iterable[str]) -> None:
         self.yaml = YAML()
-        self.configs_path = configs_path
+        self.configs_path = tuple(configs_path)
         self.reload()
 
         # 用户不应该考虑的配置，开发者可以改的
@@ -23,7 +23,7 @@ class Config:
             with open(self.bili_context, 'w', encoding="utf-8") as f:
                 json.dump({}, f)
 
-    def _load_config(self) -> Generator[dict, Any, Any]:
+    def _load_config(self) -> Generator[dict, None, None]:
         """定义如何加载配置文件"""
         for f in self.configs_path:
             try:

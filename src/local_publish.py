@@ -53,7 +53,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     result = collection.find({}, {key4sort: 1, "article_infomation": 1}).sort(key4sort, -1).limit(1)   # 含有 '_id', 
     result = list(result)
     if result:
-        flags: LocateInfo = {"article_name": result[0]["article_infomation"]["article_name"], key4sort: result[0][key4sort]}
+        flags: LocateInfo = {"article_name": result[0]["article_infomation"]["article_name"], key4sort: result[0][key4sort]} # type: ignore
         article_source = instance.get_new(flags)
     else:
         # 若是第一次，数据库中没有数据
