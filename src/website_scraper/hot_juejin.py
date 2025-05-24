@@ -44,10 +44,10 @@ class HotJuejin(WebsiteScraper):
         return HotJuejin.page_turning_duration * 60
     
     @classmethod
-    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         url = f"{cls.admin_url}/article_rank?{cls.steady_query}"
         logger.info(f"{cls.title} start to parse page 1")   # 只有一页
-        response = await cls.request(url)
+        response = await cls._request(url)
         articles = response.json()
         if articles and not articles["data"]:
             return

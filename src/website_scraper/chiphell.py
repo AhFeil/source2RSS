@@ -33,7 +33,7 @@ class Chiphell(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         logger.info(f"{cls.title} start to parse page")
         html_content = await AsyncBrowserManager.get_html_or_none(cls.title, cls.home_url, cls.headers["User-Agent"])

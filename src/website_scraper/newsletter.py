@@ -29,7 +29,7 @@ class NewsLetter(WebsiteScraper):
             "key4sort": self.__class__.key4sort}
 
     @classmethod
-    async def parse(cls, logger, from_email, website, mailbox: ImapMailBox) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, from_email, website, mailbox: ImapMailBox) -> AsyncGenerator[dict, Any]:
         logger.info(f"{cls.title} start to parse email {from_email}")
         with mailbox:
             for mail in mailbox.get_mails("ALL"):
@@ -46,7 +46,7 @@ class NewsLetter(WebsiteScraper):
                 yield article
                 await asyncio.sleep(cls.page_turning_duration)
 
-    def custom_parameter_of_parse(self) -> list:
+    def _custom_parameter_of_parse(self) -> list:
         return [self.from_email, self.website, self.mailbox]
 
 

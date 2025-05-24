@@ -3,7 +3,7 @@ from urllib.parse import quote
 import asyncio
 from datetime import datetime, timedelta
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Generator, AsyncGenerator, Any, TypedDict, Self
+from typing import Generator, AsyncGenerator, TypedDict, Self
 
 import httpx
 from playwright.async_api import async_playwright
@@ -51,12 +51,12 @@ class AsyncBrowserManager:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         async with AsyncBrowserManager._lock:
-            await self.context.close()
+            await self.context.close() # type: ignore
             AsyncBrowserManager._users -= 1
             # 所有用户都退出后清理资源
             if AsyncBrowserManager._users == 0 and AsyncBrowserManager._browser is not None:
                 await AsyncBrowserManager._browser.close()
-                await AsyncBrowserManager._playwright.stop()
+                await AsyncBrowserManager._playwright.stop() # type: ignore
                 AsyncBrowserManager._browser = None
                 AsyncBrowserManager._playwright = None
                 AsyncBrowserManager._logger.info("destroy browser by " + self.id)
@@ -91,42 +91,32 @@ class ScraperMeta(ABCMeta):
             else:
                 cls.is_variety = False
                 api._v1.register(cls)
+            if ScraperMeta._is_get_from_old2new_overridden(cls):
+                cls.support_old2new = True
+            else:
+                cls.support_old2new = False
             Plugins.register(plugin_name, cls)
 
     @staticmethod
     def _is_init_overridden(cls_instance):
         return '__init__' in cls_instance.__dict__
 
+    @staticmethod
+    def _is_get_from_old2new_overridden(cls_instance):
+        return 'get_from_old2new' in cls_instance.__dict__
+
 
 class WebsiteScraper(ABC, metaclass=ScraperMeta):
-    title = "技焉洲"
-    home_url = "https://yanh.tech/"
-    admin_url = "https://yanh.tech/wp-content"
-    # 请求每页之间的间隔，秒
-    page_turning_duration = 5
-    key4sort = "pub_time"
-    is_variety = False   # 创建时是否需要传入额外参数
 
-    # https://curlconverter.com/
-    headers = {
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-        'Content-Type': 'application/json',
-        'Origin': 'https://yanh.tech',
-        'Referer': 'https://yanh.tech',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
-    }
-
+    # ***对外接口***
     @classmethod
     async def create(cls) -> Self:
         return cls()
 
-    def __init__(self) -> None:
-        self.logger = logging.getLogger(self.__class__.__name__)
-
     @property
     @abstractmethod
     def source_info(self):
-        """数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用"""
+        """数据库要有一个表保存每个网站的元信息，生成 RSS 使用"""
         return {
             "title": self.__class__.title,
             "link": self.__class__.home_url,
@@ -136,17 +126,69 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     @property
     def table_name(self):
-        """返回表名或者collection名称，以及用于 RSS 文件的名称"""
+        """返回表名，并会用于 RSS 文件的名称"""
         return self.source_info["title"]
 
     @property
     def max_wait_time(self):
         """返回在本次执行中，从执行开始到结束占用最长时间，单位秒"""
         return self.__class__.page_turning_duration * 20
-    
+
+    async def first_add(self, amount: int = 10) -> AsyncGenerator[dict, None]:
+        """首次运行时用，按从新到旧返回最新的若干条"""
+        if amount <= 0:
+            return
+        async for a in self.__class__._parse(self.logger, *self._custom_parameter_of_parse()):
+            amount -= 1
+            yield a
+            if amount <= 0:
+                return
+
+    async def get_new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
+        """按从新到旧，每次返回一条，直到遇到和标记一样的一条"""
+        async for a in self.__class__._parse(self.logger, *self._custom_parameter_of_parse()):
+            if a[self.__class__.key4sort] > flags[self.__class__.key4sort]:
+                yield a
+            else:
+                return
+    # 网站结构一般是链式的，不支持随机索引，而从新到旧的顺序一般都能满足，但是这种顺序一旦中断就无法自发恢复遗漏的
+    # 如果支持从旧到新的索引，可以覆写 get_from_old2new ，会优先选择；若不支持但希望保证数据不缺失，也可以覆写，使用 super() 调一次父类方法即可
+    async def get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
+        """按从旧到新，从和标记一样的下一条开始返回，每次一条，直到最新"""
+        articles = []
+        async for a in self.get_new(flags):
+            articles.append(a)
+        for a in reversed(articles):
+            yield a
+
+    # ***公开属性***
+    title = "技焉洲"
+    home_url = "https://yanh.tech/"
+    admin_url = "https://yanh.tech/wp-content"
+    # 请求每页之间的间隔，秒
+    page_turning_duration = 5
+    key4sort = "pub_time"
+    # 下面属性由元类自动判别赋值
+    support_old2new: bool = False
+    is_variety: bool = False   # 创建时是否需要传入额外参数
+
+
+    # ***内部方法和属性***
+    # https://curlconverter.com/
+    headers = {
+        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
+        'Content-Type': 'application/json',
+        'Origin': 'https://yanh.tech',
+        'Referer': 'https://yanh.tech',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
+    }
+
+    def __init__(self) -> None:
+        self.logger = logging.getLogger(self.__class__.__name__)
+
     @classmethod
     @abstractmethod
-    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
         """按照从新到旧的顺序返回"""
         while True:
             varied_query_dict = {"pagination[page]": start_page}
@@ -155,7 +197,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
             logger.info(f"{cls.title} start to parse page {start_page}")
             # 若出现 FailtoGet，则由调度那里接收并跳过
-            response = await cls.request(url)
+            response = await cls._request(url)
 
             # 初次适配使用，保存网站数据
             # with open("for_test.html", 'w', encoding='utf-8') as f:
@@ -197,7 +239,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             await asyncio.sleep(cls.page_turning_duration)
 
     @classmethod
-    async def request(cls, url: str, verify=True) -> httpx.Response:
+    async def _request(cls, url: str, verify=True) -> httpx.Response:
         async with httpx.AsyncClient(follow_redirects=True, verify=verify) as client:
             try:
                 response = await client.get(url=url, headers=cls.headers)
@@ -207,30 +249,12 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 return response
 
     @staticmethod
-    def get_time_obj(reverse: bool = False, count: int = 20, interval: int = 2) -> Generator[datetime, None, None]:
+    def _get_time_obj(reverse: bool = False, count: int = 20, interval: int = 2) -> Generator[datetime, None, None]:
         """生成时间对象序列，默认时间越来越新，具体是每次增加 2 分钟，reverse=True时间越来越旧"""
         current_time = datetime.now()
         step = interval * (-1 if reverse else 1)
         return (current_time + timedelta(minutes=step * n) for n in range(count))
 
-    def custom_parameter_of_parse(self) -> list:
-        """调用 parse 时，额外需要提供的参数"""
+    def _custom_parameter_of_parse(self) -> list:
+        """调用 _parse 时，额外需要提供的参数"""
         return []
-
-    async def first_add(self, amount: int = 10):
-        """接口.第一次添加时用的，比如获取最新的 10 条"""
-        if amount <= 0:
-            return
-        async for a in self.__class__.parse(self.logger, *self.custom_parameter_of_parse()):
-            amount -= 1
-            yield a
-            if amount <= 0:
-                return
-
-    async def get_new(self, flags: LocateInfo):
-        """接口.第一次添加时，要调用的接口"""
-        async for a in self.__class__.parse(self.logger, *self.custom_parameter_of_parse()):
-            if a[self.__class__.key4sort] > flags[self.__class__.key4sort]:
-                yield a
-            else:
-                return

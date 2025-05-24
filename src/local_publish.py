@@ -8,8 +8,14 @@ logger = logging.getLogger("local_publish")
 
 
 async def save_articles(data, source_name, key4sort, article_source) -> bool:
-    """有更新则返回真，不对外抛错"""
-    all_article_etc = []
+    """
+    有更新则返回真，不对外抛错
+    1. 有几篇新文章返回，无异常，应该返回有更新
+    2. 有几篇新文章返回，有异常，应该返回有更新
+    3. 没文章返回，无异常，应该返回没有更新
+    4. 第一篇文章返回时发生异常，应该返回没有更新
+    """
+    store_a_new_one = False
     try:
         async for a in article_source:
             # 每篇文章整合成一个文档，存入相应集合
@@ -17,27 +23,17 @@ async def save_articles(data, source_name, key4sort, article_source) -> bool:
                 "article_infomation": a, 
                 key4sort: a[key4sort]
             }
-            all_article_etc.append(one_article_etc)
+            data.store2database(source_name, one_article_etc)
+            store_a_new_one = True
             logger.info(f"{source_name} have new article: {a['article_name']}")
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long.")
-        return False
     except FailtoGet:
         logger.info(f"FailtoGet: Processing {source_name} 网络出错")
-        return False
     except Exception as e:
-        logger.warning("Unpredictable Exception: %s", e)
-        return False
-
-    store_a_new_one = False
-    # 获得文章后，按从旧到新、从小到大的顺序放入 DB，这样即便中间出错中断，下次更新时会从中断处补充
-    try:
-        for one_article_etc in reversed(all_article_etc):
-            data.store2database(source_name, one_article_etc)
-            store_a_new_one = True
-    except Exception as e:
-        logger.warning("data.store2database(source_name, a) Unpredictable Exception: %s", e)
-    return store_a_new_one
+        logger.warning("Unpredictable Exception when get and save article: %s", e)
+    finally:
+        return store_a_new_one
 
 def format_source_name(t: str) -> str:
     """title会作为网址的一部分，因此不能出现空格等"""
@@ -54,7 +50,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     result = list(result)
     if result:
         flags: LocateInfo = {"article_name": result[0]["article_infomation"]["article_name"], key4sort: result[0][key4sort]} # type: ignore
-        article_source = instance.get_new(flags)
+        article_source = instance.get_from_old2new(flags) if instance.__class__.support_old2new else instance.get_new(flags)
     else:
         # 若是第一次，数据库中没有数据
         article_source = instance.first_add()

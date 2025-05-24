@@ -47,7 +47,7 @@ class CareerTsinghua(WebsiteScraper):
         return source_info
         
     @classmethod
-    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码，跳过红色字（color:#ff0000 置顶的）yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         data_raw = {
             'flag': '',
@@ -67,8 +67,8 @@ class CareerTsinghua(WebsiteScraper):
         while True:
             data_raw['pgno'] = str(start_page)
             logger.info(f"{cls.title} start to parse page {start_page}")
-            response = await cls.request(cls.home_url, data_raw)
-            
+            response = await cls._request(cls.home_url, data_raw)
+
             soup = BeautifulSoup(response.text, features="lxml")
 
             # Find all list items under the ul with id 'todayList'
@@ -106,7 +106,7 @@ class CareerTsinghua(WebsiteScraper):
             await asyncio.sleep(cls.page_turning_duration)
 
     @classmethod
-    async def request(cls, url: str, data_raw: dict) -> httpx.Response | None:
+    async def _request(cls, url: str, data_raw: dict) -> httpx.Response | None:
         # 设置超时时间为60秒
         timeout = httpx.Timeout(60.0, read=60.0)
         async with httpx.AsyncClient(follow_redirects=True) as client:

@@ -1,8 +1,7 @@
-import asyncio
 from datetime import datetime
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
-from .example import WebsiteScraper
+from .example import WebsiteScraper, LocateInfo
 
 
 # 逻辑有缺陷，目前是每次运行将热榜按照  排序，取最新的，不会缺少新写的上热榜，但是旧的上热榜会缺少
@@ -35,52 +34,40 @@ class HotBilibili(WebsiteScraper):
         return HotBilibili.page_turning_duration * 10
     
     @classmethod
-    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
-        if start_page != 1:
-            return
+    async def _parse(cls, logger, pub_time: datetime | bool=False, start_page: int=1) -> AsyncGenerator[dict, None]:
         url = "https://api.bilibili.com/x/web-interface/ranking/v2"
-        logger.info(f"{cls.title} start to parse page 1")   # 只有一页
-        response = await cls.request(url)
-        articles = response.json()
-        if articles and not articles["data"]:
+        logger.info(f"{cls.title} start to parse page")
+        response = await cls._request(url)
+        res = response.json()
+        if res and res["data"]:
+            articles: list[dict] = res["data"]["list"]
+            if not pub_time: # if not old2new
+                # 以文章 ctime 为准，从大到小，即从新到旧
+                articles.sort(key=lambda x: x["ctime"], reverse=True)
+
+            for a in articles:
+                time_obj = datetime.fromtimestamp(a["ctime"])
+                # todo 提供二分查找方法
+                if pub_time and time_obj <= pub_time: # type: ignore # if old2new
+                    continue
+                title = a["title"]
+                description = a["desc"]
+                article_url = f"https://www.bilibili.com/video/{a['bvid']}"
+                image_link = a["pic"]
+
+                article = {
+                    "article_name": title,
+                    "summary": description,
+                    "article_url": article_url,
+                    "image_link": image_link,
+                    "pub_time": time_obj
+                }
+
+                yield article
+
+    async def get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
+        pub_time = flags["pub_time"]
+        if pub_time is None:
             return
-        
-        # 按照文章 ctime 排序，从大到小读
-        articles: list[dict] = articles["data"]["list"]
-        articles.sort(key=lambda x: x["ctime"], reverse=True)
-
-        for a in articles:
-            title = a["title"]
-            description = a["desc"]
-            article_url = f"https://www.bilibili.com/video/{a['bvid']}"
-            image_link = a["pic"]
-            time_obj = datetime.fromtimestamp(a["ctime"])
-
-            article = {
-                "article_name": title,
-                "summary": description,
-                "article_url": article_url,
-                "image_link": image_link,
-                "pub_time": time_obj
-            }
-
-            yield article
-
-
-async def test():
-    w = HotBilibili()
-    print(w.source_info)
-    print(w.table_name)
-    async for a in w.first_add():
-        print(a)
-    print("----------")
-    async for a in w.get_new(datetime(2024, 4, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.hot_bilibili
-
-
+        async for a in self.__class__._parse(self.logger, pub_time):
+            yield a

@@ -43,10 +43,10 @@ class YoutubeChannel(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def parse(cls, logger, channel_name, feed_url, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, channel_name, feed_url, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         logger.info(f"{channel_name} start to parse")
-        response = await cls.request(feed_url)
+        response = await cls._request(feed_url)
         if response.status_code != 200:
             return
         feed = feedparser.parse(response.text)   # feed.feed.title 频道名称
@@ -61,12 +61,12 @@ class YoutubeChannel(WebsiteScraper):
             }
             yield article
 
-    def custom_parameter_of_parse(self) -> list:
+    def _custom_parameter_of_parse(self) -> list:
         return [self.channel_name, self.feed_url]
 
     @classmethod
     async def get_feed_url(cls, channel_name) -> str:
-        response = await cls.request(f"{YoutubeChannel.home_url}/@{channel_name}")
+        response = await cls._request(f"{YoutubeChannel.home_url}/@{channel_name}")
         if response.status_code != 200:
             return ""
         soup = BeautifulSoup(response.text, features="lxml")

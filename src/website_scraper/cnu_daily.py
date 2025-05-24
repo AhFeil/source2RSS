@@ -31,12 +31,12 @@ class CNUDaily(WebsiteScraper):
             "key4sort": self.__class__.key4sort}
 
     @classmethod
-    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """按照从新到旧的顺序返回"""
         while True:
             url = f"http://www.cnu.cc/selectedsFlow/{start_page}"
             logger.info(f"{cls.title} start to parse page {start_page}")
-            response = await cls.request(url)
+            response = await cls._request(url)
 
             json_res = response.json()
             # 超出结尾了

@@ -3,7 +3,7 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import AsyncGenerator, Any, Self
 
-from .example import WebsiteScraper, FailtoGet, CreateByInvalidParam
+from .example import WebsiteScraper, FailtoGet, CreateByInvalidParam, LocateInfo
 
 
 class FanQie(WebsiteScraper):
@@ -28,7 +28,7 @@ class FanQie(WebsiteScraper):
     async def get_catalog(cls, book_id: str) -> tuple[dict, list]:
         """获取章节信息"""
         catalog_url = f"{cls.admin_url}/catalog?book_id={book_id}"
-        response = await cls.request(catalog_url)
+        response = await cls._request(catalog_url)
         data_json = response.json()
         book_info_json = data_json['data']['data']['book_info']
         catalog_list = data_json['data']['data'].get('catalog_data') or data_json['data']['data'].get('item_data_list')
@@ -64,13 +64,13 @@ class FanQie(WebsiteScraper):
             "key4sort": FanQie.key4sort}
 
     @classmethod
-    async def parse(cls, logger, catalog_list: list, old2new: bool=False, start_chapter: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, catalog_list: list, old2new: bool=False, start_chapter: int=1) -> AsyncGenerator[dict, Any]:
         """默认从最新章节，yield 一篇一篇惰性返回，直到起始章节；也可将 old2new 为真，会从 start_chapter 返回到最新"""
         if old2new:
             # 反向，就是从第一篇开始返回，也就是 catalog_list 的原本顺序
             pass
         else:
-            catalog_list = reversed(catalog_list)
+            catalog_list.reverse()
         last_chapter_order = -1
         n = 0
         current_time = datetime.now()
@@ -83,10 +83,10 @@ class FanQie(WebsiteScraper):
             content_url = f"{cls.admin_url}/content?item_id={item_id}"
             logger.info(f"{cls.title} start to parse page {i}")
             try:
-                response = await cls.request(content_url)
+                response = await cls._request(content_url)
             except FailtoGet:
                 await asyncio.sleep(60)
-                response = await cls.request(content_url)
+                response = await cls._request(content_url)
             
             article_info = response.json()
             a = article_info["data"]["data"]
@@ -132,16 +132,16 @@ class FanQie(WebsiteScraper):
             last_chapter_order = real_chapter_order
             await asyncio.sleep(cls.page_turning_duration)
 
-    def custom_parameter_of_parse(self) -> list:
+    def _custom_parameter_of_parse(self) -> list:
         return [self.catalog_list]
 
-    async def chapter_after(self, chapter: int):
-        """从旧到新，从 chapter 开始返回，直到最新的，为下载全本小说而写"""
-        async for a in FanQie.parse(self.logger, self.catalog_list, old2new=True, start_chapter=chapter + 1):
-            if a["chapter_number"] > chapter:
-                yield a
-            else:
-                return
+    async def get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
+        """从旧到新，从 chapter 下一个开始返回，直到最新的"""
+        chapter = flags["chapter_number"]
+        if chapter is None:
+            return
+        async for a in FanQie._parse(self.logger, self.catalog_list, old2new=True, start_chapter=chapter + 1):
+            yield a
 
 
 async def test():

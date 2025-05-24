@@ -32,7 +32,7 @@ class GatesNotes(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """返回首页前几个封面文章"""
         logger.info(f"{cls.title} start to parse page {start_page}")
 
@@ -47,7 +47,7 @@ class GatesNotes(WebsiteScraper):
         articles_desc = soup.find_all('div', class_='articleDesc')
         articles_url = soup.find_all('a', class_=lambda cls_: cls_ and cls_.startswith('articleLeftF'))
         articles_img = soup.find_all('video', class_=lambda cls_: cls_ and cls_.startswith('TabletOnly articleBackF'))
-        articles_times = WebsiteScraper.get_time_obj(True)
+        articles_times = WebsiteScraper._get_time_obj(True)
         for title, description, url, image_link, time_obj in zip(articles_title, articles_desc, articles_url, articles_img, articles_times):
             article = {
                 "article_name": title.text,
@@ -59,7 +59,7 @@ class GatesNotes(WebsiteScraper):
             yield article
 
     async def get_new(self, flags: LocateInfo):
-        async for a in GatesNotes.parse(self.logger):
+        async for a in GatesNotes._parse(self.logger):
             if a["article_name"] != flags["article_name"]:
                 yield a
             else:

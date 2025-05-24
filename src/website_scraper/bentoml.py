@@ -46,14 +46,14 @@ class BentoMLBlog(WebsiteScraper):
             "key4sort": self.__class__.key4sort}
 
     @classmethod
-    async def parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         while True:
             varied_query_dict = {"pagination[page]": start_page}
             query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items()) + '&' + cls.steady_query
             encoded_query = quote(query, safe='[]=&')
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
             logger.info(f"{cls.title} start to parse page {start_page}")
-            response = await cls.request(url)
+            response = await cls._request(url)
             
             articles = response.json()
             if not articles["data"]:
