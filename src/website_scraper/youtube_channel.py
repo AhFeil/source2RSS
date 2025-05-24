@@ -54,7 +54,8 @@ class YoutubeChannel(WebsiteScraper):
         for entry in feed.entries:
             article = {
                 "article_name": entry.title,
-                "summary": entry.summary,
+                "summary": entry.summary[0:50],
+                "content": entry.summary,
                 "article_url": entry.link,
                 "image_link": entry.media_thumbnail[0]['url'],
                 "pub_time": datetime.fromisoformat(entry.published).replace(tzinfo=None)
@@ -72,11 +73,11 @@ async def test():
     async for a in c.first_add():
         print(a)
     print("----------")
-    async for a in c.get_new(datetime(2020, 4, 1)):
-        print(a)
-    print("----------")
+    # async for a in c.get_new(datetime(2020, 4, 1)):
+    #     print(a)
+    # print("----------")
 
 
 if __name__ == "__main__":
     asyncio.run(test())
-    # python -m website_scraper.youtube_channel
+    # python -m src.website_scraper.youtube_channel
