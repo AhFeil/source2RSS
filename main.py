@@ -10,7 +10,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from cachetools import TTLCache
 
 from preprocess import Plugins, data, config
-from dataHandle import SourceMeta, ArticleInfo, PublishMethod
+from src.data import SourceMeta, ArticleInfo, PublishMethod
 from src.run_as_scheduled import run_continuously
 from src.generate_rss import generate_rss
 from src.local_publish import goto_uniform_flow
