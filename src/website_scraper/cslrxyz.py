@@ -21,10 +21,10 @@ class CSLRXYZ(WebsiteScraper):
     @property
     def source_info(self):
         source_info = {
-            "title": self.__class__.title,
+            "name": self.__class__.title,
             "link": self.__class__.home_url,
-            "description": "分享英语学习方法、工具使用和影评",
-            "language": "zh-CN",
+            "desc": "分享英语学习方法、工具使用和影评",
+            "lang": "zh-CN",
             "key4sort": self.__class__.key4sort
         }
         return source_info
@@ -56,9 +56,9 @@ class CSLRXYZ(WebsiteScraper):
                 time_obj = datetime.strptime(time, "%Y-%m-%d")
 
                 article = {
-                    "article_name": title,
+                    "title": title,
                     "summary": note,
-                    "article_url": article_url,
+                    "link": article_url,
                     "image_link": image_link,
                     "pub_time": time_obj
                 }

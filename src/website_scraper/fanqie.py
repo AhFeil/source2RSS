@@ -50,18 +50,20 @@ class FanQie(WebsiteScraper):
         source = book_info_json["source"]   # 番茄转载的小说，来源网站
         abstract = book_info_json["abstract"]
 
-        return {
-            "title": self.book_title,
+        info = {
+            "name": self.book_title,
             "link": FanQie.home_url + f"/page/{self.book_id}",
-            "description": f"番茄免费小说 - {self.book_id} 的更新篇章",
-            "language": "zh-CN",
-            "book_name": book_name,
-            "image_link": image_link,
-            "author": author,
-            "abstract": abstract,
-            "source": source,
-            "create_time": create_time,
-            "key4sort": FanQie.key4sort}
+            "desc": f"番茄免费小说 - {self.book_id} 的更新篇章",
+            "lang": "zh-CN",
+            # "book_name": book_name,
+            # "image_link": image_link,
+            # "author": author,
+            # "abstract": abstract,
+            # "source": source,
+            # "create_time": create_time,
+            "key4sort": FanQie.key4sort
+        }
+        return info
 
     @classmethod
     async def _parse(cls, logger, catalog_list: list, old2new: bool=False, start_chapter: int=1) -> AsyncGenerator[dict, Any]:
@@ -110,14 +112,13 @@ class FanQie(WebsiteScraper):
             amend_pub_time = current_time + timedelta(minutes=2 * n)
 
             article = {
-                "article_name": chapter_title,
-                "chapter": chapter_title,
-                "chapter_number": chapter_number,
+                "title": chapter_title,
                 "summary": content[0:100],
-                "content": content,
-                "article_url": f"{cls.home_url}/reader/{item_id}?enter_from=page",
+                "link": f"{cls.home_url}/reader/{item_id}?enter_from=page",
                 "image_link": "",
-                "pub_time": amend_pub_time
+                "content": content,
+                "pub_time": amend_pub_time,
+                "chapter_number": chapter_number,
             }
 
             yield article
@@ -149,10 +150,10 @@ async def test():
     print(book.source_info)
     print(book.table_name)
     async for a in book.first_add():
-        print(a["article_name"], a["pub_time"], a["chapter_number"])
+        print(a["title"], a["pub_time"], a["chapter_number"])
     print("----------")
     async for a in book.get_new(600):
-        print(a["article_name"], a["pub_time"], a["chapter_number"])
+        print(a["title"], a["pub_time"], a["chapter_number"])
     print("--------------------")
 
     # 转载的
@@ -160,7 +161,7 @@ async def test():
     print(book.source_info)
     print(book.table_name)
     async for a in book.chapter_after(5):
-        print(a["article_name"], a["pub_time"], a["chapter_number"])
+        print(a["title"], a["pub_time"], a["chapter_number"])
         break
     print("--------------------")
 

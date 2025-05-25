@@ -2,31 +2,37 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, HttpUrl, field_validator
+from pydantic import BaseModel, HttpUrl, field_validator, ConfigDict
 
 
 class SourceMeta(BaseModel):
-    title: str
+    # model_config = ConfigDict(
+    #     json_encoders={HttpUrl: str},  # 自动将 HttpUrl 转换为字符串
+    #     populate_by_name=True
+    # )
+
+    name: str
     link: HttpUrl = "https://yanh.tech/" # type: ignore
-    description: str = f"这是一个 RSS 源， 由 source2RSS 项目程序生成"
-    language: str = "zh-CN"
+    desc: str = "这是一个 RSS 源， 由 source2RSS 项目程序生成"
+    lang: str = "zh-CN"
     key4sort: str = "pub_time"
 
     def model_dump(self):
         return {
-            "title": self.title,
+            "name": self.name,
             "link": str(self.link),
-            "description": self.description,
-            "language": self.language,
+            "desc": self.desc,
+            "lang": self.lang,
             "key4sort": self.key4sort
         }
 
 
 class ArticleInfo(BaseModel):
-    article_name: str 
-    article_url: HttpUrl | str ="https://yanh.tech/"   # 这个应该是网址或者空字符串
-    pub_time: datetime = datetime.fromtimestamp(0)  # 时间戳
+    id: int
+    title: str
     summary: str = ""
+    link: HttpUrl | str ="https://yanh.tech/"   # 这个应该是网址或者空字符串
+    pub_time: datetime = datetime.fromtimestamp(0)  # 时间戳
     content: str = ""
     image_link: HttpUrl | str = "https://yanh.tech/"
     # 上面是 RSS 必需的,下面是补充、辅助的
@@ -34,15 +40,16 @@ class ArticleInfo(BaseModel):
 
     def model_dump(self):
         return {
-            "article_name": self.article_name,
-            "article_url": str(self.article_url),
-            "pub_time": self.pub_time,
+            "id": self.id,
+            "name": self.title,
             "summary": self.summary,
+            "link": str(self.link),
+            "pub_time": self.pub_time,
             "content": self.content,
             "image_link": str(self.image_link),
             "chapter_number": self.chapter_number
         }
-    
+
     @field_validator('pub_time')
     @classmethod
     def timestamp_to_datetime(cls, v):

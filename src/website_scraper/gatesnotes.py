@@ -23,10 +23,10 @@ class GatesNotes(WebsiteScraper):
     @property
     def source_info(self):
         source_info = {
-            "title": self.__class__.title,
+            "name": self.__class__.title,
             "link": self.__class__.home_url,
-            "description": "The Blog of Bill Gates",
-            "language": "en-US",
+            "desc": "The Blog of Bill Gates",
+            "lang": "en-US",
             "key4sort": self.__class__.key4sort
         }
         return source_info
@@ -50,9 +50,9 @@ class GatesNotes(WebsiteScraper):
         articles_times = WebsiteScraper._get_time_obj(True)
         for title, description, url, image_link, time_obj in zip(articles_title, articles_desc, articles_url, articles_img, articles_times):
             article = {
-                "article_name": title.text,
+                "title": title.text,
                 "summary": description.text,
-                "article_url": url["href"],
+                "link": url["href"],
                 "image_link": image_link["src"],
                 "pub_time": time_obj
             }
@@ -60,7 +60,7 @@ class GatesNotes(WebsiteScraper):
 
     async def get_new(self, flags: LocateInfo):
         async for a in GatesNotes._parse(self.logger):
-            if a["article_name"] != flags["article_name"]:
+            if a["title"] != flags["article_title"]:
                 yield a
             else:
                 return

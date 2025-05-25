@@ -23,10 +23,10 @@ class HotBilibili(WebsiteScraper):
     @property
     def source_info(self):
         return {
-            "title": self.__class__.title,
+            "name": self.__class__.title,
             "link": self.__class__.home_url,
-            "description": "B站热榜",
-            "language": "zh-CN",
+            "desc": "B站热榜",
+            "lang": "zh-CN",
             "key4sort": self.__class__.key4sort}
 
     @property
@@ -56,9 +56,9 @@ class HotBilibili(WebsiteScraper):
                 image_link = a["pic"]
 
                 article = {
-                    "article_name": title,
+                    "title": title,
                     "summary": description,
-                    "article_url": article_url,
+                    "link": article_url,
                     "image_link": image_link,
                     "pub_time": time_obj
                 }

@@ -34,10 +34,10 @@ class YoutubeChannel(WebsiteScraper):
     @property
     def source_info(self):
         source_info = {
-            "title": self.channel_name,
+            "name": self.channel_name,
             "link": f"{self.__class__.home_url}/@{self.channel_name}",
-            "description": "Youtube Channel" + self.channel_name,
-            "language": "en-US",
+            "desc": "Youtube Channel" + self.channel_name,
+            "lang": "en-US",
             "key4sort": self.__class__.key4sort
         }
         return source_info
@@ -52,12 +52,12 @@ class YoutubeChannel(WebsiteScraper):
         feed = feedparser.parse(response.text)   # feed.feed.title 频道名称
         for entry in feed.entries:
             article = {
-                "article_name": entry.title,
+                "title": entry.title,
                 "summary": entry.summary[0:50],
-                "content": entry.summary,
-                "article_url": entry.link,
+                "link": entry.link,
                 "image_link": entry.media_thumbnail[0]['url'],
-                "pub_time": datetime.fromisoformat(entry.published).replace(tzinfo=None) # type: ignore
+                "content": entry.summary,
+                "pub_time": datetime.fromisoformat(entry.published).replace(tzinfo=None), # type: ignore
             }
             yield article
 

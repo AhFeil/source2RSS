@@ -35,8 +35,8 @@ class BiliFoDynamic(WebsiteScraper):
         return {
             "title": f"{self.config_dict['user_name']} 的关注动态",
             "link": self.__class__.home_url,
-            "description": f"{self.config_dict['user_name']} 的关注动态",
-            "language": "zh-CN",
+            "desc": f"{self.config_dict['user_name']} 的关注动态",
+            "lang": "zh-CN",
             "key4sort": self.__class__.key4sort}
 
     async def get_valid_client(self, context: BrowserContext):
@@ -153,9 +153,9 @@ class BiliFoDynamic(WebsiteScraper):
                 article = {
                     "aid": aid,
                     "bvid": bvid,
-                    "article_name": name,
+                    "title": name,
                     "summary": description,
-                    "article_url": article_url,
+                    "link": article_url,
                     "image_link": image_link,
                     "pub_time": time_obj
                 }

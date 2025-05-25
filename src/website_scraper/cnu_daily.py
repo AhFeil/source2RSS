@@ -24,10 +24,10 @@ class CNUDaily(WebsiteScraper):
     @property
     def source_info(self):
         return {
-            "title": self.__class__.title,
+            "name": self.__class__.title,
             "link": self.__class__.home_url,
-            "description": "CNU 每日精选",
-            "language": "zh-CN",
+            "desc": "CNU 每日精选",
+            "lang": "zh-CN",
             "key4sort": self.__class__.key4sort}
 
     @classmethod
@@ -60,15 +60,15 @@ class CNUDaily(WebsiteScraper):
 
                     article = {
                         "id": id,
-                        "article_name": name,
-                        "author_display_name": author_display_name,
-                        "author_id": author_id,
-                        "category": category,
+                        "title": name,
+                        # "author_display_name": author_display_name,
+                        # "author_id": author_id,
+                        # "category": category,
                         "summary": "",
-                        "content": description,
-                        "article_url": article_url,
+                        "link": article_url,
                         "image_link": image_link,
-                        "pub_time": time_obj
+                        "pub_time": time_obj,
+                        "content": description,
                     }
 
                     yield article

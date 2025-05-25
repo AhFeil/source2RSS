@@ -21,10 +21,10 @@ class OldStone(WebsiteScraper):
     @property
     def source_info(self):
         source_info = {
-            "title": self.__class__.title,
+            "name": self.__class__.title,
             "link": self.__class__.home_url,
-            "description": "博客 Old Stone",
-            "language": "zh-CN",
+            "desc": "博客 Old Stone",
+            "lang": "zh-CN",
             "key4sort": self.__class__.key4sort
         }
         return source_info
@@ -56,9 +56,9 @@ class OldStone(WebsiteScraper):
 
                 summary = a.find('div', class_='post-body').text.strip()
                 article = {
-                    "article_name": title,
+                    "title": title,
                     "summary": summary,
-                    "article_url": OldStone.home_url + article_url,
+                    "link": OldStone.home_url + article_url,
                     "image_link": "http://example.com",
                     "pub_time": time_obj
                 }

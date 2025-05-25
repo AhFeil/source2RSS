@@ -38,10 +38,10 @@ class CareerTsinghua(WebsiteScraper):
     @property
     def source_info(self):
         source_info = {
-            "title": self.__class__.title,
+            "name": self.__class__.title,
             "link": self.__class__.home_url,
-            "description": "清华大学学生职业发展指导中心的招聘信息，本源不会显示置顶文章",
-            "language": "zh-CN",
+            "desc": "清华大学学生职业发展指导中心的招聘信息，本源不会显示置顶文章",
+            "lang": "zh-CN",
             "key4sort": self.__class__.key4sort
         }
         return source_info
@@ -92,9 +92,9 @@ class CareerTsinghua(WebsiteScraper):
                 mend_time = time_obj - timedelta(minutes=int(next(time_off)))
 
                 article = {
-                    "article_name": title,
+                    "title": title,
                     "summary": title,
-                    "article_url": article_url,
+                    "link": article_url,
                     "image_link": "https://example.com/",
                     "pub_time": time_obj,
                     "time4sort": mend_time

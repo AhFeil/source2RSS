@@ -33,9 +33,11 @@ class ArticleDict(TypedDict):
     link: str
     image_link: str
     pub_time: datetime
+    content: str
+    chapter_number: int   # 用于排序,比如小说按照章节排更合适
 
 class LocateInfo(TypedDict):
-    article_name: str
+    article_title: str
     pub_time: datetime | None
     time4sort: datetime | None
     chapter_number: int | None
@@ -131,26 +133,28 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     @property
     @abstractmethod
-    def source_info(self):
+    def source_info(self) -> SrcMetaDict:
         """数据库要有一个表保存每个网站的元信息，生成 RSS 使用"""
-        return {
-            "title": self.__class__.title,
-            "link": self.__class__.home_url,
-            "description": "Linux，单片机，编程",
-            "language": "zh-CN",
-            "key4sort": self.__class__.key4sort}
+        info: SrcMetaDict = {
+            'name': self.__class__.title,   # todo 不作为类属性
+            'link': self.__class__.home_url,
+            'desc': "Linux，单片机，编程",
+            'lang': "zh-CN",
+            'key4sort': self.__class__.key4sort
+        }
+        return info
 
     @property
-    def table_name(self):
+    def table_name(self) -> str:
         """返回表名，并会用于 RSS 文件的名称"""
-        return self.source_info["title"]
+        return self.source_info["name"]
 
     @property
-    def max_wait_time(self):
+    def max_wait_time(self) -> int:
         """返回在本次执行中，从执行开始到结束占用最长时间，单位秒"""
         return self.__class__.page_turning_duration * 20
 
-    async def first_add(self, amount: int = 10) -> AsyncGenerator[dict, None]:
+    async def first_add(self, amount: int = 10) -> AsyncGenerator[ArticleDict, None]:
         """首次运行时用，按从新到旧返回最新的若干条"""
         if amount <= 0:
             return
@@ -160,7 +164,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             if amount <= 0:
                 return
 
-    async def get_new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
+    async def get_new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
         """按从新到旧，每次返回一条，直到遇到和标记一样的一条"""
         async for a in self.__class__._parse(self.logger, *self._custom_parameter_of_parse()):
             if a[self.__class__.key4sort] > flags[self.__class__.key4sort]:
@@ -169,7 +173,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 return
     # 网站结构一般是链式的，不支持随机索引，而从新到旧的顺序一般都能满足，但是这种顺序一旦中断就无法自发恢复遗漏的
     # 如果支持从旧到新的索引，可以覆写 get_from_old2new ，会优先选择；若不支持但希望保证数据不缺失，也可以覆写，使用 super() 调一次父类方法即可
-    async def get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
+    async def get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
         """按从旧到新，从和标记一样的下一条开始返回，每次一条，直到最新"""
         articles = []
         async for a in self.get_new(flags):
@@ -204,7 +208,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     @classmethod
     @abstractmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[ArticleDict, None]:
         """按照从新到旧的顺序返回"""
         while True:
             varied_query_dict = {"pagination[page]": start_page}
@@ -240,15 +244,16 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 create_time = image["data"]["attributes"]["createdAt"]
                 time_obj = datetime.strptime(create_time, "%Y-%m-%dT%H:%M:%S.%fZ")
 
-                article = {
+                article: ArticleDict = {
                     "id": id,
-                    "article_name": name,
+                    "title": name,
                     "summary": description,
-                    "article_url": article_url,
+                    "link": article_url,
                     "image_link": image_link,
-                    "pub_time": time_obj
+                    "content": "",
+                    "pub_time": time_obj,
+                    "chapter_number": 0
                 }
-
                 yield article
 
             start_page += 1

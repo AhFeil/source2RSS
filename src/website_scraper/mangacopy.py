@@ -40,10 +40,10 @@ class MangaCopy(WebsiteScraper):
     @property
     def source_info(self):
         return {
-            "title": self.book_title,
+            "name": self.book_title,
             "link": f"{self.__class__.home_url}/comic/{self.book_id}",
-            "description": f"拷貝漫畫下的作品 —— {self.book_title}",
-            "language": "zh-CN",
+            "desc": f"拷貝漫畫下的作品 —— {self.book_title}",
+            "lang": "zh-CN",
             "key4sort": self.__class__.key4sort}
 
     @classmethod
@@ -75,9 +75,9 @@ class MangaCopy(WebsiteScraper):
             title = a["title"]
             article_url = f"{cls.home_url}{a['href']}"
             article = {
-                "article_name": title,
+                "title": title,
                 "summary": description,
-                "article_url": article_url,
+                "link": article_url,
                 "image_link": image_link,
                 "chapter_number": num,
                 "pub_time": time_obj

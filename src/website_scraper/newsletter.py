@@ -24,8 +24,8 @@ class NewsLetter(WebsiteScraper):
         return {
             "title": f"NewsLetter of {self.newsletter_name}",
             "link": self.website,
-            "description": self.desc or "DescriptionLack",   # 不能为空，否则无法生成 RSS
-            "language": "En",
+            "desc": self.desc or "DescriptionLack",   # 不能为空，否则无法生成 RSS
+            "lang": "En",
             "key4sort": self.__class__.key4sort}
 
     @classmethod
@@ -37,9 +37,9 @@ class NewsLetter(WebsiteScraper):
                 if from_email and mail.from_addr != from_email:
                     continue
                 article = {
-                    "article_name": mail.subject,
+                    "title": mail.subject,
                     "summary": mail.plain or mail.html,
-                    "article_url": website,
+                    "link": website,
                     "image_link": "http://example.com",
                     "pub_time": mail.date.replace(tzinfo=None)   # 去除时区信息，否则无法对比
                 }

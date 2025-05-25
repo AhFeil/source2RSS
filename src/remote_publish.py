@@ -38,7 +38,7 @@ async def save_articles(source_name, key4sort, article_source, url) -> bool:
     try:
         async for a in article_source:
             articles.append(a)
-            logger.info(f"{source_name} have new article: {a['article_name']}")
+            logger.info(f"{source_name} have new article: {a['title']}")
             got_new = True
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long.")

@@ -38,12 +38,14 @@ class BentoMLBlog(WebsiteScraper):
     
     @property
     def source_info(self):
-        return {
-            "title": self.__class__.title,
-            "link": self.__class__.home_url,
-            "description": "Dive into the transformative world of AI application development with us! From expert insights to innovative use cases, we bring you the latest in efficiently deploying AI at scale.",
-            "language": "En",
-            "key4sort": self.__class__.key4sort}
+        info = {
+            'name': self.__class__.title,   # todo 不作为类属性
+            'link': self.__class__.home_url,
+            'desc': "Dive into the transformative world of AI application development with us! From expert insights to innovative use cases, we bring you the latest in efficiently deploying AI at scale.",
+            'lang': "En",
+            'key4sort': self.__class__.key4sort
+        }
+        return info
 
     @classmethod
     async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
@@ -73,9 +75,9 @@ class BentoMLBlog(WebsiteScraper):
 
                 article = {
                     "id": id,
-                    "article_name": name,
+                    "title": name,
                     "summary": description,
-                    "article_url": article_url,
+                    "link": article_url,
                     "image_link": image_link,
                     "pub_time": time_obj
                 }

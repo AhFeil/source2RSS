@@ -3,7 +3,9 @@ from typing import Self
 
 from pymongo import MongoClient
 
-from src.data.db_intf import DatabaseIntf
+from .db_intf import DatabaseIntf
+from src.website_scraper.example import SrcMetaDict, ArticleDict
+
 
 @dataclass
 class MongodbConnInfo:
@@ -20,34 +22,35 @@ class MongodbIntf(DatabaseIntf):
         meta_collection = db[info.source_meta]
         return cls(m, db, meta_collection)
 
-    def exist_source_meta(self, source_info: dict):
-        may_exist= self.meta_collection.find_one({"title": source_info["title"]}, {"_id": 0})
+    def exist_source_meta(self, source_info: SrcMetaDict):
+        source_name = source_info['name']
+        may_exist= self.meta_collection.find_one({"name": source_name}, {"_id": 0})
         if not may_exist:
             # 元信息不存在就添加
             self._add_source2meta(source_info)
-            self.logger.info(f"{source_info['title']} Add into source_meta")
+            self.logger.info(f"{source_name} Add into source_meta")
         elif may_exist != source_info:
             # 元信息不一致就更新
-            self.meta_collection.delete_one({"title": source_info["title"]})
+            self.meta_collection.delete_one({"name": source_name})
             self._add_source2meta(source_info)
-            self.logger.info(f"{source_info['title']} Update its source_meta")
+            self.logger.info(f"{source_name} Update its source_meta")
         else:
             # 元信息保持不变就跳过
             pass
 
-    def store2database(self, source_name: str, one_article_doc: dict):
+    def store2database(self, source_name: str, one_article_doc: ArticleDict):
         collection = self.db[source_name]
         collection.insert_one(one_article_doc)
 
-    def get_source_info(self, source_name: str):
-        return self.meta_collection.find_one({"title": source_name}, {"_id": 0})
+    def get_source_info(self, source_name: str) -> SrcMetaDict:
+        return self.meta_collection.find_one({"name": source_name}, {"_id": 0})
 
-    def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reversed: bool=False) -> list[dict]:
+    def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reversed: bool=False) -> list[ArticleDict]:
         collection = self.db[source_name]
         result = collection.find({}, {key: 1, "article_infomation": 1}).sort(key, 1 if reversed else -1).limit(n)   # 含有 '_id', 
         return list(result)
 
-    def _add_source2meta(self, source_info: dict):
+    def _add_source2meta(self, source_info: SrcMetaDict):
         self.meta_collection.insert_one(source_info)
 
     def _clear_db(self):

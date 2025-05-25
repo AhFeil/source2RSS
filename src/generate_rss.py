@@ -8,17 +8,17 @@ def generate_rss(source_info: dict, articles: list[dict]) -> bytes:
     zone = timezone(timedelta(hours=8))
 
     fg = FeedGenerator()
-    fg.title(source_info["title"])
+    fg.title(source_info["name"])
     fg.link(href=source_info["link"], rel='alternate')
-    fg.description(source_info["description"])
-    fg.language(source_info["language"])
+    fg.description(source_info["desc"])
+    fg.language(source_info["lang"])
     fg.pubDate(datetime.now(tz=zone))
     # 遍历并提取文章信息
     for doc in reversed(articles):
         article = doc["article_infomation"]
 
-        title = article["article_name"]
-        url = article["article_url"]
+        title = article["title"]
+        url = article["link"]
         pub_date = article["pub_time"].astimezone(zone)
         summary = article["summary"]
         cover = article["image_link"]

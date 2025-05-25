@@ -15,14 +15,14 @@ class SourceMeta4ORM(Base):
     __tablename__ = "source_meta"  # config.source_meta
 
     id = Column(Integer, primary_key=True)
-    title = Column(String, unique=True, nullable=False)   # 同样作为文章表的名称
+    name = Column(String, unique=True, nullable=False)   # 同样作为文章表的名称
     link = Column(String)
-    description = Column(String)
-    language = Column(String)
-    key4sort = Column(String(30))
+    desc = Column(String)
+    lang = Column(String)
+    key4sort = Column(String(30), nullable=False)
 
     def __repr__(self):
-        return f"<SourceMeta(id={self.id}, title='{self.title}', link='{self.link}', description='{self.description}', language='{self.language}', key4sort={self.key4sort})>"
+        return f"<SourceMeta(id={self.id}, name='{self.name}', link='{self.link}', desc='{self.desc}', lang='{self.lang}', key4sort={self.key4sort})>"
 
     def equal_to(self, source_info: SrcMetaDict) -> bool:
         return all(getattr(self, column.name) == source_info[column.name] for column in self.__table__.columns if not column.primary_key)
@@ -47,10 +47,10 @@ article_models: dict[str, type] = {}
 class ArticleBase:
     """动态文章表的基类"""
     t_id = Column(Integer, primary_key=True)
-    id = Column(Integer, nullable=False)
-    article_name = Column(String)
+    id = Column(Integer)
+    title = Column(String)
     summary = Column(String)
-    article_url = Column(String)
+    link = Column(String)
     image_link = Column(String)
     pub_time = Column(DateTime)
     # 动态外键关联（需要创建时赋值）
@@ -67,7 +67,7 @@ class ArticleBase:
         return article # type: ignore
 
     def __repr__(self):
-        return f"<{self.__class__.__name__}(id={self.id}, article_name='{self.article_name}', pub_time={self.pub_time})>"
+        return f"<{self.__class__.__name__}(id={self.id}, title='{self.title}', pub_time={self.pub_time})>"
 
     @staticmethod
     def create_article_model(source_name) -> type:
@@ -111,19 +111,20 @@ class SQliteIntf(DatabaseIntf):
         return cls(engine, Session)
 
     def exist_source_meta(self, source_info: SrcMetaDict):
+        source_name = source_info['name']
         with self.Session() as session:
-            res = session.query(SourceMeta4ORM).filter_by(title=source_info["title"]).first()
+            res = session.query(SourceMeta4ORM).filter_by(name=source_name).first()
             if res is None:
                 # 元信息不存在就添加
                 meta = SourceMeta4ORM(**source_info)
                 session.add(meta)
                 session.commit()
-                self.logger.info(f"{source_info['title']} Add into source_meta")
+                self.logger.info(f"{source_name} Add into source_meta")
             elif not res.equal_to(source_info):
                 # 元信息不一致就更新
                 res.update_from(source_info)
                 session.commit()
-                self.logger.info(f"{source_info['title']} Update its source_meta")
+                self.logger.info(f"{source_name} Update its source_meta")
             else:
                 # 元信息保持不变就跳过
                 pass
@@ -133,14 +134,14 @@ class SQliteIntf(DatabaseIntf):
         if not self._check_table_exists(source_name):
             ArticleModel.__table__.create(self.engine)
         with self.Session() as session:
-            res = session.query(SourceMeta4ORM).filter_by(title=source_name).first()
+            res = session.query(SourceMeta4ORM).filter_by(name=source_name).first()
             article = ArticleModel(website_id=res.id, **one_article_doc)
             session.add(article)
             session.commit()
 
     def get_source_info(self, source_name: str) -> SrcMetaDict:
         with self.Session() as session:
-            res = session.query(SourceMeta4ORM).filter_by(title=source_name).first()
+            res = session.query(SourceMeta4ORM).filter_by(name=source_name).first()
             return res.export_to_dict()
 
     def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reversed: bool=False) -> list[ArticleDict]:
@@ -182,34 +183,35 @@ class SQliteIntf(DatabaseIntf):
 if __name__ == "__main__":
     from datetime import datetime
 
-    info = SQliteConnInfo("sqlite:///config_and_data_files/source2rss.db") # config.sqlite_uri
+    info = SQliteConnInfo("sqlite:///config_and_data_files/test.db")
     db_intf: DatabaseIntf = SQliteIntf.connect(info)
 
-
     db_intf._clear_db()
-    source_info = {
-        'key4sort': 'pub_time',
+    source_info: SrcMetaDict = {
+        'name': 'BentoML Blog',
         'link': 'https://www.bentoml.com/blog',
-        'title': 'BentoML Blog',
-        'description': "description---------",
-        'language': "En"
+        'desc': "description---------",
+        'lang': "En",
+        'key4sort': 'pub_time'
     }
     db_intf.exist_source_meta(source_info)
-    assert db_intf.get_source_info(source_info["title"]) == source_info
-    source_info["description"] = "szdbdxgnxmhxfm"
+    assert db_intf.get_source_info(source_info["name"]) == source_info
+    source_info["desc"] = "szdbdxgnxmhxfm"
     db_intf.exist_source_meta(source_info)
-    assert db_intf.get_source_info(source_info["title"]) == source_info
+    assert db_intf.get_source_info(source_info["name"]) == source_info
 
-    article = {
+    article: ArticleDict = {
         "id": 33,
-        "article_name": "res.article_name",
+        "title": "res.title",
         "summary": "res.summary",
-        "article_url": "res.article_url",
+        "link": "res.article_url",
         "image_link": "res.image_link",
-        "pub_time": datetime.now()
+        "pub_time": datetime.now(),
+        "content": "res.content",
+        "chapter_number": 0
     }
-    db_intf.store2database(source_info["title"], article)
-    a = db_intf.get_top_n_articles_by_key(source_info["title"], 1, source_info["key4sort"])
+    db_intf.store2database(source_info["name"], article)
+    a = db_intf.get_top_n_articles_by_key(source_info["name"], 1, source_info["key4sort"])
     assert a[0] == article
 
     # .env/bin/python -m src.data.sqlite_intf

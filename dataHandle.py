@@ -3,9 +3,6 @@ import logging
 
 from ruamel.yaml import YAML
 
-from src.data import DatabaseIntf, MongodbIntf, MongodbConnInfo, SQliteIntf, SQliteConnInfo
-
-
 class Data:
     def __init__(self, config) -> None:
         self.config = config
@@ -16,10 +13,13 @@ class Data:
         self._rss: dict[str, str] = Data._load_files_to_dict(config.rss_dir)
 
         # DB
+        from src.data import DatabaseIntf
         if config.mongodb_uri is not None:
+            from src.data import MongodbIntf, MongodbConnInfo
             info = MongodbConnInfo(config.mongodb_uri, config.mongo_dbname, config.source_meta)
             self.db_intf: DatabaseIntf = MongodbIntf.connect(info)
         else:
+            from src.data import SQliteIntf, SQliteConnInfo
             info = SQliteConnInfo(config.sqlite_uri)
             self.db_intf: DatabaseIntf = SQliteIntf.connect(info)
 

@@ -25,7 +25,7 @@ async def save_articles(data, source_name, key4sort, article_source) -> bool:
             }
             data.db_intf.store2database(source_name, one_article_etc)
             store_a_new_one = True
-            logger.info(f"{source_name} have new article: {a['article_name']}")
+            logger.info(f"{source_name} have new article: {a['title']}")
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long.")
     except FailtoGet:
@@ -47,7 +47,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     data.db_intf.exist_source_meta(source_info)
     result = data.db_intf.get_top_n_articles_by_key(source_name, 1, key4sort)
     if result:
-        flags: LocateInfo = {"article_name": result[0]["article_infomation"]["article_name"], key4sort: result[0][key4sort]} # type: ignore
+        flags: LocateInfo = {"title": result[0]["article_infomation"]["title"], key4sort: result[0][key4sort]} # type: ignore
         article_source = instance.get_from_old2new(flags) if instance.__class__.support_old2new else instance.get_new(flags)
     else:
         # 若是第一次，数据库中没有数据
@@ -59,7 +59,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long when save_articles")
 
-    source_name = format_source_name(source_info["title"])
+    source_name = format_source_name(source_info["name"])
     source_file_name = f"{source_name}.xml"
     if got_new | data.rss_is_absent(source_file_name):
         # 当有新内容或文件缺失的情况下，会生成 RSS 并保存
