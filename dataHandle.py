@@ -3,10 +3,10 @@ from datetime import datetime
 import logging
 
 from ruamel.yaml import YAML
-from pymongo import MongoClient
 from enum import Enum
 from pydantic import BaseModel, HttpUrl, field_validator
 
+from src.data import DatabaseIntf, MongodbIntf, MongodbConnInfo
 
 class SourceMeta(BaseModel):
     title: str
@@ -70,10 +70,9 @@ class Data:
         # 内存里的RSS数据
         self._rss: dict[str, str] = Data._load_files_to_dict(config.rss_dir)
 
-        # MongoDB
-        self.m = MongoClient(config.mongodb_uri)
-        self.db = self.m[config.mongo_dbname]
-        self.meta_collection = self.db[self.config.source_meta]
+        # DB
+        info = MongodbConnInfo(config.mongodb_uri, config.mongo_dbname, config.source_meta)
+        self.db_intf: DatabaseIntf = MongodbIntf.connect(info)
 
     def get_rss_or_None(self, source_file_name: str) -> str | None:
         return self._rss.get(source_file_name)
@@ -93,51 +92,6 @@ class Data:
 
     def rss_is_absent(self, source_file_name: str) -> bool:
         return source_file_name not in self._rss
-
-    def store2database(self, mp_name: str, one_article_doc: dict):
-        """将原始 msg、文章信息和时间戳存入数据库"""
-        collection = self.db[mp_name]
-        collection.insert_one(one_article_doc)
-
-    def get_source_info(self, source_name: str):
-        """根据源名称返回源的元信息"""
-        return self.meta_collection.find_one({"title": source_name})
-
-    def exist_source_meta(self, source_info: dict):
-        # 确保存在元信息
-        may_exist= self.meta_collection.find_one({"title": source_info["title"]}, {"_id": 0})
-        if not may_exist:
-            # 元信息不存在就添加
-            self._add_source2meta(source_info)
-            self.logger.info(f"{source_info['title']} Add into source_meta")
-        elif may_exist != source_info:
-            # 元信息不一致就更新
-            self.meta_collection.delete_one({"title": source_info["title"]})
-            self._add_source2meta(source_info)
-            self.logger.info(f"{source_info['title']} Update its source_meta")
-        else:
-            # 元信息保持不变就跳过
-            pass
-
-    def _add_source2meta(self, source_info: dict):
-        """添加某个来源的元信息
-        source_info = {
-            "title": "",
-            "link": "",
-            "description": "",
-            "language": ""
-            "key4sort": ""
-        }
-        """
-        self.meta_collection.insert_one(source_info)
-
-    def _clear_db(self):
-        # 清空 collection，仅开发时使用
-        collections = self.db.list_collection_names()
-        # 循环遍历每个集合，并删除其中的所有文档
-        for collection_name in collections:
-            collection = self.db[collection_name]
-            collection.delete_many({})
 
     @staticmethod
     def _load_files_to_dict(directory):

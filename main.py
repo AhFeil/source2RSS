@@ -12,7 +12,7 @@ from cachetools import TTLCache
 from preprocess import Plugins, data, config
 from dataHandle import SourceMeta, ArticleInfo, PublishMethod
 from src.run_as_scheduled import run_continuously
-from src.generate_rss import generate_rss_from_collection
+from src.generate_rss import generate_rss
 from src.local_publish import goto_uniform_flow
 from src.website_scraper import WebsiteScraper, CreateByInvalidParam, FailtoGet
 
@@ -106,20 +106,18 @@ async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [],
 @app.post("/rss_info/{user_name}/{source_name}")
 async def add_rss(user_name: str, source_name: str, source_meta: SourceMeta):
     meta = source_meta.model_dump()
-    data.exist_source_meta(meta)
+    data.db_intf.exist_source_meta(meta)
     return {"state": "true"}
 
 
 @app.get("/rss_info/{user_name}/{source_name}/")
 async def get_info(user_name: str, source_name: str):
-    source_info = data.get_source_info(source_name)
+    source_info = data.db_intf.get_source_info(source_name)
     if source_info is None:
         return {"last_update_flag": False}
 
     key4sort = source_info["key4sort"]
-    collection = data.db[source_name]
-    result = collection.find({}, {key4sort: 1}).sort(key4sort, -1).limit(1)
-    result = list(result)
+    result = data.db_intf.get_top_n_articles_by_key(source_name, 1, key4sort)
     last_update_flag = result[0][key4sort] if result else False
     if key4sort in {"pub_time"}:
         last_update_flag = last_update_flag.timestamp() # type: ignore
@@ -135,13 +133,14 @@ async def delivery(user_name: str, source_name: str, articles: list[ArticleInfo]
             "article_infomation": a, 
             key4sort: a[key4sort]
         }
-        data.store2database(source_name, one_article_etc)
+        data.db_intf.store2database(source_name, one_article_etc)
         logger.info(f"{source_name} have new article: {a['article_name']}")
     
-    source_info = data.get_source_info(source_name)
+    source_info = data.db_intf.get_source_info(source_name)
     if source_info:
         # 生成 RSS 并保存到目录
-        generate_rss_from_collection(source_info, data.db[source_name])
+        result = data.db_intf.get_top_n_articles_by_key(source_name, 50, key4sort)
+        generate_rss(source_info, result)
         return {"state": "true", "link": "https://rss.vfly2.com/source2rss/"}
     else:
         return {"state": "false", "notice": "please /add_rss firstly"}

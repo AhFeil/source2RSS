@@ -2,7 +2,7 @@ import logging
 import asyncio
 
 from src.website_scraper import FailtoGet, WebsiteScraper, LocateInfo
-from src.generate_rss import generate_rss_from_collection
+from src.generate_rss import generate_rss
 
 logger = logging.getLogger("local_publish")
 
@@ -23,7 +23,7 @@ async def save_articles(data, source_name, key4sort, article_source) -> bool:
                 "article_infomation": a, 
                 key4sort: a[key4sort]
             }
-            data.store2database(source_name, one_article_etc)
+            data.db_intf.store2database(source_name, one_article_etc)
             store_a_new_one = True
             logger.info(f"{source_name} have new article: {a['article_name']}")
     except asyncio.TimeoutError:
@@ -44,10 +44,8 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     source_info, source_name, max_wait_time = instance.source_info, instance.table_name, instance.max_wait_time
     key4sort = source_info["key4sort"]
     # 确保 source 的元信息在数据库中
-    data.exist_source_meta(source_info)
-    collection = data.db[source_name]
-    result = collection.find({}, {key4sort: 1, "article_infomation": 1}).sort(key4sort, -1).limit(1)   # 含有 '_id', 
-    result = list(result)
+    data.db_intf.exist_source_meta(source_info)
+    result = data.db_intf.get_top_n_articles_by_key(source_name, 1, key4sort)
     if result:
         flags: LocateInfo = {"article_name": result[0]["article_infomation"]["article_name"], key4sort: result[0][key4sort]} # type: ignore
         article_source = instance.get_from_old2new(flags) if instance.__class__.support_old2new else instance.get_new(flags)
@@ -65,7 +63,8 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     source_file_name = f"{source_name}.xml"
     if got_new | data.rss_is_absent(source_file_name):
         # 当有新内容或文件缺失的情况下，会生成 RSS 并保存
-        rss_feed = generate_rss_from_collection(source_info, collection)
+        result = data.db_intf.get_top_n_articles_by_key(source_name, 50, key4sort)
+        rss_feed = generate_rss(source_info, result)
         cls_id_or_none = None if instance.__class__.is_variety else instance.__class__.__name__
         data.set_rss(source_file_name, rss_feed, cls_id_or_none)
     else:
