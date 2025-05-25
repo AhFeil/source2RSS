@@ -18,6 +18,22 @@ class FailtoGet(Exception):
 class CreateByInvalidParam(Exception):
     pass
 
+
+class SrcMetaDict(TypedDict):
+    name: str
+    link: str
+    desc: str
+    lang: str
+    key4sort: str
+
+class ArticleDict(TypedDict):
+    id: int
+    title: str
+    summary: str
+    link: str
+    image_link: str
+    pub_time: datetime
+
 class LocateInfo(TypedDict):
     article_name: str
     pub_time: datetime | None

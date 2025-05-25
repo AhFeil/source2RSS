@@ -14,6 +14,7 @@ class Config:
         self.reload()
 
         # 用户不应该考虑的配置，开发者可以改的
+        self.sqlite_uri = "sqlite:///config_and_data_files/source2rss.db"
         self.rss_dir = "config_and_data_files/rss"
         os.makedirs(self.rss_dir, exist_ok=True)
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
@@ -58,8 +59,8 @@ class Config:
         self.run_everyday_at = [run_everyday_at] if isinstance(run_everyday_at, str) else run_everyday_at
         self.timezone = user_configs.get('timezone')
         self.WAIT = user_configs.get("WAIT", 1800) if self.is_production else 1
-        self.mongodb_uri = user_configs['mongodb_uri']
-        self.mongo_dbname = user_configs['mongo_dbname']
+        self.mongodb_uri = user_configs.get("mongodb_uri")
+        self.mongo_dbname = user_configs.get("mongo_dbname")
 
         enabled_web_scraper = user_configs.get('enabled_web_scraper', [])
         self.enabled_web_scraper = [f"src.{scraper}" for scraper in enabled_web_scraper]

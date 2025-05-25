@@ -10,3 +10,4 @@ pytest-playwright
 Pillow
 fastapi[all]
 cachetools
+SQLAlchemy

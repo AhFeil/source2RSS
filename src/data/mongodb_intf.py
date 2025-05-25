@@ -40,7 +40,7 @@ class MongodbIntf(DatabaseIntf):
         collection.insert_one(one_article_doc)
 
     def get_source_info(self, source_name: str):
-        return self.meta_collection.find_one({"title": source_name})
+        return self.meta_collection.find_one({"title": source_name}, {"_id": 0})
 
     def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reversed: bool=False) -> list[dict]:
         collection = self.db[source_name]
@@ -59,6 +59,7 @@ class MongodbIntf(DatabaseIntf):
 
 
     def __init__(self, m, db, meta_c):
-        super().__init__(m)
+        super().__init__()
+        self.m = m
         self.db = db
         self.meta_collection = meta_c
