@@ -14,9 +14,7 @@ def generate_rss(source_info: dict, articles: list[dict]) -> bytes:
     fg.language(source_info["lang"])
     fg.pubDate(datetime.now(tz=zone))
     # 遍历并提取文章信息
-    for doc in reversed(articles):
-        article = doc["article_infomation"]
-
+    for article in reversed(articles):
         title = article["title"]
         url = article["link"]
         pub_date = article["pub_time"].astimezone(zone)

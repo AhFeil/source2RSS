@@ -47,7 +47,7 @@ class MongodbIntf(DatabaseIntf):
 
     def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reversed: bool=False) -> list[ArticleDict]:
         collection = self.db[source_name]
-        result = collection.find({}, {key: 1, "article_infomation": 1}).sort(key, 1 if reversed else -1).limit(n)   # 含有 '_id', 
+        result = collection.find({}, {"_id": 0}).sort(key, 1 if reversed else -1).limit(n)
         return list(result)
 
     def _add_source2meta(self, source_info: SrcMetaDict):

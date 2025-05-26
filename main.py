@@ -129,11 +129,7 @@ async def delivery(user_name: str, source_name: str, articles: list[ArticleInfo]
     key4sort = pub_method.key4sort
     for a in articles:
         a = a.model_dump()
-        one_article_etc = {
-            "article_infomation": a, 
-            key4sort: a[key4sort]
-        }
-        data.db_intf.store2database(source_name, one_article_etc) # type: ignore
+        data.db_intf.store2database(source_name, a) # type: ignore
         logger.info(f"{source_name} have new article: {a['title']}")
     
     source_info = data.db_intf.get_source_info(source_name)

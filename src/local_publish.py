@@ -19,11 +19,7 @@ async def save_articles(data, source_name, key4sort, article_source) -> bool:
     try:
         async for a in article_source:
             # 每篇文章整合成一个文档，存入相应集合
-            one_article_etc = {
-                "article_infomation": a, 
-                key4sort: a[key4sort]
-            }
-            data.db_intf.store2database(source_name, one_article_etc)
+            data.db_intf.store2database(source_name, a)
             store_a_new_one = True
             logger.info(f"{source_name} have new article: {a['title']}")
     except asyncio.TimeoutError:
@@ -59,8 +55,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long when save_articles")
 
-    source_name = format_source_name(source_info["name"])
-    source_file_name = f"{source_name}.xml"
+    source_file_name = f"{format_source_name(source_name)}.xml"
     if got_new | data.rss_is_absent(source_file_name):
         # 当有新内容或文件缺失的情况下，会生成 RSS 并保存
         result = data.db_intf.get_top_n_articles_by_key(source_name, 50, key4sort)

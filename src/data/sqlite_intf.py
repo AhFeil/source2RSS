@@ -52,7 +52,11 @@ class ArticleBase:
     summary = Column(String)
     link = Column(String)
     image_link = Column(String)
+    content = Column(String)
     pub_time = Column(DateTime)
+    chapter_number = Column(Integer)
+    time4sort = Column(DateTime)
+    num4sort = Column(Integer)
     # 动态外键关联（需要创建时赋值）
     @declared_attr
     def website_id(cls):
@@ -150,8 +154,8 @@ class SQliteIntf(DatabaseIntf):
             ArticleModel.__table__.create(self.engine)
         column_to_sort = getattr(ArticleModel, key)
         with self.Session() as session:
-            results = session.query(ArticleModel).order_by(desc(column_to_sort)).limit(n).all() if reversed else \
-                      session.query(ArticleModel).order_by(asc(column_to_sort)).limit(n).all()
+            results = session.query(ArticleModel).order_by(asc(column_to_sort)).limit(n).all() if reversed else \
+                      session.query(ArticleModel).order_by(desc(column_to_sort)).limit(n).all()
             if results is None:
                 return []
             return [res.export_to_dict() for res in results]
