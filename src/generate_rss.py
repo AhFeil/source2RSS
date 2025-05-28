@@ -19,7 +19,6 @@ def generate_rss(source_info: dict, articles: list[dict]) -> bytes:
         url = article["link"]
         pub_date = article["pub_time"].astimezone(zone)
         summary = article["summary"]
-        cover = article["image_link"]
 
         # 添加一篇文章，好像是从顶部往下推着添加的，因此要先放入最老的
         fe = fg.add_entry()
@@ -27,8 +26,8 @@ def generate_rss(source_info: dict, articles: list[dict]) -> bytes:
         fe.link(href=url)
         fe.pubDate(pub_date)
         fe.description(summary)
-        fe.enclosure(cover, 0, 'image/jpeg')
-
+        if cover := article.get("image_link"):
+            fe.enclosure(cover, 0, 'image/jpeg')
         if content := article.get("content"):
             lines = content.split("\n")
             content = ''.join(f"<p>{l}</p>" if l else "<br />" for l in lines)

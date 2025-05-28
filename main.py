@@ -10,11 +10,10 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from cachetools import TTLCache
 
 from preprocess import Plugins, data, config
-from src.data import SourceMeta, ArticleInfo, PublishMethod
 from src.run_as_scheduled import run_continuously
 from src.generate_rss import generate_rss
 from src.local_publish import goto_uniform_flow
-from src.website_scraper import WebsiteScraper, CreateByInvalidParam, FailtoGet
+from src.website_scraper import WebsiteScraper, CreateByInvalidParam, FailtoGet, SourceMeta, ArticleInfo, PublishMethod
 
 
 logger = logging.getLogger("main")
@@ -105,7 +104,7 @@ async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [],
 @app.put("/rss_info/{user_name}/{source_name}")
 @app.post("/rss_info/{user_name}/{source_name}")
 async def add_rss(user_name: str, source_name: str, source_meta: SourceMeta):
-    meta = source_meta.model_dump()
+    meta = source_meta.model_dump(mode="json")
     data.db_intf.exist_source_meta(meta) # type: ignore
     return {"state": "true"}
 
@@ -128,10 +127,10 @@ async def get_info(user_name: str, source_name: str):
 async def delivery(user_name: str, source_name: str, articles: list[ArticleInfo], pub_method: PublishMethod):
     key4sort = pub_method.key4sort
     for a in articles:
-        a = a.model_dump()
+        a = a.model_dump_to_json()
         data.db_intf.store2database(source_name, a) # type: ignore
         logger.info(f"{source_name} have new article: {a['title']}")
-    
+
     source_info = data.db_intf.get_source_info(source_name)
     if source_info:
         # 生成 RSS 并保存到目录

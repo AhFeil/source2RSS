@@ -3,13 +3,14 @@ from urllib.parse import quote
 import asyncio
 from datetime import datetime, timedelta
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Generator, AsyncGenerator, TypedDict, Self
+from typing import Generator, AsyncGenerator, Self
 
 import httpx
 from playwright.async_api import async_playwright
 
 import api._v1
 from api._v2 import Plugins
+from .model import LocateInfo, SrcMetaDict, ArticleDict
 
 
 class FailtoGet(Exception):
@@ -18,32 +19,6 @@ class FailtoGet(Exception):
 class CreateByInvalidParam(Exception):
     pass
 
-
-class SrcMetaDict(TypedDict):
-    name: str
-    link: str
-    desc: str
-    lang: str
-    key4sort: str
-
-class ArticleDict(TypedDict):
-    id: int
-    title: str
-    summary: str
-    link: str
-    image_link: str
-    content: str
-    pub_time: datetime
-    chapter_number: int   # 用于排序,比如小说按照章节排更合适
-    time4sort: datetime
-    num4sort: int
-
-class LocateInfo(TypedDict):
-    article_title: str
-    pub_time: datetime | None
-    chapter_number: int | None
-    time4sort: datetime | None
-    num4sort: int | None
 
 class AsyncBrowserManager:
     _browser = None
