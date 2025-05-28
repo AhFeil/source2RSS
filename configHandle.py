@@ -77,4 +77,4 @@ class Config:
         self.cls_init_params = user_configs['cls_init_params']
 
     def get_params(self, class_name: str) -> list:
-        return self.cls_init_params[class_name]
+        return self.cls_init_params.get(class_name, [])

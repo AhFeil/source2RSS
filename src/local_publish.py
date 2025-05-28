@@ -43,7 +43,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     data.db_intf.exist_source_meta(source_info)
     result = data.db_intf.get_top_n_articles_by_key(source_name, 1, key4sort)
     if result:
-        flags: LocateInfo = {"title": result[0]["article_infomation"]["title"], key4sort: result[0][key4sort]} # type: ignore
+        flags: LocateInfo = {"article_title": result[0]["title"], key4sort: result[0][key4sort]} # type: ignore
         article_source = instance.get_from_old2new(flags) if instance.__class__.support_old2new else instance.get_new(flags)
     else:
         # 若是第一次，数据库中没有数据

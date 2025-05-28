@@ -54,11 +54,6 @@ async def monitor_website(config, data, plugins):
 async def start_to_crawl():
     from preprocess import config, data, plugins
 
-    # 开发环境下，每次都把集合清空
-    if not config.is_production:
-        logger.info("Clear All Collections")
-        data.db_intf._clear_db()
-    
     await monitor_website(config, data, plugins)
 
 

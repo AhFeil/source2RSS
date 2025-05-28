@@ -3,7 +3,7 @@ from urllib.parse import quote
 import asyncio
 from datetime import datetime, timedelta
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Generator, AsyncGenerator, Self
+from typing import Generator, AsyncGenerator, Self, Any
 
 import httpx
 from playwright.async_api import async_playwright
@@ -228,14 +228,16 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                     "summary": description,
                     "link": article_url,
                     "image_link": image_link,
-                    "content": "",
                     "pub_time": time_obj,
-                    "chapter_number": 0
                 }
                 yield article
 
             start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
+
+    def _custom_parameter_of_parse(self) -> list:
+        """调用 _parse 时，额外需要提供的参数"""
+        return []
 
     @classmethod
     async def _request(cls, url: str, verify=True) -> httpx.Response:
@@ -254,6 +256,16 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         step = interval * (-1 if reverse else 1)
         return (current_time + timedelta(minutes=step * n) for n in range(count))
 
-    def _custom_parameter_of_parse(self) -> list:
-        """调用 _parse 时，额外需要提供的参数"""
-        return []
+    @staticmethod
+    def _range_of(elems, flag, compare_func) -> Generator[Any, None, None]:
+        """传入列表和标志，默认从列表中匹配标志的元素开始返回，直到列表首元素。当标志与新元素对比，比较函数返回真（大于0的数），否则返回假（0）"""
+        for i, elem in enumerate(elems):
+            if compare_func(elem, flag):
+                continue
+            break
+        else:
+            i += 1
+        j = i - 1
+        while j >= 0:
+            yield elems[j]
+            j -= 1
