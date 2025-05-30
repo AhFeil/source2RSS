@@ -8,6 +8,7 @@ class BilibiliUp(WebsiteScraper):
     title = "B站UP"
     home_url = "https://space.bilibili.com"
     page_turning_duration = 60
+    support_old2new = True
     key4sort = "pub_time"
 
     headers = {
@@ -88,13 +89,6 @@ class BilibiliUp(WebsiteScraper):
 
     def _custom_parameter_of_parse(self) -> list:
         return [self.up_name, self.j_res]
-
-    async def get_from_old2new(self, flags: LocateInfo):
-        pub_time = flags["pub_time"]
-        if pub_time is None:
-            return
-        async for a in self.__class__._parse(self.logger, self.up_name, self.j_res, pub_time):
-            yield a
 
     @classmethod
     async def get_response_json(cls, uid, space_url) -> dict:

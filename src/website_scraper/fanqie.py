@@ -10,6 +10,7 @@ class FanQie(WebsiteScraper):
     home_url = "https://fanqienovel.com"
     admin_url = "http://82.157.53.75:1180"
     page_turning_duration = 2
+    support_old2new = True
     key4sort = "chapter_number"
 
     @classmethod
@@ -129,12 +130,6 @@ class FanQie(WebsiteScraper):
     def _custom_parameter_of_parse(self) -> list:
         return [self.catalog_list]
 
-    async def get_from_old2new(self, flags):
-        """从旧到新，从 chapter 下一个开始返回，直到最新的"""
-        if chapter := flags.get("chapter_number"):
-            async for a in FanQie._parse(self.logger, self.catalog_list, start_chapter=chapter + 1):
-                yield a
-
     @staticmethod
     def _get_chapter_number(chapter_title):
         chapter = re.findall(pattern=r"第(.*?)章", string=chapter_title) or re.findall(pattern=r"^(.*?)、", string=chapter_title) or [0] # type: ignore
@@ -146,7 +141,7 @@ async def test():
     async for a in book.first_add(3):
         print(a["title"], a["pub_time"], a["chapter_number"])
     print("----------")
-    async for a in book.get_from_old2new({"chapter_number": 1338}):
+    async for a in book._get_from_old2new({"chapter_number": 1338}):
         print(a["title"], a["pub_time"], a["chapter_number"])
     print("--------------------")
 

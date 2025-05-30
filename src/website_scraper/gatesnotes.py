@@ -58,7 +58,7 @@ class GatesNotes(WebsiteScraper):
             }
             yield article
 
-    async def get_new(self, flags: LocateInfo):
+    async def _get_new(self, flags: LocateInfo):
         async for a in GatesNotes._parse(self.logger):
             if a["title"] != flags["article_title"]:
                 yield a
@@ -74,7 +74,7 @@ async def test():
     async for a in c.first_add():
         print(a)
     print("----------")
-    async for a in c.get_new(datetime(2024, 4, 1)):
+    async for a in c._get_new(datetime(2024, 4, 1)):
         print(a)
     print("----------")
 

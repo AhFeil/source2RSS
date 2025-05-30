@@ -90,7 +90,7 @@ class ScraperMeta(ABCMeta):
             if ScraperMeta._is_get_from_old2new_overridden(cls):
                 cls.support_old2new = True
             else:
-                cls.support_old2new = False
+                cls.support_old2new = False   # todo 不重写不一定不行
             Plugins.register(plugin_name, cls)
 
     @staticmethod
@@ -103,6 +103,12 @@ class ScraperMeta(ABCMeta):
 
 
 class WebsiteScraper(ABC, metaclass=ScraperMeta):
+
+    # ***公开属性***
+    key4sort = "pub_time"
+    support_old2new: bool = False # 需要手动指定，为真则调用 old2new 接口
+    # 下面属性由元类自动判别赋值
+    is_variety: bool = False   # 创建时是否需要传入额外参数
 
     # ***对外接口***
     @classmethod
@@ -132,38 +138,25 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         """返回在本次执行中，从执行开始到结束占用最长时间，单位秒"""
         return self.__class__.page_turning_duration * 20
 
-    async def first_add(self, amount: int = 10) -> AsyncGenerator[ArticleDict, None]:
-        """首次运行时用，按从新到旧返回最新的若干条"""
-        if amount <= 0:
-            return
-        async for a in self.__class__._parse(self.logger, *self._custom_parameter_of_parse()):
-            amount -= 1
-            yield a
+    async def get(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
+        if amount := flags.get("amount"):
+            # 首次运行时用，按从新到旧返回最新的若干条
             if amount <= 0:
                 return
-
-    async def get_new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
-        """按从新到旧，每次返回一条，直到遇到和标记一样的一条"""
-        async for a in self.__class__._parse(self.logger, *self._custom_parameter_of_parse()):
-            if a[self.__class__.key4sort] > flags[self.__class__.key4sort]:
+            async for a in self.__class__._parse(self.logger, *self._custom_parameter_of_parse()):
+                amount -= 1
                 yield a
-            else:
-                return
-    # 网站结构一般是链式的，不支持随机索引，而从新到旧的顺序一般都能满足，但是这种顺序一旦中断就无法自发恢复遗漏的
-    # 如果支持从旧到新的索引，可以覆写 get_from_old2new ，会优先选择；若不支持但希望保证数据不缺失，也可以覆写，使用 super() 调一次父类方法即可
-    async def get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
-        """按从旧到新，从和标记一样的下一条开始返回，每次一条，直到最新"""
-        articles = []
-        async for a in self.get_new(flags):
-            articles.append(a)
-        for a in reversed(articles):
-            yield a
+                if amount <= 0:
+                    return
 
-    # ***公开属性***
-    key4sort = "pub_time"
-    # 下面属性由元类自动判别赋值
-    support_old2new: bool = False
-    is_variety: bool = False   # 创建时是否需要传入额外参数
+        if flags.get("must_old2new"):
+            async_gen = self._get_from_old2new if self.__class__.support_old2new else self._force_get_from_old2new
+        elif flags.get("prefer_old2new"):
+            async_gen = self._get_from_old2new if self.__class__.support_old2new else self._get_new
+        else:
+            async_gen = self._get_new
+        async for a in async_gen(flags):
+            yield a
 
 
     # ***内部方法和属性***
@@ -186,7 +179,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     @classmethod
     @abstractmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[ArticleDict, None]:
+    async def _parse(cls, logger) -> AsyncGenerator[ArticleDict, None]:
         """按照从新到旧的顺序返回"""
         while True:
             varied_query_dict = {"pagination[page]": start_page}
@@ -238,6 +231,34 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     def _custom_parameter_of_parse(self) -> list:
         """调用 _parse 时，额外需要提供的参数"""
         return []
+
+    async def _get_new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
+        """按从新到旧，每次返回一条，直到遇到和标记一样的一条"""
+        key4sort = self.__class__.key4sort
+        if flags.get(key4sort) is None:
+            self.logger.error(f"{self.source_info['name']}: flags need {key4sort}")
+        async for a in self.__class__._parse(self.logger, *self._custom_parameter_of_parse()):
+            if a[key4sort] > flags[key4sort]:
+                yield a
+            else:
+                return
+    # 网站结构一般是链式的，不支持随机索引，而从新到旧的顺序一般都能满足，但是这种顺序一旦中断就无法自发恢复遗漏的
+    # 如果支持从旧到新的索引，可以覆写 get_from_old2new ，会优先选择；若不支持但希望保证数据不缺失，也可以覆写，使用 super() 调一次父类方法即可
+    async def _get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
+        """按从旧到新，从和标记一样的下一条开始返回，每次一条，直到最新"""
+        key4sort = self.__class__.key4sort
+        if flag := flags.get(key4sort):
+            async for a in self.__class__._parse(self.logger, *self._custom_parameter_of_parse(), flag): # type: ignore
+                yield a
+        else:
+            self.logger.error(f"{self.source_info['name']}: flags need {key4sort} for old2new")
+
+    async def _force_get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
+        articles = []
+        async for a in self._get_new(flags):
+            articles.append(a)
+        for a in reversed(articles):
+            yield a
 
     @classmethod
     async def _request(cls, url: str, verify=True) -> httpx.Response:

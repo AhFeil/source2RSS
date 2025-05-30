@@ -12,7 +12,7 @@ class CaseParam4Meta(NamedTuple):
 source_info_of_BentoMLBlog = {
         'key4sort': 'pub_time',
         'link': 'https://www.bentoml.com/blog',
-        'title': 'BentoML Blog'
+        'name': 'BentoML Blog'
 }
 
 

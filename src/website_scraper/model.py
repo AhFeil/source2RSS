@@ -12,6 +12,11 @@ class LocateInfo(TypedDict, total=False):
     chapter_number: int
     time4sort: datetime
     num4sort: int
+    # 如果 amount 有值，则返回指定数目的最新文章，忽略其他字段
+    amount: int
+    # old2new 若有值，则调用相应接口
+    must_old2new: bool # todo 用枚举更合适
+    prefer_old2new: bool
 
 
 class SrcMetaDict(TypedDict):

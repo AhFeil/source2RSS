@@ -59,10 +59,3 @@ class HotBilibili(WebsiteScraper):
                 }
 
                 yield article
-
-    async def get_from_old2new(self, flags):
-        pub_time = flags["pub_time"]
-        if pub_time is None:
-            return
-        async for a in self.__class__._parse(self.logger, pub_time):
-            yield a

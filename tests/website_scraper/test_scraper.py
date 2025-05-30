@@ -27,7 +27,8 @@ async def test_meta_info(setup_and_tear_down):
 @pytest.mark.asyncio
 async def test_first_add(setup_and_tear_down):
     ins, _ = setup_and_tear_down
-    async for a in ins.first_add(2):
+    flags: LocateInfo = {"amount": 2} # type: ignore
+    async for a in ins.get(flags):
         for val in a.values():
             assert val is not None
 
@@ -35,7 +36,7 @@ async def test_first_add(setup_and_tear_down):
 async def test_get_new(setup_and_tear_down):
     ins, _ = setup_and_tear_down
     flags: LocateInfo = {ins.__class__.key4sort: datetime(2024, 4, 1)} # type: ignore
-    async for a in ins.get_new(flags):
+    async for a in ins.get(flags):
         for val in a.values():
             assert val is not None
         break
@@ -44,8 +45,8 @@ async def test_get_new(setup_and_tear_down):
 async def test_get_from_old2new(setup_and_tear_down):
     ins, _ = setup_and_tear_down
     if ins.__class__.support_old2new:
-        flags: LocateInfo = {ins.__class__.key4sort: datetime(2024, 4, 1)} # type: ignore
-        async for a in ins.get_from_old2new(flags):
+        flags: LocateInfo = {ins.__class__.key4sort: datetime(2024, 4, 1), "prefer_old2new": True} # type: ignore
+        async for a in ins.get(flags):
             for val in a.values():
                 assert val is not None
             break

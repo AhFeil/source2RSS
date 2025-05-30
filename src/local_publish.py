@@ -43,15 +43,13 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     data.db_intf.exist_source_meta(source_info)
     result = data.db_intf.get_top_n_articles_by_key(source_name, 1, key4sort)
     if result:
-        flags: LocateInfo = {"article_title": result[0]["title"], key4sort: result[0][key4sort]} # type: ignore
-        article_source = instance.get_from_old2new(flags) if instance.__class__.support_old2new else instance.get_new(flags)
-    else:
-        # 若是第一次，数据库中没有数据
-        article_source = instance.first_add()
+        flags: LocateInfo = {"article_title": result[0]["title"], key4sort: result[0][key4sort], "prefer_old2new": True} # type: ignore
+    else: # 若是第一次，数据库中没有数据
+        flags: LocateInfo = {"amount": 10} # type: ignore # todo
 
     got_new = False
     try:
-        got_new = await asyncio.wait_for(save_articles(data, source_name, key4sort, article_source), max_wait_time)
+        got_new = await asyncio.wait_for(save_articles(data, source_name, key4sort, instance.get(flags)), max_wait_time)
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long when save_articles")
 
