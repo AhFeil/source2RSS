@@ -250,14 +250,14 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 return response
 
     @staticmethod
-    def _get_time_obj(reverse: bool = False, count: int = 20, interval: int = 2) -> Generator[datetime, None, None]:
+    def _get_time_obj(reverse: bool = False, count: int = 100, interval: int = 2) -> Generator[datetime, None, None]:
         """生成时间对象序列，默认时间越来越新，具体是每次增加 2 分钟，reverse=True时间越来越旧"""
         current_time = datetime.now()
         step = interval * (-1 if reverse else 1)
         return (current_time + timedelta(minutes=step * n) for n in range(count))
 
     @staticmethod
-    def _range_of(elems, flag, compare_func) -> Generator[Any, None, None]:
+    def _range_by_desc_of(elems, flag, compare_func) -> Generator[Any, None, None]:
         """传入列表和标志，默认从列表中匹配标志的元素开始返回，直到列表首元素。当标志与新元素对比，比较函数返回真（大于0的数），否则返回假（0）"""
         for i, elem in enumerate(elems):
             if compare_func(elem, flag):
@@ -265,7 +265,21 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             break
         else:
             i += 1
-        j = i - 1
-        while j >= 0:
-            yield elems[j]
-            j -= 1
+        i -= 1
+        while i >= 0:
+            yield elems[i]
+            i -= 1
+
+    @staticmethod
+    def _range_by_asc_of(elems, flag, compare_func) -> Generator[Any, None, None]:
+        """类似 _range_by_desc_of ，适用于列表的顺序是从旧到新的"""
+        for i, elem in enumerate(reversed(elems), start=1):
+            if compare_func(elem, flag):
+                continue
+            break
+        else:
+            i += 1
+        i -= 1
+        while i > 0:
+            yield elems[-i]
+            i -= 1

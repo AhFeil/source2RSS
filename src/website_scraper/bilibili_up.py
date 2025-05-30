@@ -53,7 +53,7 @@ class BilibiliUp(WebsiteScraper):
         logger.info(f"{cls.title}{up_name} start to parse page")
         modules: list[dict] = j_res["data"]["items"]
         new_modules = modules if not pub_time else \
-                    WebsiteScraper._range_of(modules, pub_time, lambda x, f : f < datetime.fromtimestamp(x["modules"]["module_author"]["pub_ts"]))
+                    WebsiteScraper._range_by_desc_of(modules, pub_time, lambda x, f : f < datetime.fromtimestamp(x["modules"]["module_author"]["pub_ts"]))
 
         for m in new_modules:
             a = m["modules"]["module_dynamic"]

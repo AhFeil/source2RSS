@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import AsyncGenerator
 
-from .example import WebsiteScraper, LocateInfo
+from .example import WebsiteScraper
 
 
 # 逻辑有缺陷，目前是每次运行将热榜按照  排序，取最新的，不会缺少新写的上热榜，但是旧的上热榜会缺少
@@ -32,24 +32,19 @@ class HotBilibili(WebsiteScraper):
     @property
     def max_wait_time(self):
         return HotBilibili.page_turning_duration * 10
-    
+
     @classmethod
-    async def _parse(cls, logger, pub_time: datetime | bool=False, start_page: int=1) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, logger, pub_time: datetime | bool=False) -> AsyncGenerator[dict, None]:
         url = "https://api.bilibili.com/x/web-interface/ranking/v2"
         logger.info(f"{cls.title} start to parse page")
         response = await cls._request(url)
         res = response.json()
         if res and res["data"]:
-            articles: list[dict] = res["data"]["list"]
-            if not pub_time: # if not old2new
-                # 以文章 ctime 为准，从大到小，即从新到旧
-                articles.sort(key=lambda x: x["ctime"], reverse=True)
-
+            res["data"]["list"].sort(key=lambda x: x["ctime"], reverse=True)
+            articles = res["data"]["list"] if not pub_time else \
+                        WebsiteScraper._range_by_desc_of(res["data"]["list"], pub_time, lambda a, f : f < datetime.fromtimestamp(a["ctime"]))
             for a in articles:
                 time_obj = datetime.fromtimestamp(a["ctime"])
-                # todo 提供二分查找方法
-                if pub_time and time_obj <= pub_time: # type: ignore # if old2new
-                    continue
                 title = a["title"]
                 description = a["desc"]
                 article_url = f"https://www.bilibili.com/video/{a['bvid']}"
@@ -65,7 +60,7 @@ class HotBilibili(WebsiteScraper):
 
                 yield article
 
-    async def get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
+    async def get_from_old2new(self, flags):
         pub_time = flags["pub_time"]
         if pub_time is None:
             return
