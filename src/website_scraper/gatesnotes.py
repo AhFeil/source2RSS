@@ -3,7 +3,8 @@ from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
 
-from .example import WebsiteScraper, AsyncBrowserManager, LocateInfo
+from .example import WebsiteScraper
+from .tools import AsyncBrowserManager
 from src.utils import environment
 
 
@@ -57,7 +58,7 @@ class GatesNotes(WebsiteScraper):
             }
             yield article
 
-    async def _get_new(self, flags: LocateInfo):
+    async def _get_new(self, flags):
         async for a in GatesNotes._parse(self.logger):
             if a["title"] != flags["article_title"]:
                 yield a

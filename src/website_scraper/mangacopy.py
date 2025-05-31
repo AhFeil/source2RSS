@@ -4,7 +4,8 @@ from datetime import datetime
 from typing import AsyncGenerator, Any, Self
 
 from bs4 import BeautifulSoup
-from .example import WebsiteScraper, AsyncBrowserManager, CreateByInvalidParam
+from .example import WebsiteScraper, CreateByInvalidParam
+from .tools import AsyncBrowserManager
 
 
 class MangaCopy(WebsiteScraper):

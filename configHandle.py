@@ -64,6 +64,9 @@ class Config:
         self.image_root = crawler_default_cfg.get("image_root", "config_and_data_files/images")
         os.makedirs(self.image_root, exist_ok=True)
         self.timezone = crawler_default_cfg.get("timezone", "Asia/Shanghai")
+        self.max_opening_context = crawler_default_cfg.get("max_opening_context", 1)
+        if self.max_opening_context <= 0:
+            self.max_opening_context = 1
 
         self.mongodb_uri = user_configs.get("mongodb_uri")
         self.mongo_dbname = user_configs.get("mongo_dbname")

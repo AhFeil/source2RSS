@@ -3,7 +3,8 @@ from datetime import datetime, timedelta
 from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
-from .example import WebsiteScraper, AsyncBrowserManager
+from .example import WebsiteScraper
+from .tools import AsyncBrowserManager
 
 
 class Chiphell(WebsiteScraper):

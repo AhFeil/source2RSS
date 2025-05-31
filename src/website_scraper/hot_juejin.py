@@ -3,9 +3,9 @@ from datetime import datetime
 from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
-from playwright._impl._errors import TimeoutError
 from src.utils import environment
-from .example import WebsiteScraper, AsyncBrowserManager
+from .example import WebsiteScraper
+from .tools import AsyncBrowserManager
 
 
 # 逻辑有缺陷，目前是每次运行将热榜按照  排序，取最新的，不会缺少新写的上热榜，但是旧的上热榜会缺少

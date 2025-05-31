@@ -1,0 +1,89 @@
+"""WebsiteScraper 可以使用的工具"""
+import logging
+import asyncio
+
+from playwright.async_api import async_playwright
+
+from preprocess import config
+
+
+class AsyncBrowserManager:
+    _browser = None
+    _playwright = None
+    _users = 0
+    _lock = asyncio.Lock()
+    _logger = logging.getLogger("AsyncBrowserManager")
+
+    def __init__(self, id: str, user_agent=None):
+        self.id = id
+        self.user_agent = user_agent
+        self.context = None
+
+    async def __aenter__(self):
+        # 协程并发下，如果不加锁，有可能会实例化多个 _browser 或其他非预期状况
+        # 这里加锁并不会导致同时只有一个协程能使用浏览器
+        await AsyncBrowserManager.waiting_operation(self.id, config.max_opening_context)
+        async with AsyncBrowserManager._lock:
+            # 首次使用时初始化浏览器和 Playwright
+            if AsyncBrowserManager._browser is None:
+                AsyncBrowserManager._playwright = await async_playwright().start()
+                AsyncBrowserManager._browser = await AsyncBrowserManager._playwright.chromium.launch(headless=True)
+                AsyncBrowserManager._logger.info("create browser for " + self.id)
+            AsyncBrowserManager._users += 1
+        self.context = await AsyncBrowserManager._browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent)
+        AsyncBrowserManager._logger.info("create context for " + self.id)
+        return self.context
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        async with AsyncBrowserManager._lock:
+            await self.context.close() # type: ignore
+            AsyncBrowserManager._logger.info("destroy context of " + self.id)
+            AsyncBrowserManager._users -= 1
+            # 所有用户都退出后清理资源
+        asyncio.create_task(AsyncBrowserManager.delayed_operation(self.id, 180))
+
+    @classmethod
+    async def delayed_operation(cls, id, delay: int):
+        async with AsyncBrowserManager._lock:
+            if cls._users > 0:
+                return
+        await asyncio.sleep(delay)
+        async with AsyncBrowserManager._lock:
+            if cls._users == 0 and cls._browser is not None:
+                await cls._browser.close()
+                await cls._playwright.stop() # type: ignore
+                cls._browser = None
+                cls._playwright = None
+                cls._logger.info("destroy browser by " + id)
+            else:
+                cls._logger.info("leave browser alone, said by " + id)
+
+    @classmethod
+    async def waiting_operation(cls, id, max: int):
+        need_wait = True
+        while(need_wait):
+            async with AsyncBrowserManager._lock:
+                if AsyncBrowserManager._users >= max:
+                    cls._logger.info(id + " need to wait for context")
+                    need_wait = True
+                else:
+                    need_wait = False
+            await asyncio.sleep(15 * need_wait)
+
+
+    @staticmethod
+    async def get_html_or_none(id: str, url: str, user_agent):
+        html_content = None
+        async with AsyncBrowserManager(id, user_agent) as context:
+            page = await context.new_page()
+            AsyncBrowserManager._logger.info("create page for " + id)
+            try:
+                await page.goto(url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
+            except TimeoutError as e:
+                AsyncBrowserManager._logger.warning(f"Page navigation of {id} timed out: {e}")
+            else:
+                html_content = await page.content()
+            finally:
+                await page.close()
+                AsyncBrowserManager._logger.info("destroy page of " + id)
+        return html_content
