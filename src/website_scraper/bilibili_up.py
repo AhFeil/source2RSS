@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import AsyncGenerator, Self
 
-from .example import WebsiteScraper, CreateByInvalidParam
+from .example import WebsiteScraper, CreateByInvalidParam, FailtoGet
 from .tools import AsyncBrowserManager
 
 
@@ -95,14 +95,20 @@ class BilibiliUp(WebsiteScraper):
         user_agent = cls.headers["User-Agent"]
         id = str(uid)
         j_res = [{}]
+        blocked = ["image", "font", "media"]
+        block_func = lambda route: route.abort() if route.request.resource_type in blocked else route.continue_()
         async with AsyncBrowserManager(id, user_agent) as context:
+            await context.route("**/*", block_func)
             page = await context.new_page()
             AsyncBrowserManager._logger.info("create page for " + id)
             page.on("response", lambda response: cls.handle_response(response, j_res)) # type: ignore
             try:
                 await page.goto(space_url, timeout=60000, wait_until='networkidle')
-            except TimeoutError as e:
-                AsyncBrowserManager._logger.warning(f"Page navigation of {id} timed out: {e}")
+            except TimeoutError:
+                AsyncBrowserManager._logger.warning(f"Page navigation of {id} timed out")
+            except Exception as e:
+                AsyncBrowserManager._logger.warning(f"Page navigation of {id} Exception occured: {e}")
+                raise FailtoGet
             finally:
                 await page.close()
                 AsyncBrowserManager._logger.info("destroy page of " + id)
