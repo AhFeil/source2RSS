@@ -19,8 +19,7 @@ class NewsLetter(WebsiteScraper):
         self.desc = froms.get("desc", "DescriptionLack")
         self.mailbox = ImapMailBox(host, port, username, password, ssl)
 
-    @property
-    def source_info(self):
+    def _source_info(self):
         return {
             "title": f"NewsLetter of {self.newsletter_name}",
             "link": self.website,

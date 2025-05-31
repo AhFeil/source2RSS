@@ -116,17 +116,9 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         return cls()
 
     @property
-    @abstractmethod
     def source_info(self) -> SrcMetaDict:
         """数据库要有一个表保存每个网站的元信息，生成 RSS 使用"""
-        info: SrcMetaDict = {
-            'name': self.__class__.title,   # todo 不作为类属性
-            'link': self.__class__.home_url,
-            'desc': "Linux，单片机，编程",
-            'lang': "zh-CN",
-            'key4sort': self.__class__.key4sort
-        }
-        return info
+        return WebsiteScraper._standardize_src_Info(self._source_info())
 
     @property
     def table_name(self) -> str:
@@ -139,13 +131,14 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         return self.__class__.page_turning_duration * 20
 
     async def get(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
+        """获取文章对外接口。重写的话，需要保证返回的字典中不能有 ArticleDict 之外的字段"""
         if amount := flags.get("amount"):
             # 首次运行时用，按从新到旧返回最新的若干条
             if amount <= 0:
                 return
             async for a in self.__class__._parse(self.logger, *self._custom_parameter_of_parse()):
                 amount -= 1
-                yield a
+                yield WebsiteScraper._standardize_article(a)
                 if amount <= 0:
                     return
 
@@ -156,8 +149,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         else:
             async_gen = self._get_new
         async for a in async_gen(flags):
-            yield a
-
+            yield WebsiteScraper._standardize_article(a)
 
     # ***内部方法和属性***
     title = "技焉洲"
@@ -177,9 +169,19 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     def __init__(self) -> None:
         self.logger = logging.getLogger(self.__class__.__name__)
 
+    @abstractmethod
+    def _source_info(self) -> dict:
+        return {
+            'name': self.__class__.title,   # todo 考虑不作为类属性
+            'link': self.__class__.home_url,
+            'desc': "Linux，单片机，编程",
+            'lang': "zh-CN",
+            'key4sort': self.__class__.key4sort
+        }
+
     @classmethod
     @abstractmethod
-    async def _parse(cls, logger) -> AsyncGenerator[ArticleDict, None]:
+    async def _parse(cls, logger) -> AsyncGenerator[dict, None]:
         """按照从新到旧的顺序返回"""
         while True:
             varied_query_dict = {"pagination[page]": start_page}
@@ -197,7 +199,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             # 初次适配使用，读取网站数据
             # with open("for_test.html", 'r', encoding='utf-8') as f:
             #     response_text = f.read()
-            
+
             articles = response.json()
             # 超出结尾了
             if not articles["data"]:
@@ -215,7 +217,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 create_time = image["data"]["attributes"]["createdAt"]
                 time_obj = datetime.strptime(create_time, "%Y-%m-%dT%H:%M:%S.%fZ")
 
-                article: ArticleDict = {
+                article = {
                     "id": id,
                     "title": name,
                     "summary": description,
@@ -232,7 +234,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         """调用 _parse 时，额外需要提供的参数"""
         return []
 
-    async def _get_new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
+    async def _get_new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
         """按从新到旧，每次返回一条，直到遇到和标记一样的一条"""
         key4sort = self.__class__.key4sort
         if flags.get(key4sort) is None:
@@ -244,7 +246,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 return
     # 网站结构一般是链式的，不支持随机索引，而从新到旧的顺序一般都能满足，但是这种顺序一旦中断就无法自发恢复遗漏的
     # 如果支持从旧到新的索引，可以覆写 get_from_old2new ，会优先选择；若不支持但希望保证数据不缺失，也可以覆写，使用 super() 调一次父类方法即可
-    async def _get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
+    async def _get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
         """按从旧到新，从和标记一样的下一条开始返回，每次一条，直到最新"""
         key4sort = self.__class__.key4sort
         if flag := flags.get(key4sort):
@@ -253,7 +255,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         else:
             self.logger.error(f"{self.source_info['name']}: flags need {key4sort} for old2new")
 
-    async def _force_get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
+    async def _force_get_from_old2new(self, flags: LocateInfo) -> AsyncGenerator[dict, None]:
         articles = []
         async for a in self._get_new(flags):
             articles.append(a)
@@ -269,6 +271,20 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 raise FailtoGet
             else:
                 return response
+
+    @staticmethod
+    def _standardize_article(a: dict) -> ArticleDict:
+        extra_keys = set(a.keys()) - ArticleDict.__field_names__ # type: ignore
+        for k in extra_keys:
+            a.pop(k)
+        return a # type: ignore
+
+    @staticmethod
+    def _standardize_src_Info(s: dict) -> SrcMetaDict:
+        extra_keys = set(s.keys()) - SrcMetaDict.__field_names__ # type: ignore
+        for k in extra_keys:
+            s.pop(k)
+        return s # type: ignore
 
     @staticmethod
     def _get_time_obj(reverse: bool = False, count: int = 100, interval: int = 2) -> Generator[datetime, None, None]:

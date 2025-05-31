@@ -30,8 +30,7 @@ class HotJuejin(WebsiteScraper):
     }
     steady_query = '&'.join(f"{key}={value}" for key, value in steady_query_dict.items())
     
-    @property
-    def source_info(self):
+    def _source_info(self):
         return {
             "name": self.__class__.title,
             "link": self.__class__.home_url,

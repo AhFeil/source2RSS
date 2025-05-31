@@ -20,8 +20,7 @@ class GatesNotes(WebsiteScraper):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36 Edg/130.0.0.0',
     }
 
-    @property
-    def source_info(self):
+    def _source_info(self):
         source_info = {
             "name": self.__class__.title,
             "link": self.__class__.home_url,

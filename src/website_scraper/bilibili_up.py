@@ -35,8 +35,7 @@ class BilibiliUp(WebsiteScraper):
         self.space_url = space_url
         self.j_res = j_res
 
-    @property
-    def source_info(self):
+    def _source_info(self):
         return {
             "name": self.__class__.title + self.up_name + "的动态",
             "link": self.space_url,

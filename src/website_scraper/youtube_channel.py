@@ -31,8 +31,7 @@ class YoutubeChannel(WebsiteScraper):
         self.channel_name = channel_name
         self.feed_url = feed_url
 
-    @property
-    def source_info(self):
+    def _source_info(self):
         source_info = {
             "name": self.channel_name,
             "link": f"{self.__class__.home_url}/@{self.channel_name}",

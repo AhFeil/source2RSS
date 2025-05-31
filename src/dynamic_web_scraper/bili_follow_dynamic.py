@@ -29,8 +29,7 @@ class BiliFoDynamic(WebsiteScraper):
         # 数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用
         self.user_agent = environment.get_user_agent(config_dict['user_name'])
 
-    @property
-    def source_info(self):
+    def _source_info(self):
         """数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用"""
         return {
             "title": f"{self.config_dict['user_name']} 的关注动态",

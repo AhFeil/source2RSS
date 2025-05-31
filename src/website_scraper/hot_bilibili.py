@@ -20,8 +20,7 @@ class HotBilibili(WebsiteScraper):
         'sec-ch-ua-platform': '"Windows"',
     }
 
-    @property
-    def source_info(self):
+    def _source_info(self):
         return {
             "name": self.__class__.title,
             "link": self.__class__.home_url,

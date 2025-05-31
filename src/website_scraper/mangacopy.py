@@ -37,8 +37,7 @@ class MangaCopy(WebsiteScraper):
         super().__init__()
         self.book_id, self.book_title, self.book_url = book_id, book_title, book_url
 
-    @property
-    def source_info(self):
+    def _source_info(self):
         return {
             "name": self.book_title,
             "link": f"{self.__class__.home_url}/comic/{self.book_id}",

@@ -1,9 +1,16 @@
 """抓取器返回字典定义和 FastAPI 的 Model 等"""
 from datetime import datetime
 from enum import Enum
-from typing import TypedDict, Required, Union, Optional
+from typing import TypedDict, Required, Union, Optional, get_type_hints
 
 from pydantic import BaseModel, HttpUrl, ConfigDict, field_validator
+
+
+def init_field_names(cls):
+    """装饰器：在类定义时自动初始化并存储所有字段名称"""
+    if not hasattr(cls, '__field_names__'):
+        cls.__field_names__ = set(get_type_hints(cls, include_extras=True).keys())
+    return cls
 
 
 class LocateInfo(TypedDict, total=False):
@@ -19,6 +26,7 @@ class LocateInfo(TypedDict, total=False):
     prefer_old2new: bool
 
 
+@init_field_names
 class SrcMetaDict(TypedDict):
     name: str
     link: str
@@ -40,6 +48,7 @@ class SourceMeta(BaseModel):
     key4sort: str = "pub_time"
 
 
+@init_field_names
 class ArticleDict(TypedDict, total=False):
     id: int
     title: Required[str]

@@ -36,8 +36,7 @@ class BentoMLBlog(WebsiteScraper):
     }
     steady_query = '&'.join(f"{key}={value}" for key, value in steady_query_dict.items())
     
-    @property
-    def source_info(self):
+    def _source_info(self):
         info = {
             'name': self.__class__.title,   # todo 不作为类属性
             'link': self.__class__.home_url,

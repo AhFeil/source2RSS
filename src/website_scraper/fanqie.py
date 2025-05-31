@@ -34,8 +34,7 @@ class FanQie(WebsiteScraper):
         catalog_list = data_json['data']['data'].get('catalog_data') or data_json['data']['data'].get('item_data_list')
         return book_info_json, catalog_list
 
-    @property
-    def source_info(self):
+    def _source_info(self):
         """数据库要有一个表或集合保存每个网站的元信息，生成 RSS 使用"""
         book_info_json = self.book_info_json
         image_link = book_info_json["audio_thumb_uri"]
@@ -55,12 +54,12 @@ class FanQie(WebsiteScraper):
             "link": FanQie.home_url + f"/page/{self.book_id}",
             "desc": f"番茄免费小说 - {self.book_id} 的更新篇章",
             "lang": "zh-CN",
-            # "book_name": book_name,
-            # "image_link": image_link,
-            # "author": author,
-            # "abstract": abstract,
-            # "source": source,
-            # "create_time": create_time,
+            "book_name": book_name,
+            "image_link": image_link,
+            "author": author,
+            "abstract": abstract,
+            "source": source,
+            "create_time": create_time,
             "key4sort": FanQie.key4sort
         }
         return info

@@ -21,8 +21,7 @@ class CNUDaily(WebsiteScraper):
         'X-Requested-With': 'XMLHttpRequest',
     }
     
-    @property
-    def source_info(self):
+    def _source_info(self):
         return {
             "name": self.__class__.title,
             "link": self.__class__.home_url,
@@ -61,9 +60,9 @@ class CNUDaily(WebsiteScraper):
                     article = {
                         "id": id,
                         "title": name,
-                        # "author_display_name": author_display_name,
-                        # "author_id": author_id,
-                        # "category": category,
+                        "author_display_name": author_display_name,
+                        "author_id": author_id,
+                        "category": category,
                         "summary": "",
                         "link": article_url,
                         "image_link": image_link,
