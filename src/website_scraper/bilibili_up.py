@@ -96,6 +96,7 @@ class BilibiliUp(WebsiteScraper):
         j_res = [{}]
         async with AsyncBrowserManager(id, user_agent) as context:
             page = await context.new_page()
+            AsyncBrowserManager._logger.info("create page for " + id)
             page.on("response", lambda response: cls.handle_response(response, j_res)) # type: ignore
             try:
                 await page.goto(space_url, timeout=60000, wait_until='networkidle')
@@ -103,6 +104,7 @@ class BilibiliUp(WebsiteScraper):
                 AsyncBrowserManager._logger.warning(f"Page navigation of {id} timed out: {e}")
             finally:
                 await page.close()
+                AsyncBrowserManager._logger.info("destroy page of " + id)
         return j_res[0]
 
     @classmethod

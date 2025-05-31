@@ -43,11 +43,13 @@ class AsyncBrowserManager:
                 AsyncBrowserManager._logger.info("create browser for " + self.id)
             AsyncBrowserManager._users += 1
         self.context = await AsyncBrowserManager._browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent)
+        AsyncBrowserManager._logger.info("create context for " + self.id)
         return self.context
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         async with AsyncBrowserManager._lock:
             await self.context.close() # type: ignore
+            AsyncBrowserManager._logger.info("destroy context of " + self.id)
             AsyncBrowserManager._users -= 1
             # 所有用户都退出后清理资源
             if AsyncBrowserManager._users == 0 and AsyncBrowserManager._browser is not None:
@@ -62,6 +64,7 @@ class AsyncBrowserManager:
         html_content = None
         async with AsyncBrowserManager(id, user_agent) as context:
             page = await context.new_page()
+            AsyncBrowserManager._logger.info("create page for " + id)
             try:
                 await page.goto(url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
             except TimeoutError as e:
@@ -70,6 +73,7 @@ class AsyncBrowserManager:
                 html_content = await page.content()
             finally:
                 await page.close()
+                AsyncBrowserManager._logger.info("destroy page of " + id)
         return html_content
 
 
@@ -141,6 +145,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 yield WebsiteScraper._standardize_article(a)
                 if amount <= 0:
                     return
+            return
 
         if flags.get("must_old2new"):
             async_gen = self._get_from_old2new if self.__class__.support_old2new else self._force_get_from_old2new

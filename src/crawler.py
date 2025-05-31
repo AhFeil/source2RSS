@@ -9,13 +9,13 @@ from src.local_publish import goto_uniform_flow
 logger = logging.getLogger("crawler")
 
 
-async def one_website(data, cls):
+async def one_website(data, cls, amount: int):
     """对某个网站的文章进行更新"""
     instance = await cls.create()
-    await goto_uniform_flow(data, instance)
+    await goto_uniform_flow(data, instance, amount)
 
 
-async def chapter_mode(config, data, cls, init_params: list):
+async def chapter_mode(config, data, cls, init_params: list, amount: int):
     """对多实例的抓取器，比如番茄的小说，B 站用户关注动态"""
     for params in init_params:
         try:
@@ -35,7 +35,7 @@ async def chapter_mode(config, data, cls, init_params: list):
                 from src.remote_publish import goto_remote_flow
                 await goto_remote_flow(config, data, instance, url)
             else:
-                await goto_uniform_flow(data, instance)
+                await goto_uniform_flow(data, instance, amount)
 
 
 async def monitor_website(config, data, plugins):
@@ -43,15 +43,29 @@ async def monitor_website(config, data, plugins):
     logger.info("***Start all scrapers***")
 
     tasks = chain(
-        (chapter_mode(config, data, cls, config.get_params(cls.__name__)) for cls in plugins["chapter_mode"]),
-        (one_website(data, cls) for cls in plugins["static"])
+        (chapter_mode(config, data, cls, config.get_params(cls.__name__), config.get_amount(cls.__name__)) for cls in plugins["chapter_mode"]),
+        (one_website(data, cls, config.get_amount(cls.__name__)) for cls in plugins["static"])
     )
     await asyncio.gather(*tasks)
 
     logger.info("***Have finished all scrapers***")
 
 
-async def start_to_crawl():
+async def start_to_crawl(cls_names: list[str]):
+    from preprocess import config, data, Plugins
+    plugins = {"static": [], "chapter_mode": []}
+    for c in cls_names:
+        cls = Plugins.get_plugin_or_none(c)
+        if cls is None:
+            continue
+        if cls.is_variety:
+            plugins["chapter_mode"].append(cls)
+        else:
+            plugins["static"].append(cls)
+    await monitor_website(config, data, plugins)
+
+
+async def start_to_crawl_all():
     from preprocess import config, data, plugins
 
     await monitor_website(config, data, plugins)
@@ -63,5 +77,5 @@ if __name__ == "__main__":
         exit(0)
     signal.signal(signal.SIGINT, handler)
 
-    asyncio.run(start_to_crawl())
+    asyncio.run(start_to_crawl_all())
     # .env/bin/python -m src.crawler

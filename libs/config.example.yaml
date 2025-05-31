@@ -1,49 +1,73 @@
 user_configuration: true
 is_production: true
 
-# MongoDB
-mongodb_uri: mongodb://try:password@1.2.3.4:27017/source2rss
-mongo_dbname: source2rss
+# 启用抓取器，这里启用了所有可用的，可以删除不需要的
+enabled_web_scraper:
+  - website_scraper.bentoml
+  - website_scraper.cslrxyz
+  - website_scraper.fanqie
+  - website_scraper.cnu_daily
+  - website_scraper.gatesnotes
+  - website_scraper.career_tsinghua
+  - website_scraper.old_stone
+  - website_scraper.hot_juejin
+  - website_scraper.hot_bilibili
+  - website_scraper.mangacopy
+  - website_scraper.chiphell
+  - website_scraper.youtube_channel
+  - website_scraper.bilibili_up
+  # 暂时没有维护无法正常运行的抓取器
+  # - website_scraper.newsletter
+  # - dynamic_web_scraper.bili_follow_dynamic
 
-# 运行中获取的图片默认保存的位置
-image_root: config_and_data_files/images
+webscraper_profile:
+  # 这里的名称，使用类名，除非定义了类变量 name
+  FanQie:
+    custom_cfg:
+      run_everyday_at: ["06:00", "12:00", "19:00", "22:00", "23:00", "23:37", "00:00"]
+    cls_init_params:
+      - [我靠焚尸超凡入圣, 6999592647790693413]
+
+  BilibiliUp:
+    custom_cfg:
+      run_everyday_at: ["06:00", "12:00", "19:00", "22:00", "23:00", "23:37", "00:00"]
+    cls_init_params:
+      - "138624168"
+
+  HotJuejin:
+    custom_cfg:
+      amount_when_firstly_add: 3
+
+  YoutubeChannel:
+    cls_init_params:
+      - [LearnEnglishWithTVSeries]
+
+  MangaCopy:
+    cls_init_params:
+      - [花咲家的性福生活, huaxoajiedexinfushenghuo]
+
+
+# *****下面的配置都有默认值，删除也不影响运行，如果有需要可以自定义*****
+
+# 给远程发送数据的用这个（比如 B站动态 放在国内机器上，配置下面一条就会在抓取后把新消息传给其他机器）
+# remote_pub_scraper: {BiliFoDynamic: http://1.2.3.5:7500/}
+
+# 如果使用 MongoDB ，就填下面的值，默认使用 SQLite
+# mongodb_uri: mongodb://try:password@1.2.3.4:27017/source2rss
+# mongo_dbname: source2rss
+
+
+# 请求时的相关配置
 query_cache_maxsize: 100
 query_cache_ttl_s: 3600
 query_username: vfly2
 query_password: "123456"
 
-# 启用需要的抓取器
-enabled_web_scraper: ["website_scraper.bentoml", "website_scraper.cslrxyz", "website_scraper.cnu_daily", "website_scraper.career_tsinghua"]
-
-# 除上面外的抓取器，多了 番茄小说 和 B站动态，这两个需要额外配置才能使用
-# ["website_scraper.fanqie", "dynamic_web_scraper.bili_follow_dynamic"]
-# 给远程发送数据的用这个（比如 B站动态 放在国内机器上，配置下面一条就会在抓取后把新消息传给其他机器）
-# remote_pub_scraper: {BiliFoDynamic: http://1.2.3.5:7500/}
-
-
-# 定时运行的时间
-run_everyday_at: ["06:00", "12:00", "19:00", "22:00", "23:00", "23:23", "00:00"]
-timezone: Asia/Shanghai
-WAIT: 900
-
-
-cls_init_params:
-  # 番茄小说要抓取的小说，小说名和 ID，ID 可在网页版的网址中查看
-  FanQie:
-  - [我靠焚尸超凡入圣, 6999592647790693413]
-  - [系统炸了，我成了系统, 6995119385308302344]
-  - [魔法之工业革命, 6955828180326288397]
-  - [病毒武器库, 6991806777125768229]
-
-  YoutubeChannel:
-  - [alanbecker]
-
-  MangaCopy:
-  - [花咲家的性福生活, huaxoajiedexinfushenghuo]
-
-  # B 站动态单个用户的配置示例
-  BiliFoDynamic:
-  - "user_name": "AhFei"
-    "image_root": "config_and_data_files/images"
-    "screenshot_root": "config_and_data_files"
-    "bili_context": "config_and_data_files/bili_context.json"
+# 抓取器的默认配置，如果没有在 webscraper_profile 定义相关量，就会使用这里的
+crawler_default_cfg:
+  timezone: Asia/Shanghai
+  run_everyday_at: "03:00"
+  WAIT: 5
+  amount_when_firstly_add: 10
+  # 运行中获取的图片默认保存的位置
+  image_root: config_and_data_files/images

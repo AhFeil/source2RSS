@@ -3,6 +3,7 @@ import os
 import json
 import logging.config
 from typing import Generator, Iterable
+from collections import defaultdict
 
 from ruamel.yaml import YAML, YAMLError
 
@@ -55,26 +56,52 @@ class Config:
 
         # 用户配置
         self.is_production = user_configs['is_production']
-        run_everyday_at = user_configs.get("run_everyday_at", "06:00")
+        crawler_default_cfg = user_configs.get("crawler_default_cfg", {})
+        run_everyday_at = crawler_default_cfg.get("run_everyday_at", "06:00")
         self.run_everyday_at = [run_everyday_at] if isinstance(run_everyday_at, str) else run_everyday_at
-        self.timezone = user_configs.get('timezone')
-        self.WAIT = user_configs.get("WAIT", 1800) if self.is_production else 1
+        self.WAIT = crawler_default_cfg.get("WAIT", 1800)
+        self.amount_when_firstly_add = crawler_default_cfg.get("amount_when_firstly_add", 10)
+        self.image_root = crawler_default_cfg.get("image_root", "config_and_data_files/images")
+        os.makedirs(self.image_root, exist_ok=True)
+        self.timezone = crawler_default_cfg.get("timezone", "Asia/Shanghai")
+
         self.mongodb_uri = user_configs.get("mongodb_uri")
         self.mongo_dbname = user_configs.get("mongo_dbname")
 
         enabled_web_scraper = user_configs.get('enabled_web_scraper', [])
         self.enabled_web_scraper = [f"src.{scraper}" for scraper in enabled_web_scraper]
         self.remote_pub_scraper = user_configs.get('remote_pub_scraper', {})
-        
-        self.image_root = user_configs['image_root']
-        os.makedirs(self.image_root, exist_ok=True)
 
         self.query_cache_maxsize = user_configs.get('query_cache_maxsize', 100)
         self.query_cache_ttl_s = user_configs.get('query_cache_ttl_s', 3600)
         self.query_username = user_configs.get('query_username', "vfly2")
         self.query_password = user_configs.get('query_password', "123456")
 
-        self.cls_init_params = user_configs['cls_init_params']
+        self.webscraper_profile = user_configs['webscraper_profile']
+
+    def get_schedule(self, class_name: str) -> list:
+        try:
+            sche = self.webscraper_profile[class_name]["custom_cfg"]["run_everyday_at"]
+            return [sche] if isinstance(sche, str) else sche
+        except KeyError:
+            return self.run_everyday_at
+
+    def get_schedule_and_cls_names(self, class_names: Iterable[str]) -> dict[str, list[str]]:
+        """返回每个时间点需要执行的类的名称"""
+        points_cls = defaultdict(list)
+        for cls_name in class_names:
+            for p in self.get_schedule(cls_name):
+                points_cls[p].append(cls_name)
+        return points_cls
 
     def get_params(self, class_name: str) -> list:
-        return self.cls_init_params.get(class_name, [])
+        try:
+            return self.webscraper_profile[class_name]["cls_init_params"]
+        except KeyError:
+            return []
+
+    def get_amount(self, class_name: str) -> int:
+        try:
+            return self.webscraper_profile[class_name]["custom_cfg"]["amount_when_firstly_add"]
+        except KeyError:
+            return self.amount_when_firstly_add

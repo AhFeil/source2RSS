@@ -33,9 +33,9 @@ def run_continuously():
     return cease_continuous_run
 
 
-def sync_wrapper():
+def sync_wrapper(cls_names):
     try:
-        asyncio.run(start_to_crawl())
+        asyncio.run(start_to_crawl(cls_names))
     except:
         import traceback
         with open("unpredictable_exception.txt", 'a', encoding="utf-8") as f:
@@ -43,16 +43,15 @@ def sync_wrapper():
 
 job = sync_wrapper
 
-if config.is_production:
-    for point in config.run_everyday_at:
-        schedule.every().day.at(point, config.timezone).do(job)
-    for job_info in schedule.get_jobs():
-        print(job_info.next_run)
-else:
-    schedule.every(config.run_test_every_seconds).seconds.do(job)
+for point, cls_names in config.get_schedule_and_cls_names(preprocess.Plugins.get_all_id()).items():
+    schedule.every().day.at(point, config.timezone).do(job, cls_names)
+    print(point, cls_names)
+for job_info in schedule.get_jobs():
+    print(job_info.next_run)
 
 
 if __name__ == "__main__":
     while True:
         schedule.run_pending()
         time.sleep(config.WAIT)
+    # .env/bin/python -m src.run_as_scheduled

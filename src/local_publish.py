@@ -7,7 +7,7 @@ from src.generate_rss import generate_rss
 logger = logging.getLogger("local_publish")
 
 
-async def save_articles(data, source_name, key4sort, article_source) -> bool:
+async def save_articles(data, source_name, article_source) -> bool:
     """
     有更新则返回真，不对外抛错
     1. 有几篇新文章返回，无异常，应该返回有更新
@@ -27,7 +27,7 @@ async def save_articles(data, source_name, key4sort, article_source) -> bool:
     except FailtoGet:
         logger.info(f"FailtoGet: Processing {source_name} 网络出错")
     except Exception as e:
-        logger.warning("Unpredictable Exception when get and save article: %s", e)
+        logger.warning("Unpredictable Exception when get and save article of %s: %s", source_name, e)
     finally:
         return store_a_new_one
 
@@ -35,7 +35,7 @@ def format_source_name(t: str) -> str:
     """title会作为网址的一部分，因此不能出现空格等"""
     return t.replace(' ', '_')
 
-async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
+async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
     """不对外抛错"""
     source_info, source_name, max_wait_time = instance.source_info, instance.table_name, instance.max_wait_time
     key4sort = source_info["key4sort"]
@@ -45,11 +45,11 @@ async def goto_uniform_flow(data, instance: WebsiteScraper) -> str:
     if result:
         flags: LocateInfo = {"article_title": result[0]["title"], key4sort: result[0][key4sort], "prefer_old2new": True} # type: ignore
     else: # 若是第一次，数据库中没有数据
-        flags: LocateInfo = {"amount": 10} # type: ignore # todo
+        flags: LocateInfo = {"amount": amount} # type: ignore
 
     got_new = False
     try:
-        got_new = await asyncio.wait_for(save_articles(data, source_name, key4sort, instance.get(flags)), max_wait_time)
+        got_new = await asyncio.wait_for(save_articles(data, source_name, instance.get(flags)), max_wait_time)
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long when save_articles")
 

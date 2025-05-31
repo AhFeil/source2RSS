@@ -1,8 +1,9 @@
 """注册插件，以字典存储"""
+from typing import Iterable
 
 
 class Plugins():
-    _registry = {}
+    _registry: dict[str, type] = {}
 
     @classmethod
     def register(cls, id, cls_instance):
@@ -13,3 +14,7 @@ class Plugins():
     @classmethod
     def get_plugin_or_none(cls, id):
         return cls._registry.get(id)
+
+    @classmethod
+    def get_all_id(cls) -> Iterable[str]:
+        return cls._registry.keys()
