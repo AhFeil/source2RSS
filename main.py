@@ -78,7 +78,7 @@ async def process_crawl_flow(cls_id: str, cls: WebsiteScraper, q: tuple) -> str:
         logger.error(f"fail when query rss {cls_id}: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Unknown Error")
     else:
-        return await goto_uniform_flow(data, instance)
+        return await goto_uniform_flow(data, instance, config.get_amount(cls_id))
 
 @app.get("/query_rss/{cls_id}/", response_class=PlainTextResponse)
 async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [],

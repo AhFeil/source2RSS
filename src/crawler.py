@@ -3,7 +3,7 @@ import asyncio
 import signal
 from itertools import chain
 
-from src.website_scraper import FailtoGet, CreateByInvalidParam
+from src.website_scraper import FailtoGet, CreateByInvalidParam, AsyncBrowserManager
 from src.local_publish import goto_uniform_flow
 
 logger = logging.getLogger("crawler")
@@ -48,6 +48,7 @@ async def monitor_website(config, data, plugins):
     )
     await asyncio.gather(*tasks)
 
+    await AsyncBrowserManager.delayed_operation("crawler", 1)
     logger.info("***Have finished all scrapers***")
 
 

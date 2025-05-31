@@ -52,12 +52,23 @@ class AsyncBrowserManager:
             AsyncBrowserManager._logger.info("destroy context of " + self.id)
             AsyncBrowserManager._users -= 1
             # 所有用户都退出后清理资源
-            if AsyncBrowserManager._users == 0 and AsyncBrowserManager._browser is not None:
-                await AsyncBrowserManager._browser.close()
-                await AsyncBrowserManager._playwright.stop() # type: ignore
-                AsyncBrowserManager._browser = None
-                AsyncBrowserManager._playwright = None
-                AsyncBrowserManager._logger.info("destroy browser by " + self.id)
+        asyncio.create_task(AsyncBrowserManager.delayed_operation(self.id, 180))
+
+    @classmethod
+    async def delayed_operation(cls, id, delay: int):
+        async with AsyncBrowserManager._lock:
+            if cls._users > 0:
+                return
+        await asyncio.sleep(delay)
+        async with AsyncBrowserManager._lock:
+            if cls._users == 0 and cls._browser is not None:
+                await cls._browser.close()
+                await cls._playwright.stop() # type: ignore
+                cls._browser = None
+                cls._playwright = None
+                cls._logger.info("destroy browser by " + id)
+            else:
+                cls._logger.info("leave browser alone, said by " + id)
 
     @staticmethod
     async def get_html_or_none(id: str, url: str, user_agent):
