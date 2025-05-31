@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
 from .example import WebsiteScraper
@@ -29,7 +29,7 @@ class OldStone(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         while True:
             logger.info(f"{cls.title} start to parse page {start_page}")
@@ -66,21 +66,3 @@ class OldStone(WebsiteScraper):
 
             start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
-
-
-async def test():
-    c = OldStone()
-    print(c.source_info)
-    print(c.table_name)
-    async for a in c.first_add():
-        print(a)
-    print("----------")
-    async for a in c.get_new(datetime(2020, 4, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.old_stone
-

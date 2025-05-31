@@ -1,6 +1,6 @@
 import re
 import asyncio
-from typing import AsyncGenerator, Any, Self
+from typing import AsyncGenerator, Self
 
 from .example import WebsiteScraper, FailtoGet, CreateByInvalidParam
 
@@ -65,7 +65,7 @@ class FanQie(WebsiteScraper):
         return info
 
     @classmethod
-    async def _parse(cls, logger, catalog_list: list, start_chapter: int | bool=False) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, catalog_list: list, start_chapter: int | bool=False) -> AsyncGenerator[dict, None]:
         """默认从最新章节，yield 一篇一篇惰性返回，直到起始章节；也可将 old2new 为真，会从 start_chapter 返回到最新"""
         logger.info(f"{cls.title} start to parse page")
         if not start_chapter:   # catalog_list 的顺序是第一篇到最新篇
@@ -133,24 +133,3 @@ class FanQie(WebsiteScraper):
     def _get_chapter_number(chapter_title):
         chapter = re.findall(pattern=r"第(.*?)章", string=chapter_title) or re.findall(pattern=r"^(.*?)、", string=chapter_title) or [0] # type: ignore
         return int(chapter[0])
-
-
-async def test():
-    book = await FanQie.create("我不是戏神", "7276384138653862966")
-    async for a in book.first_add(3):
-        print(a["title"], a["pub_time"], a["chapter_number"])
-    print("----------")
-    async for a in book._get_from_old2new({"chapter_number": 1338}):
-        print(a["title"], a["pub_time"], a["chapter_number"])
-    print("--------------------")
-
-    # 转载的
-    book = await FanQie.create("系统炸了，我成了系统", "6995119385308302344")
-    async for a in book.first_add(3):
-        print(a["title"], a["pub_time"], a["chapter_number"])
-    print("--------------------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # .env/bin/python -m src.website_scraper.fanqie

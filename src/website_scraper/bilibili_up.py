@@ -101,7 +101,7 @@ class BilibiliUp(WebsiteScraper):
             await context.route("**/*", block_func)
             page = await context.new_page()
             AsyncBrowserManager._logger.info("create page for " + id)
-            page.on("response", lambda response: cls.handle_response(response, j_res)) # type: ignore
+            page.on("response", lambda response: cls.handle_response(response, j_res))
             try:
                 await page.goto(space_url, timeout=60000, wait_until='networkidle')
             except TimeoutError:

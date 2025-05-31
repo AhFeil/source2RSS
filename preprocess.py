@@ -1,14 +1,7 @@
 """
 添加命令行参数解析，调用 configHandle，加载插件，调用 dataHandle，实例一些全局类
 """
-import os
-from configHandle import Config
-
-configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default='config_and_data_files/config.yaml')
-pgm_configfile = os.getenv("SOURCE2RSS_PGM_CONFIG_FILE", default='config_and_data_files/pgm_config.yaml')
-absolute_configfiles = map(lambda x:os.path.join(os.getcwd(), x), (configfile, pgm_configfile))
-config = Config(absolute_configfiles)
-
+from configHandle import config
 
 from api._v2 import Plugins
 import api._v1
@@ -42,6 +35,4 @@ load_plugins()
 
 
 # 如果前面没出错，可以加载持久化的数据
-from dataHandle import Data
-
-data = Data(config)
+from dataHandle import data

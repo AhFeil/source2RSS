@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
 from .example import WebsiteScraper, FailtoGet
@@ -44,9 +44,9 @@ class CareerTsinghua(WebsiteScraper):
             "key4sort": self.__class__.key4sort
         }
         return source_info
-        
+
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
         """给起始页码，跳过红色字（color:#ff0000 置顶的）yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         data_raw = {
             'flag': '',
@@ -67,7 +67,8 @@ class CareerTsinghua(WebsiteScraper):
             data_raw['pgno'] = str(start_page)
             logger.info(f"{cls.title} start to parse page {start_page}")
             response = await cls._request(cls.home_url, data_raw)
-
+            if response is None:
+                return
             soup = BeautifulSoup(response.text, features="lxml")
 
             # Find all list items under the ul with id 'todayList'
@@ -114,21 +115,3 @@ class CareerTsinghua(WebsiteScraper):
             except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout):
                 raise FailtoGet
         return response
-    
-
-async def test():
-    c = CareerTsinghua()
-    print(c.source_info)
-    print(c.table_name)
-    async for a in c.first_add():
-        print(a)
-    print("----------")
-    async for a in c.get_new(datetime(2024, 7, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.career_tsinghua
-

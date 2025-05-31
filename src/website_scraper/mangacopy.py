@@ -1,7 +1,6 @@
 import re
-import asyncio
 from datetime import datetime
-from typing import AsyncGenerator, Any, Self
+from typing import AsyncGenerator, Self
 
 from bs4 import BeautifulSoup
 from .example import WebsiteScraper, CreateByInvalidParam
@@ -47,7 +46,7 @@ class MangaCopy(WebsiteScraper):
             "key4sort": self.__class__.key4sort}
 
     @classmethod
-    async def _parse(cls, logger, book_title: str, book_url: str) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, book_title: str, book_url: str) -> AsyncGenerator[dict, None]:
         logger.info(f"{cls.title} start to parse page")
         html_content = await AsyncBrowserManager.get_html_or_none(book_title, book_url, cls.headers["User-Agent"])
         if html_content is None:
@@ -91,17 +90,3 @@ class MangaCopy(WebsiteScraper):
     async def book_exists(cls, book_url: str):
         response = await cls._request(book_url)
         return response.status_code == 200
-
-
-async def test():
-    w = await MangaCopy.create("花咲家的性福生活", "huaxoajiedexinfushenghuo")
-    print(w.source_info)
-    print(w.table_name)
-    async for a in w.first_add():
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # .env/bin/python -m src.website_scraper.mangacopy

@@ -1,6 +1,5 @@
-import asyncio
 from datetime import datetime, timedelta
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
 from .example import WebsiteScraper
@@ -33,7 +32,7 @@ class Chiphell(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         logger.info(f"{cls.title} start to parse page")
         html_content = await AsyncBrowserManager.get_html_or_none(cls.title, cls.home_url, cls.headers["User-Agent"])
@@ -65,25 +64,8 @@ class Chiphell(WebsiteScraper):
             article = {
                 "title": title,
                 "summary": summary,
-                "link": Chiphell.home_url + article_url,
+                "link": cls.home_url + article_url,
                 "image_link": image,
                 "pub_time": time_obj
             }
             yield article
-
-
-async def test():
-    c = Chiphell()
-    print(c.source_info)
-    print(c.table_name)
-    async for a in c.first_add():
-        print(a)
-    print("----------")
-    async for a in c.get_new(datetime(2025, 2, 10)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # .env/bin/python -m src.website_scraper.chiphell

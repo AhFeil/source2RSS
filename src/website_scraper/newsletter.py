@@ -1,6 +1,5 @@
 import asyncio
-from datetime import datetime
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
 from .example import WebsiteScraper
 from utils.imap_client import ImapMailBox
@@ -28,7 +27,7 @@ class NewsLetter(WebsiteScraper):
             "key4sort": self.__class__.key4sort}
 
     @classmethod
-    async def _parse(cls, logger, from_email, website, mailbox: ImapMailBox) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, from_email, website, mailbox: ImapMailBox) -> AsyncGenerator[dict, None]:
         logger.info(f"{cls.title} start to parse email {from_email}")
         with mailbox:
             for mail in mailbox.get_mails("ALL"):
@@ -47,21 +46,3 @@ class NewsLetter(WebsiteScraper):
 
     def _custom_parameter_of_parse(self) -> list:
         return [self.from_email, self.website, self.mailbox]
-
-
-async def test():
-    froms = {"from_email": "", "website": "", "desc": "", "name": "Test"}
-    w = NewsLetter(froms, host='imap.gmail.com', port=993, username="", password="")
-    print(w.source_info)
-    print(w.table_name)
-    async for a in w.first_add():
-        print(a)
-    print("----------")
-    async for a in w.get_new(datetime(2025, 1, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.newsletter

@@ -8,6 +8,10 @@ from collections import defaultdict
 from ruamel.yaml import YAML, YAMLError
 
 
+configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default='config_and_data_files/config.yaml')
+pgm_configfile = os.getenv("SOURCE2RSS_PGM_CONFIG_FILE", default='config_and_data_files/pgm_config.yaml')
+
+
 class Config:
     def __init__(self, configs_path: Iterable[str]) -> None:
         self.yaml = YAML()
@@ -108,3 +112,7 @@ class Config:
             return self.webscraper_profile[class_name]["custom_cfg"]["amount_when_firstly_add"]
         except KeyError:
             return self.amount_when_firstly_add
+
+
+absolute_configfiles = map(lambda x:os.path.join(os.getcwd(), x), (configfile, pgm_configfile))
+config = Config(absolute_configfiles)

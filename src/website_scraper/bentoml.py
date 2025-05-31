@@ -1,7 +1,7 @@
 from urllib.parse import quote
 import asyncio
 from datetime import datetime
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
 from .example import WebsiteScraper
 
@@ -38,7 +38,7 @@ class BentoMLBlog(WebsiteScraper):
     
     def _source_info(self):
         info = {
-            'name': self.__class__.title,   # todo 不作为类属性
+            'name': self.__class__.title,
             'link': self.__class__.home_url,
             'desc': "Dive into the transformative world of AI application development with us! From expert insights to innovative use cases, we bring you the latest in efficiently deploying AI at scale.",
             'lang': "En",
@@ -47,7 +47,7 @@ class BentoMLBlog(WebsiteScraper):
         return info
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
         while True:
             varied_query_dict = {"pagination[page]": start_page}
             query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items()) + '&' + cls.steady_query

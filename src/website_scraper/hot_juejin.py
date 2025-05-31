@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
 from src.utils import environment
@@ -41,22 +41,21 @@ class HotJuejin(WebsiteScraper):
     @property
     def max_wait_time(self):
         return HotJuejin.page_turning_duration * 60
-    
+
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger) -> AsyncGenerator[dict, None]:
         url = f"{cls.admin_url}/article_rank?{cls.steady_query}"
-        logger.info(f"{cls.title} start to parse page 1")   # 只有一页
+        logger.info(f"{cls.title} start to parse page")
         response = await cls._request(url)
-        articles = response.json()
-        if articles and not articles["data"]:
+        data = response.json()
+        if data and not data["data"]:
             return
-        
+
         # 首次全读，其他时候按照文章 id 排序，从大到小读
-        articles : list = articles["data"]
+        articles: list = data["data"]
         if not isinstance(articles, list):
             return
-        if start_page != 2:
-            articles.sort(key=lambda x: x["content"]["content_id"], reverse=True)
+        articles.sort(key=lambda x: x["content"]["content_id"], reverse=True)
 
         user_agent = environment.get_user_agent(cls.home_url)
         for a in articles:
@@ -70,11 +69,10 @@ class HotJuejin(WebsiteScraper):
             soup = BeautifulSoup(html_content, features="lxml")
 
             meta_info = soup.find('div', class_='meta-box')
-            time = meta_info.find('time', class_="time")
-            if time:
-                time = time["datetime"]
-            else:
+            time_sth = meta_info.find('time', class_="time")
+            if not time_sth:
                 continue
+            time = time_sth["datetime"]
             time_obj = datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
             description = soup.find('div', class_='message')
             description = description.p.text if description else ""
@@ -91,24 +89,3 @@ class HotJuejin(WebsiteScraper):
 
             yield article
             await asyncio.sleep(cls.page_turning_duration)
-            # 此时，浏览器被销毁，唤醒后浏览器再被创建，非常耗时
-            # 如果把 for 循环放在 with 里面，用同一个 context，怀疑外部直接退出 async for 时，这里处理会有不当，所以暂时改成先 for 再 with
-
-
-async def test():
-    w = HotJuejin()
-    print(w.source_info)
-    print(w.table_name)
-    async for a in w.first_add():
-        print(a)
-    print("----------")
-    async for a in w.get_new(datetime(2024, 4, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.hot_juejin
-
-

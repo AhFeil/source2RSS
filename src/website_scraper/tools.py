@@ -4,7 +4,7 @@ import asyncio
 
 from playwright.async_api import async_playwright
 
-from preprocess import config
+from configHandle import config
 
 
 class AsyncBrowserManager:

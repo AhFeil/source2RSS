@@ -4,7 +4,7 @@ from typing import Dict, List, Optional, Tuple
 
 from playwright.async_api import Cookie, Page
 
-from preprocess import config
+from configHandle import config
 
 
 def get_user_agent(name4seed: str) -> str:

@@ -32,9 +32,9 @@ class GatesNotes(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger) -> AsyncGenerator[dict, Any]:
         """返回首页前几个封面文章"""
-        logger.info(f"{cls.title} start to parse page {start_page}")
+        logger.info(f"{cls.title} start to parse page")
 
         user_agent = environment.get_user_agent(cls.home_url)
         html_content = await AsyncBrowserManager.get_html_or_none(cls.title, cls.home_url, user_agent)
@@ -64,21 +64,3 @@ class GatesNotes(WebsiteScraper):
                 yield a
             else:
                 return
-
-
-async def test():
-    from datetime import datetime
-    c = GatesNotes()
-    print(c.source_info)
-    print(c.table_name)
-    async for a in c.first_add():
-        print(a)
-    print("----------")
-    async for a in c._get_new(datetime(2024, 4, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.gatesnotes

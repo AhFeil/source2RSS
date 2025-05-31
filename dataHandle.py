@@ -51,3 +51,7 @@ class Data:
                 file_content = file_path.read_text(encoding='utf-8')
                 file_dict[file_path.name] = file_content
         return file_dict
+
+
+from configHandle import config
+data = Data(config)

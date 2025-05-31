@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
 from .example import WebsiteScraper, FailtoGet
 
@@ -20,7 +20,7 @@ class CNUDaily(WebsiteScraper):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
         'X-Requested-With': 'XMLHttpRequest',
     }
-    
+
     def _source_info(self):
         return {
             "name": self.__class__.title,
@@ -30,7 +30,7 @@ class CNUDaily(WebsiteScraper):
             "key4sort": self.__class__.key4sort}
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
         """按照从新到旧的顺序返回"""
         while True:
             url = f"http://www.cnu.cc/selectedsFlow/{start_page}"
@@ -74,21 +74,3 @@ class CNUDaily(WebsiteScraper):
 
             start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
-
-
-async def test():
-    w = CNUDaily()
-    print(w.source_info)
-    print(w.table_name)
-    async for a in w.first_add():
-        print(a)
-    print("----------")
-    async for a in w.get_new(datetime(2024, 5, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.cnu_daily
-

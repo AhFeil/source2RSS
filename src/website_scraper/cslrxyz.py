@@ -27,7 +27,7 @@ class CSLRXYZ(WebsiteScraper):
             "key4sort": self.__class__.key4sort
         }
         return source_info
-        
+
     @classmethod
     async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
@@ -66,21 +66,3 @@ class CSLRXYZ(WebsiteScraper):
 
             start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
-
-
-async def test():
-    c = CSLRXYZ()
-    print(c.source_info)
-    print(c.table_name)
-    async for a in c.first_add():
-        print(a)
-    print("----------")
-    async for a in c.get_new(datetime(2024, 4, 1)):
-        print(a)
-    print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m website_scraper.cslrxyz
-

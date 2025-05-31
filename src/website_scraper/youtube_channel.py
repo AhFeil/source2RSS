@@ -1,6 +1,5 @@
-import asyncio
 from datetime import datetime
-from typing import AsyncGenerator, Any, Self
+from typing import AsyncGenerator, Self
 
 from bs4 import BeautifulSoup
 import feedparser
@@ -42,7 +41,7 @@ class YoutubeChannel(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, logger, channel_name, feed_url, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, logger, channel_name, feed_url) -> AsyncGenerator[dict, None]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         logger.info(f"{channel_name} start to parse")
         response = await cls._request(feed_url)
@@ -71,20 +70,3 @@ class YoutubeChannel(WebsiteScraper):
         soup = BeautifulSoup(response.text, features="lxml")
         feed_url = soup.find('link', rel='alternate', type="application/rss+xml", title="RSS")
         return feed_url["href"] if feed_url else "" # type: ignore
-
-
-async def test():
-    c = await YoutubeChannel.create("LearnEnglishWithTVSeries")
-    print(c.source_info)
-    print(c.table_name)
-    async for a in c.first_add():
-        print(a)
-    print("----------")
-    # async for a in c.get_new(datetime(2020, 4, 1)):
-    #     print(a)
-    # print("----------")
-
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # .env/bin/python -m src.website_scraper.youtube_channel
