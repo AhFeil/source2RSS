@@ -1,0 +1,30 @@
+""""""
+import logging
+
+from fastapi import APIRouter, Request, HTTPException, status
+from fastapi.responses import PlainTextResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
+
+from preprocess import data
+
+logger = logging.getLogger("get_rss")
+
+router = APIRouter(
+    prefix="/source2rss",
+    tags=["source2rss"],
+)
+
+templates = Jinja2Templates(directory='src/web/templates')
+
+@router.get("", response_class=HTMLResponse)
+@router.get("/", response_class=HTMLResponse)
+async def get_rss_list(request: Request):
+    context = {"rss_list": data.get_rss_list()}
+    return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
+
+@router.get("/{source_file_name}/", response_class=PlainTextResponse)
+def get_saved_rss(source_file_name: str):
+    rss = data.get_rss_or_None(source_file_name)
+    if rss is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
+    return rss

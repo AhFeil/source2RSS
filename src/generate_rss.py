@@ -2,8 +2,10 @@ from datetime import datetime, timezone, timedelta
 
 from feedgen.feed import FeedGenerator
 
+from src.website_scraper import SrcMetaDict, ArticleDict
 
-def generate_rss(source_info: dict, articles: list[dict]) -> bytes:
+
+def generate_rss(source_info: SrcMetaDict, articles: list[ArticleDict]) -> bytes:
     """构建 rss。根据传入的 articles ，格式化为 RSS 后以 utf-8 字节返回"""
     zone = timezone(timedelta(hours=8))
 
