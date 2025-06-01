@@ -36,7 +36,7 @@ def format_source_name(t: str) -> str:
     return t.replace(' ', '_')
 
 async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
-    """不对外抛错"""
+    """不对外抛错。让抓取器运行一次，把数据保存和转换"""
     source_info, source_name, max_wait_time = instance.source_info, instance.table_name, instance.max_wait_time
     key4sort = source_info["key4sort"]
     # 确保 source 的元信息在数据库中

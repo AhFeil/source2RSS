@@ -105,7 +105,7 @@ class Config:
         try:
             return self.webscraper_profile[class_name]["cls_init_params"]
         except KeyError:
-            return []
+            return [None]
 
     def get_amount(self, class_name: str) -> int:
         try:

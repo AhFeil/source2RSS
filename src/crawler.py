@@ -1,51 +1,60 @@
 import logging
 import asyncio
 import signal
-from itertools import chain
+from typing import Iterable
 
-from src.website_scraper import FailtoGet, CreateByInvalidParam, AsyncBrowserManager
+from src.website_scraper import WebsiteScraper, FailtoGet, CreateByInvalidParam, AsyncBrowserManager
 from src.local_publish import goto_uniform_flow
 
 logger = logging.getLogger("crawler")
 
 
-async def one_website(data, cls, amount: int):
-    """对某个网站的文章进行更新"""
-    instance = await cls.create()
-    await goto_uniform_flow(data, instance, amount)
+class CrawlInitError(Exception):
+    def __init__(self, code: int, message: str):
+        super().__init__(message)
+        self.code = code
 
 
-async def chapter_mode(config, data, cls, init_params: list, amount: int):
-    """对多实例的抓取器，比如番茄的小说，B 站用户关注动态"""
+async def process_crawl_flow_of_one(data, cls: WebsiteScraper, init_params: Iterable, amount: int) -> list[str]:
+    """创建实例然后走统一流程"""
+    res = []
     for params in init_params:
+        if params is None and cls.is_variety:
+            continue
         try:
             if isinstance(params, dict) or isinstance(params, str):
                 instance = await cls.create(params)
-            elif isinstance(params, list):
+            elif isinstance(params, list) or isinstance(params, tuple):
                 instance = await cls.create(*params)
             else:
                 instance = await cls.create()
+        except TypeError:
+            raise CrawlInitError(400, "The amount of parameters is incorrect")
         except CreateByInvalidParam:
-            logger.info("FailtoGet: 初始化多实例情况时网络出错")
+            raise CrawlInitError(422, "Invalid parameters")
         except FailtoGet:
-            logger.info("FailtoGet: 初始化多实例情况时网络出错")
+            raise CrawlInitError(500, "Failed when crawling")
+        except Exception as e:
+            logger.error(f"fail when query rss {cls.__name__}: {e}")
+            raise CrawlInitError(500, "Unknown Error")
         else:
-            if url := config.remote_pub_scraper.get(cls.__name__):
-                # 指定了远程发布网址，则通过 source2RSS 生成 RSS
-                from src.remote_publish import goto_remote_flow
-                await goto_remote_flow(config, data, instance, url)
-            else:
-                await goto_uniform_flow(data, instance, amount)
+            # todo
+            # if url := config.remote_pub_scraper.get(cls.__name__):
+            #     # 指定了远程发布网址，则通过 source2RSS 生成 RSS
+            #     from src.remote_publish import goto_remote_flow
+            #     await goto_remote_flow(config, data, instance, url)
+            # else:
+            #     await goto_uniform_flow(data, instance, amount)
+            source_file_name = await goto_uniform_flow(data, instance, amount)
+            res.append(source_file_name)
+    return res
 
 
 async def monitor_website(config, data, plugins):
     """控制总流程： 解析，整合，保存，生成 RSS"""
     logger.info("***Start all scrapers***")
 
-    tasks = chain(
-        (chapter_mode(config, data, cls, config.get_params(cls.__name__), config.get_amount(cls.__name__)) for cls in plugins["chapter_mode"]),
-        (one_website(data, cls, config.get_amount(cls.__name__)) for cls in plugins["static"])
-    )
+    tasks = (process_crawl_flow_of_one(data, cls, config.get_params(cls.__name__), config.get_amount(cls.__name__)) for cls in plugins)
     await asyncio.gather(*tasks)
 
     await AsyncBrowserManager.delayed_operation("crawler", 1)
@@ -54,15 +63,7 @@ async def monitor_website(config, data, plugins):
 
 async def start_to_crawl(cls_names: list[str]):
     from preprocess import config, data, Plugins
-    plugins = {"static": [], "chapter_mode": []}
-    for c in cls_names:
-        cls = Plugins.get_plugin_or_none(c)
-        if cls is None:
-            continue
-        if cls.is_variety:
-            plugins["chapter_mode"].append(cls)
-        else:
-            plugins["static"].append(cls)
+    plugins = [cls for c in cls_names if (cls := Plugins.get_plugin_or_none(c))]
     await monitor_website(config, data, plugins)
 
 

@@ -3,9 +3,9 @@
 
 
 def register(cls):
-    plugins["static"].append(cls)
+    plugins.append(cls)
 
 def register_c(cls):
-    plugins["chapter_mode"].append(cls)
+    plugins.append(cls)
 
-plugins = {"static": [], "chapter_mode": []}
+plugins = []
