@@ -63,13 +63,11 @@ class BilibiliUp(WebsiteScraper):
             if a["major"] is None: # 对视频评论的话是空的
                 continue
             if attributes := a["major"].get("archive"):
-                bvid = attributes["bvid"]
                 name = attributes["title"]
                 description = attributes["desc"]
-                article_url = "https:" + attributes["jump_url"]
+                article_url = "https:" + attributes["jump_url"] # bvid = attributes["bvid"]
                 image_link = attributes["cover"]
             elif attributes := a["major"].get("opus"):
-                bvid = "BV"
                 name = author["name"] + "的专栏文章"
                 description = attributes["summary"]["rich_text_nodes"][0]["orig_text"]
                 article_url = "https:" + attributes["jump_url"]
@@ -96,7 +94,7 @@ class BilibiliUp(WebsiteScraper):
         id = str(uid)
         j_res = [{}]
         blocked = ["image", "font", "media"]
-        block_func = lambda route: route.abort() if route.request.resource_type in blocked else route.continue_()
+        def block_func(route): return route.abort() if route.request.resource_type in blocked else route.continue_()
         async with AsyncBrowserManager(id, user_agent) as context:
             await context.route("**/*", block_func)
             page = await context.new_page()
@@ -119,5 +117,5 @@ class BilibiliUp(WebsiteScraper):
         if '/x/polymer/web-dynamic/v1/feed/space' in response.url:
             try:
                 j_res[0] = await response.json()
-            except:
+            except Exception:
                 pass

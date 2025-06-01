@@ -1,8 +1,9 @@
-from typing import Generator, Any
+from typing import Generator
 import imaplib
-imaplib._MAXLINE = 10000000
 import email
 import email.utils
+
+imaplib._MAXLINE = 10000000
 
 
 class Mail:
@@ -97,7 +98,7 @@ class ImapMailBox:
         mails = data[0].split()
         return len(mails)
 
-    def get_mails(self, flag: str="UNSEEN", reversed: bool=True) -> Generator[Mail, Any, Any]:
+    def get_mails(self, flag: str="UNSEEN", reversed: bool=True) -> Generator[Mail, None, None]:
         self.conn.select('Inbox')
         state, data = self.conn.search(None, flag)
         message_ids: list = data[0].split()

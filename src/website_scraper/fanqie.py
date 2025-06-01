@@ -55,6 +55,7 @@ class FanQie(WebsiteScraper):
             "desc": f"番茄免费小说 - {self.book_id} 的更新篇章",
             "lang": "zh-CN",
             "book_name": book_name,
+            "last_chapter_title": last_chapter_title,
             "image_link": image_link,
             "author": author,
             "abstract": abstract,
@@ -72,7 +73,7 @@ class FanQie(WebsiteScraper):
             catalog_list.reverse()
         last_chapter_order = -1
         n = 0
-        timer = WebsiteScraper._get_time_obj(start_chapter == False, count=10000)
+        timer = WebsiteScraper._get_time_obj(not start_chapter, count=10000)
         for i, c in enumerate(catalog_list, start=1):
             if start_chapter and i < start_chapter:
                 # 从旧到最新篇，可以指定从哪一章开始。从新到旧不能指定
@@ -111,6 +112,7 @@ class FanQie(WebsiteScraper):
                 "image_link": "",
                 "content": content,
                 "pub_time": next(timer),
+                "volume_name": volume_name,
                 "chapter_number": chapter_number,
             }
 

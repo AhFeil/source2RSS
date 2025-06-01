@@ -53,5 +53,5 @@ class Data:
         return file_dict
 
 
-from configHandle import config
+from configHandle import config  # noqa
 data = Data(config)

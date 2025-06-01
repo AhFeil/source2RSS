@@ -36,7 +36,7 @@ def run_continuously():
 def sync_wrapper(cls_names):
     try:
         asyncio.run(start_to_crawl(cls_names))
-    except:
+    except:  # noqa
         import traceback
         with open("unpredictable_exception.txt", 'a', encoding="utf-8") as f:
             f.write(traceback.format_exc())

@@ -1,4 +1,3 @@
-import json
 import time
 from urllib.parse import urlencode
 import asyncio
@@ -6,7 +5,7 @@ from datetime import datetime
 from typing import AsyncGenerator, Any
 
 import httpx
-from playwright.async_api import BrowserContext, BrowserType, Page, async_playwright
+from playwright.async_api import BrowserContext, async_playwright
 from playwright._impl._errors import TimeoutError as pw_TimeoutError
 
 # from .login import BilibiliSign
@@ -59,7 +58,7 @@ class BiliFoDynamic(WebsiteScraper):
             # 将 base64 转化为图片保存
             asyncio.get_running_loop().run_in_executor(None, image_.save_qrcode, base64_qrcode_img, self.image_root)
             
-            self.logger.warning(f"Waiting for scan code login")
+            self.logger.warning("Waiting for scan code login")
             for _ in range(60):
                 if await api_client.not_available():
                     time.sleep(3)
@@ -68,7 +67,7 @@ class BiliFoDynamic(WebsiteScraper):
                 else:
                     break
             else:
-                self.logger.info(f"登录状态 False")
+                self.logger.info("登录状态 False")
                 raise FailtoGet
             
             await context.storage_state(path=self.state_path)

@@ -1,5 +1,4 @@
 import logging
-from urllib.parse import quote
 import asyncio
 from datetime import datetime, timedelta
 from abc import ABC, ABCMeta, abstractmethod
@@ -131,11 +130,8 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     async def _parse(cls, logger) -> AsyncGenerator[dict, None]:
         """按照从新到旧的顺序返回"""
         while True:
-            varied_query_dict = {"pagination[page]": start_page}
-            query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items())
-            encoded_query = quote(query, safe='[]=&')
-            url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
-            logger.info(f"{cls.title} start to parse page {start_page}")
+            url = "https://admin.bentoml.com/api/blog-posts?"
+            logger.info(f"{cls.title} start to parse page")
             # 若出现 FailtoGet，则由调度那里接收并跳过
             response = await cls._request(url)
 
@@ -174,7 +170,6 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 }
                 yield article
 
-            start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
 
     def _custom_parameter_of_parse(self) -> list:

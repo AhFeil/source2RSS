@@ -30,7 +30,7 @@ def generate_rss(source_info: dict, articles: list[dict]) -> bytes:
             fe.enclosure(cover, 0, 'image/jpeg')
         if content := article.get("content"):
             lines = content.split("\n")
-            content = ''.join(f"<p>{l}</p>" if l else "<br />" for l in lines)
+            content = ''.join(f"<p>{line}</p>" if line else "<br />" for line in lines)
             fe.content(content, type="CDATA")
 
     # 生成 RSS feed

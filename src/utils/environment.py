@@ -2,7 +2,7 @@ import random
 import hashlib
 from typing import Dict, List, Optional, Tuple
 
-from playwright.async_api import Cookie, Page
+from playwright.async_api import Cookie
 
 from configHandle import config
 

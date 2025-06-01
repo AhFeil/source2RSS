@@ -26,9 +26,9 @@ async def chapter_mode(config, data, cls, init_params: list, amount: int):
             else:
                 instance = await cls.create()
         except CreateByInvalidParam:
-            logger.info(f"FailtoGet: 初始化多实例情况时网络出错")
+            logger.info("FailtoGet: 初始化多实例情况时网络出错")
         except FailtoGet:
-            logger.info(f"FailtoGet: 初始化多实例情况时网络出错")
+            logger.info("FailtoGet: 初始化多实例情况时网络出错")
         else:
             if url := config.remote_pub_scraper.get(cls.__name__):
                 # 指定了远程发布网址，则通过 source2RSS 生成 RSS

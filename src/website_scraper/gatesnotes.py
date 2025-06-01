@@ -1,4 +1,3 @@
-import asyncio
 from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup

@@ -39,7 +39,7 @@ class Config:
             except YAMLError as e:
                 sys.exit(f"The config file is illegal as a YAML: {e}")
             except FileNotFoundError:
-                sys.exit(f"The config does not exist")
+                sys.exit("The config does not exist")
     
     def reload(self) -> None:
         """将配置文件里的参数，赋予单独的变量，方便后面程序调用"""
