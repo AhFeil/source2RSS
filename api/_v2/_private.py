@@ -18,3 +18,7 @@ class Plugins():
     @classmethod
     def get_all_id(cls) -> Iterable[str]:
         return cls._registry.keys()
+
+    @classmethod
+    def get_all_cls(cls) -> Iterable[type]:
+        return cls._registry.values()

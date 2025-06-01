@@ -8,6 +8,7 @@ from configHandle import config
 
 
 class AsyncBrowserManager:
+    """被多个事件循环调用时会出错"""
     _browser = None
     _playwright = None
     _users = 0

@@ -61,23 +61,18 @@ async def monitor_website(config, data, plugins):
     logger.info("***Have finished all scrapers***")
 
 
-async def start_to_crawl(cls_names: list[str]):
+async def start_to_crawl(cls_names: Iterable[str]):
     from preprocess import config, data, Plugins
     plugins = [cls for c in cls_names if (cls := Plugins.get_plugin_or_none(c))]
     await monitor_website(config, data, plugins)
 
 
-async def start_to_crawl_all():
-    from preprocess import config, data, plugins
-
-    await monitor_website(config, data, plugins)
-
-
 if __name__ == "__main__":
+    from preprocess import Plugins
     def handler(sig, frame):
         # 退出前清理环境
         exit(0)
     signal.signal(signal.SIGINT, handler)
 
-    asyncio.run(start_to_crawl_all())
+    asyncio.run(start_to_crawl(Plugins.get_all_id()))
     # .env/bin/python -m src.crawler

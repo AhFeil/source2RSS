@@ -5,8 +5,6 @@
 from configHandle import config
 
 from api._v2 import Plugins
-import api._v1
-plugins = api._v1._private.plugins
 
 # 加载插件
 import importlib
@@ -39,4 +37,4 @@ load_plugins()
 from dataHandle import data
 
 
-__all__ = ["config", "Plugins", "plugins", "data"]
+__all__ = ["config", "Plugins", "data"]

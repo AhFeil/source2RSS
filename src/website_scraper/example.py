@@ -6,7 +6,6 @@ from typing import Generator, AsyncGenerator, Self, Any
 
 import httpx
 
-import api._v1
 from api._v2 import Plugins
 from .model import LocateInfo, SrcMetaDict, ArticleDict
 
@@ -28,10 +27,8 @@ class ScraperMeta(ABCMeta):
             plugin_name = getattr(cls, 'name', name)
             if ScraperMeta._is_init_overridden(cls):
                 cls.is_variety = True
-                api._v1.register_c(cls)
             else:
                 cls.is_variety = False
-                api._v1.register(cls)
             if ScraperMeta._is_get_from_old2new_overridden(cls):
                 cls.support_old2new = True
             else:

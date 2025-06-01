@@ -1,5 +1,6 @@
 import logging
 from contextlib import asynccontextmanager
+import asyncio
 
 from fastapi import FastAPI
 
@@ -13,7 +14,8 @@ logger = logging.getLogger("main")
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Start the background thread
-    stop_run_continuously = run_continuously()
+    loop = asyncio.get_running_loop()
+    stop_run_continuously = run_continuously(loop)
 
     # Do some other things...
     yield
