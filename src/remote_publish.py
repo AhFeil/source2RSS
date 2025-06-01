@@ -24,7 +24,7 @@ async def push2rss(articles, pub_method, url):
         for key, val in a.items():
             if isinstance(val, datetime):
                 a[key] = val.timestamp()
-    
+
     async with httpx.AsyncClient() as client:
         data = {"articles": articles, "pub_method": pub_method}
         return await client.post(url=url, data=json.dumps(data))

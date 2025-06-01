@@ -35,7 +35,7 @@ class BentoMLBlog(WebsiteScraper):
         "publicationState": "live"
     }
     steady_query = '&'.join(f"{key}={value}" for key, value in steady_query_dict.items())
-    
+
     def _source_info(self):
         info = {
             'name': self.__class__.title,
@@ -55,7 +55,7 @@ class BentoMLBlog(WebsiteScraper):
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
             logger.info(f"{cls.title} start to parse page {start_page}")
             response = await cls._request(url)
-            
+
             articles = response.json()
             if not articles["data"]:
                 return

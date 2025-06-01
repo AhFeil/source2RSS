@@ -16,7 +16,7 @@ def run_continuously():
     """Continuously run, while executing pending jobs at each
     elapsed time interval.
     @return cease_continuous_run: threading. Event which can
-    be set to cease continuous run 
+    be set to cease continuous run
     cease 停止
     """
     cease_continuous_run = threading.Event()

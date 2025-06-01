@@ -43,7 +43,7 @@ class CNUDaily(WebsiteScraper):
                 return
             if json_res["status"] != "success":
                 raise FailtoGet
-            
+
             for day in json_res["data"]:
                 create_time = day["date"]
                 time_obj = datetime.strptime(create_time, "%Y-%m-%d")

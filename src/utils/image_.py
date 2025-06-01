@@ -21,4 +21,3 @@ def save_qrcode(qr_code, path) -> None:  # type: ignore
     filename = os.path.join(path, "qr_code.png")
     with open(filename, 'wb') as f:
         new_image.save(f, 'PNG')
-

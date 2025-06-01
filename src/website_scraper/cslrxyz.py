@@ -35,12 +35,12 @@ class CSLRXYZ(WebsiteScraper):
             url = f"http://cslrxyz.xyz/index.php/page/{start_page}/"
             logger.info(f"{cls.title} start to parse page {start_page}")
             response = await cls._request(url)
-            
+
             soup = BeautifulSoup(response.text, features="lxml")
             all_articles = soup.find_all('article', class_='excerpt')
             if not all_articles:
                 return
-            
+
             # 遍历所有<article class="excerpt">元素
             for article in all_articles:
                 h2 = article.find('h2')
@@ -49,7 +49,7 @@ class CSLRXYZ(WebsiteScraper):
 
                 image_link = article.find('a', class_='focus').img["data-src"]
                 note = article.find('p', class_='note').text.strip()
-                
+
                 meta = article.find('p', class_='meta')
                 time = meta.time.text.strip()
                 time_obj = datetime.strptime(time, "%Y-%m-%d")

@@ -50,14 +50,14 @@ class BiliFoDynamic(WebsiteScraper):
             await page.screenshot(path=f"{self.screenshot_root}/bili_index.png")
         except pw_TimeoutError:
             raise FailtoGet
-        
+
         if await api_client.not_available():
             # API 客户端不可用的话，就登录
             base64_qrcode_img = await self.get_login_qrcode(page)
             await page.screenshot(path=f"{self.screenshot_root}/bili_login.png")
             # 将 base64 转化为图片保存
             asyncio.get_running_loop().run_in_executor(None, image_.save_qrcode, base64_qrcode_img, self.image_root)
-            
+
             self.logger.warning("Waiting for scan code login")
             for _ in range(60):
                 if await api_client.not_available():
@@ -69,7 +69,7 @@ class BiliFoDynamic(WebsiteScraper):
             else:
                 self.logger.info("登录状态 False")
                 raise FailtoGet
-            
+
             await context.storage_state(path=self.state_path)
 
         # 返回拥有登录后的 cookie
@@ -101,12 +101,12 @@ class BiliFoDynamic(WebsiteScraper):
         # 获取最新的 10 条，
         async for a in self.article_newer_than(None, amount):
             yield a
-    
+
     async def get_new(self, datetime_):
         """接口.第一次添加时，要调用的接口"""
         async for a in self.article_newer_than(datetime_):
             yield a
-    
+
     @classmethod
     async def parse(cls, logger, api_client, start_page: int=1) -> AsyncGenerator[dict, Any]:
         offset = None
@@ -162,7 +162,7 @@ class BiliFoDynamic(WebsiteScraper):
 
             start_page += 1
             await asyncio.sleep(cls.page_turning_duration)
-    
+
 
     async def get_login_qrcode(self, page):
         login_button_ele = page.locator("xpath=//div[@class='right-entry__outside go-login-btn']//div")
@@ -188,14 +188,14 @@ class BilibiliClient:
         "Referer": "https://www.bilibili.com",
         "Content-Type": "application/json;charset=UTF-8"
     }
-    
+
     def __init__(self, headers: dict[str, str], cookie_dict: dict[str, str], proxies=None, timeout=10):
         self.proxies = proxies
         self.timeout = timeout
         self.headers = BilibiliClient.headers | headers
         self._host = "https://api.bilibili.com"
         self.cookie_dict = cookie_dict
-    
+
     def update_cookies(self, cookie_str, cookie_dict):
         self.headers["Cookie"] = cookie_str
         self.cookie_dict = cookie_dict
@@ -226,7 +226,7 @@ class BilibiliClient:
         except Exception as e:
             print(e)
             return True
-        
+
     # async def pre_request_data(self, req_data: dict) -> dict:
     #     """请求参数签名
     #     需要从 localStorage 拿 wbi_img_urls 这参数，值如下：
@@ -272,28 +272,3 @@ class BilibiliClient:
         uri = "/x/web-interface/view/detail"
         params = {"aid": aid} if aid else {"bvid": bvid}
         return await self.get(uri, params, enable_params_sign=False)
-
-
-async def test():
-    config = {
-        "user_name": "AhFei",
-        "image_root": "config_and_data_files/images",
-        "screenshot_root": "config_and_data_files",
-        "bili_context": "config_and_data_files/bili_context.json"
-    }
-    w = BiliFoDynamic(config)
-    print(w.source_info)
-    print(w.table_name)
-    async for a in w.first_add():
-        print(a)
-    print("----------")
-    async for a in w.get_new(datetime(2024, 5, 1)):
-        print(a)
-    print("----------")
-    
-
-if __name__ == "__main__":
-    asyncio.run(test())
-    # python -m dynamic_web_scraper.bili_follow_dynamic
-
-

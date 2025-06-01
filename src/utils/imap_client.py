@@ -71,7 +71,7 @@ class Mail:
                 pass
         return "fail to decode"
 
-        
+
 class ImapMailBox:
     def __init__(self, host, port, username, password, ssl=True):
         self.host = host

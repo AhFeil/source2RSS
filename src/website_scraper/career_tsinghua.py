@@ -75,7 +75,7 @@ class CareerTsinghua(WebsiteScraper):
             all_articles = soup.find_all('ul', id='todayList')[0].find_all('li')
             if not all_articles:
                 return
-            
+
             time_off = iter(range(50))   # 由于网站时间精度只到天，排序时，同一天的会按照标题输出，而不是原始顺序，增加修正时间 time4sort 用于排序
             for article in all_articles:
                 style = article.find('a')['style']
@@ -86,7 +86,7 @@ class CareerTsinghua(WebsiteScraper):
 
                 title = article.find('a').text.strip()
                 article_url = cls.domain_url + article.find('a').get('ahref')
-                
+
                 time = article.find('span').text.strip()
                 time_obj = datetime.strptime(time, "%Y-%m-%d")
                 mend_time = time_obj - timedelta(minutes=int(next(time_off)))

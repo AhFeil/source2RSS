@@ -124,7 +124,7 @@ class FanQie(WebsiteScraper):
             # 新到旧，到没有上一章 item_id 停止
             if not start_chapter and pre_item_id == "":
                 break
-            
+
             last_chapter_order = real_chapter_order
             await asyncio.sleep(cls.page_turning_duration)
 

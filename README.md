@@ -1,7 +1,7 @@
 # source2RSS
 
 
-source2RSS 计划成为通用的**信息源转 RSS** 的 Python 框架，目前支持两大类信息源： 
+source2RSS 计划成为通用的**信息源转 RSS** 的 Python 框架，目前支持两大类信息源：
 1. 参考官方自带的抓取器，继承抽象基类**编写抓取器**，作为插件供主程序调用，提供网站信息流（主要用于为网站生成 RSS）
 2. API 接收到的合法格式的 **JSON 数据**（主要用于将 RSS 作为提醒的渠道以及分布式所需）
 3. （计划）Newsletter 转 RSS
@@ -13,9 +13,9 @@ source2RSS 依赖 MongoDB 保存源的信息流和源的元信息，并在信息
 除此之外，还能选择在一台机器上只运行 crawler，将信息流发给另一台机器上完整的程序，让它负责生成 RSS。这种适合B站动态这样的信息流，在国内机器单独运行降低账号被风控的可能。
 
 > 创建这个项目，是为了方便手动制作 RSS 源，虽然 RSSHub 等项目已经提供了很多 RSS 源，但终归不能覆盖每个人的需求，并且我并不会 JS、TS 语言，对 Python 则很熟悉。
-> 
+>
 > 用 Python 抓取和提取结构简单的网站数据并不困难，一般半小时就够，但是还需要制成 RSS、保留历史文章、定期运行等功能才能实际使用。
-> 
+>
 > 这个框架，就是为此目的开发的，只需要关注信息源的抓取和格式化，其余的交给框架，最终返回 RSS 文件。
 
 安装步骤在博客： [信息源转 RSS 框架 - source2RSS 的安装步骤 - 技焉洲 (yanh.tech)](https://yanh.tech/2024/07/deployment-process-for-source2rss/)
@@ -92,7 +92,7 @@ parse 方法（协程）要是一个生成器，按照一定顺序返回文章�
                 yield a
             else:
                 return
-    
+
     async def get_new(self, flag: datetime | int):
         """接口.第一次添加时，要调用的接口"""
         async for a in self.__class__.parse(self.logger):
@@ -107,4 +107,3 @@ parse 方法（协程）要是一个生成器，按照一定顺序返回文章�
 有时候一些信息源不一定有时间条目，反而像是章节之类的，这时候可以修改类成员 key4sort = "something"，然后在返回的字典中包含 something 键，这样在生成 RSS 时，就会按照 something 排序。
 
 **如果你要编写自己的抓取器，看明白 "website_scraper/example.py" 和 "website_scraper/cslrxyz.py" 就够了**
-

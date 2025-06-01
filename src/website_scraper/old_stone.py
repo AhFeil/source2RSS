@@ -40,7 +40,7 @@ class OldStone(WebsiteScraper):
             all_articles = soup.find_all('article', class_='post-block')
             if not all_articles:
                 return
-            
+
             # 遍历所有<article class="excerpt">元素
             for a in all_articles:
                 header = a.find('header', class_='post-header')
