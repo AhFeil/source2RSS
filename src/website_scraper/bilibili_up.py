@@ -64,6 +64,10 @@ class BilibiliUp(WebsiteScraper):
     async def _parse_inner(cls, j_res, pub_time: datetime | None, reverse: bool=False) -> AsyncGenerator[dict, None]:
         """当 pub_time 为 False 时，按照网站显示顺序，即从新往旧依次返回； pub_time 有值时，则先定位，从旧往新返回，若未定位到，则从最旧的开始返回"""
         modules: list[dict] = j_res["data"]["items"]
+        if not modules:
+            return
+        if modules[0]["modules"]["module_tag"].get("text") == "置顶":
+            modules.sort(key=lambda m : m["modules"]["module_author"]["pub_ts"], reverse=True)
         new_modules = modules if not reverse else \
                     WebsiteScraper._range_by_desc_of(modules, pub_time, lambda x, f : f < datetime.fromtimestamp(x["modules"]["module_author"]["pub_ts"]))
 
@@ -73,14 +77,15 @@ class BilibiliUp(WebsiteScraper):
             time_obj = datetime.fromtimestamp(author["pub_ts"])
             if a["major"] is None: # 对视频评论的话是空的
                 continue
+            content = a["desc"]["text"] if a.get("desc") else ""
             if attributes := a["major"].get("archive"):
                 name = attributes["title"]
-                description = attributes["desc"]
+                summary = attributes["desc"]
                 article_url = "https:" + attributes["jump_url"] # bvid = attributes["bvid"]
                 image_link = attributes["cover"]
             elif attributes := a["major"].get("opus"):
                 name = author["name"] + "的专栏文章"
-                description = attributes["summary"]["rich_text_nodes"][0]["orig_text"]
+                summary = attributes["summary"]["rich_text_nodes"][0]["orig_text"]
                 article_url = "https:" + attributes["jump_url"]
                 image = attributes.get("pics")
                 image_link = image[0]["url"] if image else ""
@@ -89,9 +94,10 @@ class BilibiliUp(WebsiteScraper):
 
             article = {
                 "title": name,
-                "summary": description,
+                "summary": summary,
                 "link": article_url,
                 "image_link": image_link,
+                "content": content,
                 "pub_time": time_obj
             }
             yield article
