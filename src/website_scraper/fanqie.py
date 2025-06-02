@@ -69,7 +69,7 @@ class FanQie(WebsiteScraper):
         for c in catalog_list:
             if reverse:
                 # 从旧到最新篇，可以指定从哪一章开始。从新到旧不能指定
-                chapter_number = FanQie._get_chapter_number(c["catalog_title"])
+                chapter_number = FanQie._get_chapter_number(c.get("catalog_title") or c.get("title"))
                 if chapter_number <= start_chapter: # type: ignore
                     continue
 
