@@ -2,9 +2,20 @@
 import logging
 import asyncio
 
+import httpx
 from playwright.async_api import async_playwright
 
 from configHandle import config
+
+
+async def get_response_or_none(url: str, headers, verify=True) -> httpx.Response | None:
+    async with httpx.AsyncClient(follow_redirects=True, verify=verify) as client:
+        try:
+            response = await client.get(url=url, headers=headers)
+        except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout):
+            return None
+        else:
+            return response
 
 
 class AsyncBrowserManager:
@@ -56,7 +67,7 @@ class AsyncBrowserManager:
                 cls._browser = None
                 cls._playwright = None
                 cls._logger.info("destroy browser by " + id)
-            else:
+            elif cls._users > 0:
                 cls._logger.info("leave browser alone, said by " + id)
 
     @classmethod

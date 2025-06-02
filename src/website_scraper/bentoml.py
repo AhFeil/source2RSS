@@ -4,6 +4,7 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from .example import WebsiteScraper
+from .tools import get_response_or_none
 
 
 class BentoMLBlog(WebsiteScraper):
@@ -47,15 +48,17 @@ class BentoMLBlog(WebsiteScraper):
         return info
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
+        start_page = 1
         while True:
             varied_query_dict = {"pagination[page]": start_page}
             query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items()) + '&' + cls.steady_query
             encoded_query = quote(query, safe='[]=&')
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
-            logger.info(f"{cls.title} start to parse page {start_page}")
-            response = await cls._request(url)
-
+            cls._logger.info(f"{cls.title} start to parse page {start_page}")
+            response = await get_response_or_none(url, cls.headers)
+            if response is None:
+                return
             articles = response.json()
             if not articles["data"]:
                 return

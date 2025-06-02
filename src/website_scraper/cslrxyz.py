@@ -4,6 +4,7 @@ from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
 from .example import WebsiteScraper
+from .tools import get_response_or_none
 
 
 class CSLRXYZ(WebsiteScraper):
@@ -29,12 +30,15 @@ class CSLRXYZ(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, Any]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
+        start_page = 1
         while True:
             url = f"http://cslrxyz.xyz/index.php/page/{start_page}/"
-            logger.info(f"{cls.title} start to parse page {start_page}")
-            response = await cls._request(url)
+            cls._logger.info(f"{cls.title} start to parse page {start_page}")
+            response = await get_response_or_none(url, cls.headers)
+            if response is None:
+                return
 
             soup = BeautifulSoup(response.text, features="lxml")
             all_articles = soup.find_all('article', class_='excerpt')

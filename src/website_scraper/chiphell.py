@@ -32,9 +32,10 @@ class Chiphell(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
-        logger.info(f"{cls.title} start to parse page")
+        start_page = 1
+        cls._logger.info(f"{cls.title} start to parse")
         html_content = await AsyncBrowserManager.get_html_or_none(cls.title, cls.home_url, cls.headers["User-Agent"])
         if html_content is None:
             return
@@ -44,7 +45,7 @@ class Chiphell(WebsiteScraper):
         if not test_room:
             return
         if test_room.div.span.text.strip() != "最新文章":
-            logger.warning(f"{cls.title} structure has changed")
+            cls._logger.warning(f"{cls.title} structure has changed")
             return
 
         articles = test_room.find('div', class_='acon cl')

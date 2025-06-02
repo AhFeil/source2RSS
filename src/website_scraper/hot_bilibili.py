@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from .example import WebsiteScraper
+from .tools import get_response_or_none
 
 
 # 逻辑有缺陷，目前是每次运行将热榜按照  排序，取最新的，不会缺少新写的上热榜，但是旧的上热榜会缺少
@@ -33,14 +34,27 @@ class HotBilibili(WebsiteScraper):
         return HotBilibili.page_turning_duration * 10
 
     @classmethod
-    async def _parse(cls, logger, pub_time: datetime | bool=False) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
+        cls._logger.info(f"{cls.title} start to parse")
+        async for a in cls._parse_inner(flags.get("pub_time")):
+            yield a
+
+    @classmethod
+    async def _parse_old2new(cls, flags) -> AsyncGenerator[dict, None]:
+        cls._logger.info(f"{cls.title} start to parse from old to new")
+        async for a in cls._parse_inner(flags[cls.key4sort], True):
+            yield a
+
+    @classmethod
+    async def _parse_inner(cls, pub_time: datetime | None, reverse: bool=False) -> AsyncGenerator[dict, None]:
         url = "https://api.bilibili.com/x/web-interface/ranking/v2"
-        logger.info(f"{cls.title} start to parse page")
-        response = await cls._request(url)
+        response = await get_response_or_none(url, cls.headers)
+        if response is None:
+            return
         res = response.json()
         if res and res["data"]:
             res["data"]["list"].sort(key=lambda x: x["ctime"], reverse=True)
-            articles = res["data"]["list"] if not pub_time else \
+            articles = res["data"]["list"] if not reverse else \
                         WebsiteScraper._range_by_desc_of(res["data"]["list"], pub_time, lambda a, f : f < datetime.fromtimestamp(a["ctime"]))
             for a in articles:
                 time_obj = datetime.fromtimestamp(a["ctime"])

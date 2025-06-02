@@ -27,8 +27,8 @@ class NewsLetter(WebsiteScraper):
             "key4sort": self.__class__.key4sort}
 
     @classmethod
-    async def _parse(cls, logger, from_email, website, mailbox: ImapMailBox) -> AsyncGenerator[dict, None]:
-        logger.info(f"{cls.title} start to parse email {from_email}")
+    async def _parse(cls, flags, from_email, website, mailbox: ImapMailBox) -> AsyncGenerator[dict, None]:
+        cls._logger.info(f"{cls.title} start to parse email {from_email}")
         with mailbox:
             for mail in mailbox.get_mails("ALL"):
                 # 当 from_email 不为空时，必须是 from_email 发来的邮件才会处理

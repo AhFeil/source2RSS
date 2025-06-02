@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 from bs4 import BeautifulSoup
 from src.utils import environment
 from .example import WebsiteScraper
-from .tools import AsyncBrowserManager
+from .tools import AsyncBrowserManager, get_response_or_none
 
 
 # 逻辑有缺陷，目前是每次运行将热榜按照  排序，取最新的，不会缺少新写的上热榜，但是旧的上热榜会缺少
@@ -43,10 +43,12 @@ class HotJuejin(WebsiteScraper):
         return HotJuejin.page_turning_duration * 60
 
     @classmethod
-    async def _parse(cls, logger) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
         url = f"{cls.admin_url}/article_rank?{cls.steady_query}"
-        logger.info(f"{cls.title} start to parse page")
-        response = await cls._request(url)
+        cls._logger.info(f"{cls.title} start to parse")
+        response = await get_response_or_none(url, cls.headers)
+        if response is None:
+            return
         data = response.json()
         if data and not data["data"]:
             return

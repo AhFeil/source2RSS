@@ -4,6 +4,7 @@ from typing import AsyncGenerator, Self
 from bs4 import BeautifulSoup
 import feedparser
 from .example import WebsiteScraper, CreateByInvalidParam
+from .tools import get_response_or_none
 
 
 class YoutubeChannel(WebsiteScraper):
@@ -41,11 +42,11 @@ class YoutubeChannel(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, logger, channel_name, feed_url) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags, channel_name, feed_url) -> AsyncGenerator[dict, None]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
-        logger.info(f"{channel_name} start to parse")
-        response = await cls._request(feed_url)
-        if response.status_code != 200:
+        cls._logger.info(f"{channel_name} start to parse")
+        response = await get_response_or_none(feed_url, cls.headers)
+        if response is None or response.status_code != 200:
             return
         feed = feedparser.parse(response.text)   # feed.feed.title 频道名称
         for entry in feed.entries:
@@ -64,8 +65,8 @@ class YoutubeChannel(WebsiteScraper):
 
     @classmethod
     async def get_feed_url(cls, channel_name) -> str:
-        response = await cls._request(f"{YoutubeChannel.home_url}/@{channel_name}")
-        if response.status_code != 200:
+        response = await get_response_or_none(f"{YoutubeChannel.home_url}/@{channel_name}", cls.headers)
+        if response is None or response.status_code != 200:
             return ""
         soup = BeautifulSoup(response.text, features="lxml")
         feed_url = soup.find('link', rel='alternate', type="application/rss+xml", title="RSS")

@@ -4,7 +4,7 @@ from typing import AsyncGenerator, Self
 
 from bs4 import BeautifulSoup
 from .example import WebsiteScraper, CreateByInvalidParam
-from .tools import AsyncBrowserManager
+from .tools import AsyncBrowserManager, get_response_or_none
 
 
 class MangaCopy(WebsiteScraper):
@@ -46,8 +46,8 @@ class MangaCopy(WebsiteScraper):
             "key4sort": self.__class__.key4sort}
 
     @classmethod
-    async def _parse(cls, logger, book_title: str, book_url: str) -> AsyncGenerator[dict, None]:
-        logger.info(f"{cls.title} start to parse page")
+    async def _parse(cls, flags, book_title: str, book_url: str) -> AsyncGenerator[dict, None]:
+        cls._logger.info(f"{cls.title} start to parse")
         html_content = await AsyncBrowserManager.get_html_or_none(book_title, book_url, cls.headers["User-Agent"])
         if html_content is None:
             return
@@ -88,5 +88,5 @@ class MangaCopy(WebsiteScraper):
 
     @classmethod
     async def book_exists(cls, book_url: str):
-        response = await cls._request(book_url)
-        return response.status_code == 200
+        response = await get_response_or_none(book_url, cls.headers)
+        return response is not None and response.status_code == 200

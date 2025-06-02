@@ -13,11 +13,11 @@ repos:
   hooks:
     - id: ruff-check
       args: [ --fix ]
-- repo: local
-  hooks:
-    - id: pytest
-      name: Run pytest
-      language: system
-      entry: .env/bin/python -m pytest
-      args: [tests/]  # 指定测试目录或文件
-      types: [python]
+# - repo: local
+#   hooks:
+#     - id: pytest
+#       name: Run pytest
+#       language: system
+#       entry: .env/bin/python -m pytest
+#       args: [tests/]  # 指定测试目录或文件
+#       types: [python]

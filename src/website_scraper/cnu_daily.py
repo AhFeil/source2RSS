@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from .example import WebsiteScraper, FailtoGet
+from .tools import get_response_or_none
 
 
 class CNUDaily(WebsiteScraper):
@@ -30,12 +31,15 @@ class CNUDaily(WebsiteScraper):
             "key4sort": self.__class__.key4sort}
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
         """按照从新到旧的顺序返回"""
+        start_page = 1
         while True:
             url = f"http://www.cnu.cc/selectedsFlow/{start_page}"
-            logger.info(f"{cls.title} start to parse page {start_page}")
-            response = await cls._request(url)
+            cls._logger.info(f"{cls.title} start to parse page {start_page}")
+            response = await get_response_or_none(url, cls.headers)
+            if response is None:
+                return
 
             json_res = response.json()
             # 超出结尾了

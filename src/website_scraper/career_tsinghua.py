@@ -46,8 +46,9 @@ class CareerTsinghua(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, logger, start_page: int=1) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
         """给起始页码，跳过红色字（color:#ff0000 置顶的）yield 一篇一篇惰性返回，直到最后一页最后一篇"""
+        start_page = 1
         data_raw = {
             'flag': '',
             'type': '',
@@ -65,7 +66,7 @@ class CareerTsinghua(WebsiteScraper):
 
         while True:
             data_raw['pgno'] = str(start_page)
-            logger.info(f"{cls.title} start to parse page {start_page}")
+            cls._logger.info(f"{cls.title} start to parse page {start_page}")
             response = await cls._request(cls.home_url, data_raw)
             if response is None:
                 return

@@ -49,11 +49,22 @@ class BilibiliUp(WebsiteScraper):
         return BilibiliUp.page_turning_duration
 
     @classmethod
-    async def _parse(cls, logger, up_name, j_res, pub_time: datetime | bool=False) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags, up_name, j_res) -> AsyncGenerator[dict, None]:
+        cls._logger.info(f"{cls.title}{up_name} start to parse")
+        async for a in cls._parse_inner(j_res, flags.get("pub_time")):
+            yield a
+
+    @classmethod
+    async def _parse_old2new(cls, flags, up_name, j_res) -> AsyncGenerator[dict, None]:
+        cls._logger.info(f"{cls.title}{up_name} start to parse from old to new")
+        async for a in cls._parse_inner(j_res, flags[cls.key4sort], True):
+            yield a
+
+    @classmethod
+    async def _parse_inner(cls, j_res, pub_time: datetime | None, reverse: bool=False) -> AsyncGenerator[dict, None]:
         """当 pub_time 为 False 时，按照网站显示顺序，即从新往旧依次返回； pub_time 有值时，则先定位，从旧往新返回，若未定位到，则从最旧的开始返回"""
-        logger.info(f"{cls.title}{up_name} start to parse page")
         modules: list[dict] = j_res["data"]["items"]
-        new_modules = modules if not pub_time else \
+        new_modules = modules if not reverse else \
                     WebsiteScraper._range_by_desc_of(modules, pub_time, lambda x, f : f < datetime.fromtimestamp(x["modules"]["module_author"]["pub_ts"]))
 
         for m in new_modules:
