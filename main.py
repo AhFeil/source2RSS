@@ -4,7 +4,7 @@ import asyncio
 
 from fastapi import FastAPI
 
-from src.web import get_rss, post_src, query_rss
+from src.web import get_rss, post_src, query_rss, user
 from src.run_as_scheduled import run_continuously
 
 
@@ -29,6 +29,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(get_rss.router)
 app.include_router(post_src.router)
 app.include_router(query_rss.router)
+app.include_router(user.router)
 
 
 @app.get("/")

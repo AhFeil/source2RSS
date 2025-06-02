@@ -1,13 +1,24 @@
+import os
 from pathlib import Path
 import logging
+import json
 
 from ruamel.yaml import YAML
 
+
+# 非线程安全，但在单个事件循环下是协程安全的
 class Data:
     def __init__(self, config) -> None:
         self.config = config
         self.logger = logging.getLogger("dataHandle")
         self.yaml = YAML()
+        self._users = {"invite_code": None, "left_count": 0, "users": []}
+        if not os.path.exists(config.users_file):
+            with open(config.users_file, 'w', encoding="utf-8") as f:
+                json.dump(self._users, f)
+        else:
+            with open(config.users_file, 'r', encoding="utf-8") as f:
+                self._users = json.load(f)
 
         # 内存里的RSS数据
         self._rss: dict[str, str] = Data._load_files_to_dict(config.rss_dir)
@@ -41,6 +52,16 @@ class Data:
 
     def rss_is_absent(self, source_file_name: str) -> bool:
         return source_file_name not in self._rss
+
+    def get_users_and_etc(self) -> dict:
+        return self._users
+
+    def save_users_and_etc(self, code, count, users: list):
+        self._users["invite_code"] = code
+        self._users["left_count"] = count
+        self._users["users"] = users
+        with open(config.users_file, 'w', encoding="utf-8") as f:
+            json.dump(self._users, f)
 
     @staticmethod
     def _load_files_to_dict(directory):

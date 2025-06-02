@@ -12,6 +12,7 @@ configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default='config_and_data_files/
 pgm_configfile = os.getenv("SOURCE2RSS_PGM_CONFIG_FILE", default='config_and_data_files/pgm_config.yaml')
 
 
+# 非线程安全，但在单个事件循环下是协程安全的
 class Config:
     def __init__(self, configs_path: Iterable[str]) -> None:
         self.yaml = YAML()
@@ -21,6 +22,7 @@ class Config:
         # 用户不应该考虑的配置，开发者可以改的
         self.sqlite_uri = "sqlite:///config_and_data_files/source2rss.db"
         self.rss_dir = "config_and_data_files/rss"
+        self.users_file = "config_and_data_files/users.json"
         os.makedirs(self.rss_dir, exist_ok=True)
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
         self.run_test_every_seconds = 30

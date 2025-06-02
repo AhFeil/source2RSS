@@ -11,7 +11,7 @@ from fastapi.security import HTTPBasicCredentials
 from src.website_scraper import WebsiteScraper
 from src.crawler import process_crawl_flow_of_one, CrawlInitError
 from preprocess import Plugins, data, config
-from .security import security, User
+from .security import security, UserRegistry
 from .get_rss import get_saved_rss
 
 logger = logging.getLogger("query_rss")
@@ -50,7 +50,7 @@ async def cache_flow(cls_id: str, cls: WebsiteScraper, q: tuple) -> str:
 async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [],
                     credentials: HTTPBasicCredentials = Depends(security)):
     """主动请求，会触发更新，因此需要身份验证。对于普通用户，可以设置缓存防止滥用。获取结果和 get_rss 中的一样，复用即可。"""
-    user = User.get_valid_user_none(credentials.username, credentials.password)
+    user = UserRegistry.get_valid_user_or_none(credentials.username, credentials.password)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
