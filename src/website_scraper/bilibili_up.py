@@ -66,8 +66,9 @@ class BilibiliUp(WebsiteScraper):
         modules: list[dict] = j_res["data"]["items"]
         if not modules:
             return
-        if modules[0]["modules"]["module_tag"].get("text") == "置顶":
-            modules.sort(key=lambda m : m["modules"]["module_author"]["pub_ts"], reverse=True)
+        if tag := modules[0]["modules"].get("module_tag"):
+            if tag.get("text") == "置顶":
+                modules.sort(key=lambda m : m["modules"]["module_author"]["pub_ts"], reverse=True)
         new_modules = modules if not reverse else \
                     WebsiteScraper._range_by_desc_of(modules, pub_time, lambda x, f : f < datetime.fromtimestamp(x["modules"]["module_author"]["pub_ts"]))
 
