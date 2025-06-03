@@ -27,7 +27,7 @@ async def save_articles(data, source_name, article_source) -> bool:
     except FailtoGet:
         logger.info(f"FailtoGet: Processing {source_name} 网络出错")
     except Exception as e:
-        logger.warning("Unpredictable Exception when get and save article of %s: %s", source_name, e)
+        logger.exception("Unpredictable Exception when get and save article of %s: %s", source_name, e)
     finally:
         return store_a_new_one
 

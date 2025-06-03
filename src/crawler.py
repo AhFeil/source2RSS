@@ -35,7 +35,7 @@ async def process_crawl_flow_of_one(data, cls: WebsiteScraper, init_params: Iter
         except FailtoGet:
             raise CrawlInitError(500, "Failed when crawling")
         except Exception as e:
-            logger.error(f"fail when query rss {cls.__name__}: {e}")
+            logger.exception(f"fail when query rss {cls.__name__}: {e}")
             raise CrawlInitError(500, "Unknown Error")
         else:
             # todo

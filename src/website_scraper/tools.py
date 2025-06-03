@@ -43,13 +43,13 @@ class AsyncBrowserManager:
                 AsyncBrowserManager._logger.info("create browser for " + self.id)
             AsyncBrowserManager._users += 1
         self.context = await AsyncBrowserManager._browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent)
-        AsyncBrowserManager._logger.info("create context for " + self.id)
+        AsyncBrowserManager._logger.debug("create context for " + self.id)
         return self.context
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         async with AsyncBrowserManager._lock:
             await self.context.close() # type: ignore
-            AsyncBrowserManager._logger.info("destroy context of " + self.id)
+            AsyncBrowserManager._logger.debug("destroy context of " + self.id)
             AsyncBrowserManager._users -= 1
             # 所有用户都退出后清理资源
         asyncio.create_task(AsyncBrowserManager.delayed_operation(self.id, 180))
@@ -88,7 +88,7 @@ class AsyncBrowserManager:
         html_content = None
         async with AsyncBrowserManager(id, user_agent) as context:
             page = await context.new_page()
-            AsyncBrowserManager._logger.info("create page for " + id)
+            AsyncBrowserManager._logger.debug("create page for " + id)
             try:
                 await page.goto(url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
             except TimeoutError as e:
@@ -97,5 +97,5 @@ class AsyncBrowserManager:
                 html_content = await page.content()
             finally:
                 await page.close()
-                AsyncBrowserManager._logger.info("destroy page of " + id)
+                AsyncBrowserManager._logger.debug("destroy page of " + id)
         return html_content
