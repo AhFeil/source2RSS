@@ -75,22 +75,17 @@ class FanQie(WebsiteScraper):
 
             item_id = c["item_id"]
             content_url = f"{admin_url}/content?item_id={item_id}"
-            response = await get_response_or_none(content_url, cls.headers)
+            response = await get_response_or_none(content_url, cls.headers, retry=1)
             if response is None:
-                await asyncio.sleep(60) # 重试一次
-                response = await get_response_or_none(content_url, cls.headers)
-                if response is None:
-                    return
+                return
             article_info = response.json()
             a = article_info["data"]["data"]
             chapter_title = a["title"]
-            chapter_number = FanQie._get_chapter_number(chapter_title)
-            content = a['content']
             novel_data = a['novel_data']
-            volume_name = novel_data["volume_name"]
-            next_item_id = novel_data['next_item_id']
-            pre_item_id = novel_data['pre_item_id']
-
+            content = a['content']
+            if len(content) < 100:
+                cls._logger.error("'Invalid' occured, type is '%s', content is '%s'", type(content), content)
+                return
             article = {
                 "title": chapter_title,
                 "summary": content[0:100],
@@ -98,17 +93,17 @@ class FanQie(WebsiteScraper):
                 "image_link": "",
                 "content": content,
                 "pub_time": next(timer),
-                "volume_name": volume_name,
-                "chapter_number": chapter_number,
+                "volume_name": novel_data["volume_name"],
+                "chapter_number": FanQie._get_chapter_number(chapter_title),
             }
 
             yield article
 
             # 旧到新，到没有下一章 item_id 停止
-            if reverse and next_item_id == "":
+            if reverse and novel_data['next_item_id'] == "":
                 break
             # 新到旧，到没有上一章 item_id 停止
-            if not reverse and pre_item_id == "":
+            if not reverse and novel_data['pre_item_id'] == "":
                 break
 
             await asyncio.sleep(cls.page_turning_duration)

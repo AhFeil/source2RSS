@@ -8,14 +8,25 @@ from playwright.async_api import async_playwright
 from configHandle import config
 
 
-async def get_response_or_none(url: str, headers, verify=True) -> httpx.Response | None:
-    async with httpx.AsyncClient(follow_redirects=True, verify=verify) as client:
-        try:
-            response = await client.get(url=url, headers=headers)
-        except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout):
-            return None
-        else:
-            return response
+logger = logging.getLogger(__name__)
+
+
+async def get_response_or_none(url: str, headers: dict, verify=True, retry: int=0, timeout: int=10) -> httpx.Response | None:
+    backoff_factor: float = 0.5   # 指数退避因子
+    async with httpx.AsyncClient(follow_redirects=True, verify=verify, timeout=timeout) as client:
+        for attempt in range(retry + 1):  # 包含首次请求
+            try:
+                response = await client.get(url=url, headers=headers)
+                if response.status_code in {429, 500, 502, 503, 504}:
+                    raise httpx.HTTPStatusError("Retryable status code", request=response.request, response=response)
+            except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.HTTPStatusError) as e:
+                if attempt == retry:
+                    logger.warning("exception occurred when call get_response_or_none, url is '%s', e is '%s'", url, str(e))
+                    return None
+                wait_time = backoff_factor * (2 ** attempt)
+                await asyncio.sleep(min(wait_time, 60))  # 上限60秒
+            else:
+                return response
 
 
 class AsyncBrowserManager:
