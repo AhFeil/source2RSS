@@ -1,6 +1,7 @@
 """WebsiteScraper 可以使用的工具"""
 import logging
 import asyncio
+from urllib.robotparser import RobotFileParser
 
 import httpx
 from playwright.async_api import async_playwright
@@ -110,3 +111,13 @@ class AsyncBrowserManager:
                 await page.close()
                 AsyncBrowserManager._logger.debug("destroy page of " + id)
         return html_content
+
+
+async def create_rp(robots_txt: str, headers: dict={}) -> RobotFileParser:
+    """robots_txt 可以是字符串或网址，使用 rp.can_fetch(url) 判断是否能爬取"""
+    if robots_txt.startswith("http"):
+        res = await get_response_or_none(robots_txt, headers)
+        robots_txt = res.text if res else "User-agent: *\nAllow: /"
+    rp = RobotFileParser()
+    rp.parse(robots_txt.split('\n'))
+    return rp

@@ -3,7 +3,7 @@ from typing import AsyncGenerator, Any
 from bs4 import BeautifulSoup
 
 from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.tools import AsyncBrowserManager
+from src.website_scraper.tools import AsyncBrowserManager, create_rp
 from src.utils import environment
 
 
@@ -33,8 +33,12 @@ class GatesNotes(WebsiteScraper):
     @classmethod
     async def _parse(cls, flags) -> AsyncGenerator[dict, Any]:
         """返回首页前几个封面文章"""
-        cls._logger.info(f"{cls.title} start to parse")
         latest_article_title = flags.get("article_title", "")
+        rp = await create_rp(cls.home_url + "robots.txt")
+        if not rp.can_fetch("source2RSSbot", cls.home_url):
+            cls._logger.info(f"{cls.title} can't be fetched")
+            return
+        cls._logger.info(f"{cls.title} start to parse")
         user_agent = environment.get_user_agent(cls.home_url)
         html_content = await AsyncBrowserManager.get_html_or_none(cls.title, cls.home_url, user_agent)
         if html_content is None:

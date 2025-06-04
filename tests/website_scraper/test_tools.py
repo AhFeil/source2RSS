@@ -1,7 +1,10 @@
 """对提供的工具，如 AsyncBrowserManager 等测试"""
 import pytest
+import pytest_asyncio
 
 from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.tools import create_rp
+
 
 @pytest.fixture()
 def setup_and_tear_down():
@@ -32,3 +35,30 @@ def test_range_by_desc_of_2(setup_and_tear_down):
     flag = 101
     gen = WebsiteScraper._range_by_desc_of(elems, flag, lambda x, f : f > x['v'])
     assert list(gen) == elems[::-1]
+
+
+
+@pytest_asyncio.fixture()
+async def async_setup_and_tear_down():
+    print("This is run before each tools test")
+    yield
+    print("This is run after each tools test")
+
+
+@pytest.mark.asyncio
+async def test_create_rp(async_setup_and_tear_down):
+    # https://www.robotstxt.org/orig.html
+    robots_txt = """User-agent: *
+Disallow: /cyberworld/map/
+Disallow: /tmp/
+Disallow: /foo.html
+
+User-agent: googlebot
+Allow: /foo.html
+"""
+    rp = await create_rp(robots_txt)
+    assert not rp.can_fetch("source2RSSbot", "https://example.com/cyberworld/map/")
+    assert not rp.can_fetch("source2RSSbot", "https://example.com/tmp/")
+    assert not rp.can_fetch("source2RSSbot", "https://example.com/foo.html")
+    assert rp.can_fetch("source2RSSbot", "https://example.com/fuzz.html")
+    assert rp.can_fetch("googlebot", "https://example.com/foo.html")
