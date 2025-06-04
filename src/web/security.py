@@ -4,11 +4,17 @@ import hashlib
 from typing import Self
 
 from fastapi.security import HTTPBasic
+from pydantic import BaseModel
 
 from preproc import config, data
 
 
 security = HTTPBasic()
+
+
+class Identity(BaseModel):
+    name: str
+    passwd: str
 
 
 @dataclass
