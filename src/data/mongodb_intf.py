@@ -4,7 +4,7 @@ from typing import Self
 from pymongo import MongoClient
 
 from .db_intf import DatabaseIntf
-from src.website_scraper.example import SrcMetaDict, ArticleDict
+from src.website_scraper.scraper import SrcMetaDict, ArticleDict
 
 
 @dataclass

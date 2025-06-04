@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import AsyncGenerator, Self
 
 from bs4 import BeautifulSoup
-from .example import WebsiteScraper, CreateByInvalidParam
-from .tools import AsyncBrowserManager, get_response_or_none
+from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam
+from src.website_scraper.tools import AsyncBrowserManager, get_response_or_none
 
 
 class MangaCopy(WebsiteScraper):

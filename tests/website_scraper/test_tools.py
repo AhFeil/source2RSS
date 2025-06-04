@@ -1,7 +1,7 @@
 """对提供的工具，如 AsyncBrowserManager 等测试"""
 import pytest
 
-from src.website_scraper.example import WebsiteScraper
+from src.website_scraper.scraper import WebsiteScraper
 
 @pytest.fixture()
 def setup_and_tear_down():

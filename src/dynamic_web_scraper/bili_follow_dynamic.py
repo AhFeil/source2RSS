@@ -10,7 +10,7 @@ from playwright._impl._errors import TimeoutError as pw_TimeoutError
 
 # from .login import BilibiliSign
 from utils import environment, image_
-from website_scraper.example import WebsiteScraper, FailtoGet
+from src.website_scraper.scraper import WebsiteScraper, FailtoGet
 
 
 class BiliFoDynamic(WebsiteScraper):

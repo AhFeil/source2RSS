@@ -5,7 +5,7 @@ from typing import Self
 
 from fastapi.security import HTTPBasic
 
-from preprocess import config, data
+from preproc import config, data
 
 
 security = HTTPBasic()

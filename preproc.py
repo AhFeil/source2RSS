@@ -10,7 +10,7 @@ from api._v2 import Plugins
 import importlib
 import pkgutil
 
-from src import website_scraper
+from src.website_scraper import examples
 from src import dynamic_web_scraper
 
 def iter_namespace(ns_pkg):
@@ -18,7 +18,7 @@ def iter_namespace(ns_pkg):
 
 def load_plugins():
     enabled_web_scraper = set(config.enabled_web_scraper)
-    available_web_scraper = {name for _, name, _ in iter_namespace(website_scraper)} | {name for _, name, _ in iter_namespace(dynamic_web_scraper)}
+    available_web_scraper = {name for _, name, _ in iter_namespace(examples)} | {name for _, name, _ in iter_namespace(dynamic_web_scraper)}
     print("Config enabled web scraper: ", config.enabled_web_scraper)
     print("Process Available web scraper: ", available_web_scraper)
 

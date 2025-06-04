@@ -5,7 +5,7 @@ from fastapi import APIRouter, Request, HTTPException, status
 from fastapi.responses import PlainTextResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from preprocess import data
+from preproc import data
 
 logger = logging.getLogger("get_rss")
 

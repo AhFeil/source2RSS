@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
-from .example import WebsiteScraper, FailtoGet
+from src.website_scraper.scraper import WebsiteScraper, FailtoGet
 
 import httpx
 

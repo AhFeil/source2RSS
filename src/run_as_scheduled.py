@@ -5,11 +5,11 @@ import threading
 
 import schedule
 
-import preprocess
+import preproc
 from src.crawler import start_to_crawl
 
 
-config = preprocess.config
+config = preproc.config
 
 def sync_wrapper(cls_names, loop):
     try:
@@ -34,7 +34,7 @@ def run_continuously(loop: asyncio.AbstractEventLoop):
     class ScheduleThread(threading.Thread):
         @classmethod
         def run(cls):
-            for point, cls_names in config.get_schedule_and_cls_names(preprocess.Plugins.get_all_id()).items():
+            for point, cls_names in config.get_schedule_and_cls_names(preproc.Plugins.get_all_id()).items():
                 schedule.every().day.at(point, config.timezone).do(job, cls_names, loop)
                 print(point, cls_names)
             for job_info in schedule.get_jobs():

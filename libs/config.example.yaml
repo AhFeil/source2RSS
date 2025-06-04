@@ -3,22 +3,22 @@ is_production: true
 
 # 启用抓取器，这里启用了所有可用的，可以删除不需要的
 enabled_web_scraper:
-- website_scraper.bentoml
-- website_scraper.cslrxyz
-- website_scraper.fanqie
-- website_scraper.cnu_daily
-- website_scraper.gatesnotes
-- website_scraper.career_tsinghua
-- website_scraper.old_stone
-- website_scraper.hot_juejin
-- website_scraper.hot_bilibili
-- website_scraper.mangacopy
-- website_scraper.chiphell
-- website_scraper.youtube_channel
-- website_scraper.bilibili_up
+- bentoml
+- cslrxyz
+- fanqie
+- cnu_daily
+- gatesnotes
+- career_tsinghua
+- old_stone
+- hot_juejin
+- hot_bilibili
+- mangacopy
+- chiphell
+- youtube_channel
+- bilibili_up
 # 暂时没有维护无法正常运行的抓取器
-# - website_scraper.newsletter
-# - dynamic_web_scraper.bili_follow_dynamic
+# - newsletter
+# - bili_follow_dynamic
 
 webscraper_profile:
   # 这里的名称，使用类名，除非定义了类变量 name

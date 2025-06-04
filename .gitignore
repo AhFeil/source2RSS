@@ -8,6 +8,10 @@ __pycache__/
 config_and_data_files
 dev_cheatsheet.md
 source2RSS.service
+plugins
+
+# tool
+.ruff_cache
 
 # C extensions
 *.so

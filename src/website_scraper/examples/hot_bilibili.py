@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import AsyncGenerator
 
-from .example import WebsiteScraper
-from .tools import get_response_or_none
+from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.tools import get_response_or_none
 
 
 # 逻辑有缺陷，目前是每次运行将热榜按照  排序，取最新的，不会缺少新写的上热榜，但是旧的上热榜会缺少

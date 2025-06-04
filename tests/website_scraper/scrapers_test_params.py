@@ -1,6 +1,6 @@
 from typing import NamedTuple
 
-from src.website_scraper.bentoml import BentoMLBlog
+from src.website_scraper.examples.bentoml import BentoMLBlog
 
 
 class CaseParam4Meta(NamedTuple):

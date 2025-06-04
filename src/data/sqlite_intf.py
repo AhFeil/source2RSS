@@ -6,7 +6,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker, declared_attr
 from sqlalchemy.sql import text
 
 from .db_intf import DatabaseIntf
-from src.website_scraper.example import SrcMetaDict, ArticleDict
+from src.website_scraper.scraper import SrcMetaDict, ArticleDict
 
 
 Base = declarative_base()

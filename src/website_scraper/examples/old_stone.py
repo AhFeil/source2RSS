@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
-from .example import WebsiteScraper
-from .tools import get_response_or_none
+from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.tools import get_response_or_none
 
 
 class OldStone(WebsiteScraper):

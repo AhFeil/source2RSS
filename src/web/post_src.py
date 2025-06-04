@@ -5,7 +5,7 @@ from fastapi import APIRouter
 
 from src.website_scraper import SourceMeta, ArticleInfo, PublishMethod
 from src.generate_rss import generate_rss
-from preprocess import data
+from preproc import data
 
 logger = logging.getLogger("post_rss")
 

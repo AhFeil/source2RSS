@@ -1,7 +1,7 @@
 import asyncio
 from typing import AsyncGenerator
 
-from .example import WebsiteScraper
+from src.website_scraper.scraper import WebsiteScraper
 from utils.imap_client import ImapMailBox
 
 

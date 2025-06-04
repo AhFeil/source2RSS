@@ -2,8 +2,8 @@ from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
 
-from .example import WebsiteScraper
-from .tools import AsyncBrowserManager
+from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.tools import AsyncBrowserManager
 from src.utils import environment
 
 

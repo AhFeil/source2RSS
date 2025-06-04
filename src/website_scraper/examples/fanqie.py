@@ -3,8 +3,8 @@ from datetime import datetime
 import asyncio
 from typing import AsyncGenerator, Self
 
-from .example import WebsiteScraper, CreateByInvalidParam
-from .tools import get_response_or_none
+from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam
+from src.website_scraper.tools import get_response_or_none
 
 class FanQie(WebsiteScraper):
     title = "番茄免费小说"

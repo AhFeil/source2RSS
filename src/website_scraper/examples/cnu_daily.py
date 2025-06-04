@@ -2,8 +2,8 @@ import asyncio
 from datetime import datetime
 from typing import AsyncGenerator
 
-from .example import WebsiteScraper, FailtoGet
-from .tools import get_response_or_none
+from src.website_scraper.scraper import WebsiteScraper, FailtoGet
+from src.website_scraper.tools import get_response_or_none
 
 
 class CNUDaily(WebsiteScraper):

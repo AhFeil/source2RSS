@@ -10,7 +10,7 @@ from fastapi.security import HTTPBasicCredentials
 
 from src.website_scraper import WebsiteScraper
 from src.crawler import process_crawl_flow_of_one, CrawlInitError
-from preprocess import Plugins, data, config
+from preproc import Plugins, data, config
 from .security import security, UserRegistry
 from .get_rss import get_saved_rss
 

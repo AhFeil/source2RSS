@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import AsyncGenerator, Self
 
-from .example import WebsiteScraper, CreateByInvalidParam, FailtoGet
-from .tools import AsyncBrowserManager
+from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam, FailtoGet
+from src.website_scraper.tools import AsyncBrowserManager
 
 
 class BilibiliUp(WebsiteScraper):
