@@ -51,9 +51,6 @@ webscraper_profile:
 
 # *****下面的配置都有默认值，删除也不影响运行，如果有需要可以自定义*****
 
-# 给远程发送数据的用这个（比如 B站动态 放在国内机器上，配置下面一条就会在抓取后把新消息传给其他机器）
-# remote_pub_scraper: {BiliFoDynamic: http://1.2.3.5:7500/}
-
 # 如果使用 MongoDB ，就填下面的值，默认使用 SQLite
 # mongodb_uri: mongodb://try:password@1.2.3.4:27017/source2rss
 # mongo_dbname: source2rss
@@ -64,6 +61,8 @@ query_cache_maxsize: 100
 query_cache_ttl_s: 3600
 query_username: vfly2
 query_password: "123456"
+query_bedtime:   # 睡眠时间里，管理员的请求走缓存路径，减少资源消耗
+- ["01:30", "06:30"]
 
 # 抓取器的默认配置，如果没有在 webscraper_profile 定义相关量，就会使用这里的
 crawler_default_cfg:
@@ -75,4 +74,4 @@ crawler_default_cfg:
   image_root: config_and_data_files/images
   # 为了节省内存，限制只能打开一个浏览器，一个浏览器可以开多个 context
   # 每个抓取器实例需要一个 context 进而打开 page 访问网页，这里限制同时打开的 context 的个数，如果内存不够可以调小
-  max_opening_context: 3
+  max_opening_context: 1

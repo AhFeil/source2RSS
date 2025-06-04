@@ -1,5 +1,6 @@
 """"""
 import logging
+from datetime import datetime
 from typing import Annotated
 from functools import wraps
 
@@ -62,7 +63,7 @@ async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [],
     cls: WebsiteScraper | None = Plugins.get_plugin_or_none(cls_id) # type: ignore
     if cls is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
-    if user.is_administrator:
+    if user.is_administrator and not config.in_bedtime(cls_id, datetime.now().strftime("%H:%M")):
         logger.info("go to no_cache_flow of " + cls_id)
         source_file_name = await no_cache_flow(cls_id, cls, tuple(q))
     else:

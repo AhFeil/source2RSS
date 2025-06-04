@@ -85,6 +85,7 @@ class Config:
         self.query_cache_ttl_s = user_configs.get('query_cache_ttl_s', 3600)
         self.query_username = user_configs.get('query_username', "vfly2")
         self.query_password = user_configs.get('query_password', "123456")
+        self.query_bedtime = user_configs.get('query_bedtime', [])
 
         self.webscraper_profile = user_configs['webscraper_profile']
 
@@ -114,6 +115,14 @@ class Config:
             return self.webscraper_profile[class_name]["custom_cfg"]["amount_when_firstly_add"]
         except KeyError:
             return self.amount_when_firstly_add
+
+    def in_bedtime(self, class_name: str, hm: str) -> bool:
+        """检查 hm 是否在 bedtime 期间，是的话返回真"""
+        try:
+            bedtime = self.webscraper_profile[class_name]["custom_cfg"]["query_bedtime"]
+        except KeyError:
+            bedtime = self.query_bedtime
+        return any(t[0] <= hm <= t[1] for t in bedtime)
 
 
 absolute_configfiles = map(lambda x:os.path.join(os.getcwd(), x), (configfile, pgm_configfile))
