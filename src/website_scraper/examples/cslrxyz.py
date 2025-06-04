@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime
-from typing import AsyncGenerator, Any
+from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
 from src.website_scraper.scraper import WebsiteScraper
@@ -30,7 +30,7 @@ class CSLRXYZ(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, flags) -> AsyncGenerator[dict, Any]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         start_page = 1
         while True:

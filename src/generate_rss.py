@@ -17,17 +17,14 @@ def generate_rss(source_info: SrcMetaDict, articles: list[ArticleDict]) -> bytes
     fg.pubDate(datetime.now(tz=zone))
     # 遍历并提取文章信息
     for article in reversed(articles):
-        title = article["title"]
-        url = article["link"]
-        pub_date = article["pub_time"].astimezone(zone)
-        summary = article["summary"]
-
         # 添加一篇文章，好像是从顶部往下推着添加的，因此要先放入最老的
         fe = fg.add_entry()
-        fe.title(title)
-        fe.link(href=url)
-        fe.pubDate(pub_date)
-        fe.description(summary)
+        fe.title(article["title"])
+        fe.pubDate(article["pub_time"].astimezone(zone))
+        if url := article["link"]:
+            fe.link(href=url)
+        if summary := article["summary"]:
+            fe.description(summary)
         if cover := article.get("image_link"):
             fe.enclosure(cover, 0, 'image/jpeg')
         if content := article.get("content"):

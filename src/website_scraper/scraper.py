@@ -88,10 +88,10 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         key4sort = cls.key4sort
         if flags.get(key4sort) is None:
             if cls.support_old2new:
-                cls._logger.error(f"{self.source_info['name']}: flags need {key4sort} for old2new")
+                cls._logger.warning(f"{self.source_info['name']}: flags need {key4sort} for old2new")
                 return
             else:
-                cls._logger.error(f"{self.source_info['name']}: flags need {key4sort}")
+                cls._logger.warning(f"{self.source_info['name']}: flags need {key4sort}")
 
         if flags.get("must_old2new"):
             async_gen = cls._parse_old2new if cls.support_old2new else \
