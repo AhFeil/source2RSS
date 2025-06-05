@@ -19,9 +19,9 @@ router = APIRouter(
 )
 
 # 现在无法覆盖原有数据
-@router.put("/rss_info/{user_name}/{source_name}")
-@router.post("/rss_info/{user_name}/{source_name}")
-async def add_rss(user_name: str, source_name: str, source_meta: SourceMeta):
+@router.put("/rss_info/{source_name}")
+@router.post("/rss_info/{source_name}")
+async def add_rss(source_name: str, source_meta: SourceMeta):
     meta = source_meta.model_dump(mode="json")
     data.db_intf.exist_source_meta(meta) # type: ignore
     return {"state": "true"}

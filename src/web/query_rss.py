@@ -1,4 +1,4 @@
-""""""
+"""主动请求某个源的 RSS ，会触发抓取过程并返回结果"""
 import logging
 from datetime import datetime
 from typing import Annotated

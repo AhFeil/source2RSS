@@ -1,6 +1,9 @@
 user_configuration: true
 is_production: true
 
+port: 7500   # 程序运行时监听的端口
+
+
 # 启用抓取器，这里启用了所有可用的，可以删除不需要的
 enabled_web_scraper:
 - bentoml

@@ -1,11 +1,13 @@
 import sys
 import os
 import json
+from datetime import datetime
 import logging.config
 from typing import Generator, Iterable
 from collections import defaultdict
 
 from ruamel.yaml import YAML, YAMLError
+import httpx
 
 
 configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default='config_and_data_files/config.yaml')
@@ -62,6 +64,7 @@ class Config:
 
         # 用户配置
         self.is_production = user_configs['is_production']
+        self.port = user_configs.get("port", 8536)
         crawler_default_cfg = user_configs.get("crawler_default_cfg", {})
         run_everyday_at = crawler_default_cfg.get("run_everyday_at", "06:00")
         self.run_everyday_at = [run_everyday_at] if isinstance(run_everyday_at, str) else run_everyday_at
@@ -127,3 +130,29 @@ class Config:
 
 absolute_configfiles = map(lambda x:os.path.join(os.getcwd(), x), (configfile, pgm_configfile))
 config = Config(absolute_configfiles)
+
+
+async def post2RSS(title: str, summary: str) -> httpx.Response | None:
+    url = f"http://127.0.0.1:{config.port}/post_src/source2rss_severe_log/"
+    timeout = httpx.Timeout(10.0, read=10.0)
+    headers = {
+        "accept": "application/json",
+        "Content-Type": "application/json"
+    }
+    data_raw = {
+        "name": config.query_username,
+        "passwd": config.query_password,
+        "articles": [{
+            "title": title,
+            "link": "http://rss.vfly2.com/source2rss/source2rss_severe_log",
+            "summary": summary,
+            "pub_time": datetime.now().timestamp()
+        }]
+    }
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.post(url=url, headers=headers, json=data_raw, timeout=timeout)
+        except Exception:
+            pass
+        else:
+            return response

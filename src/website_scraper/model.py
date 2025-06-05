@@ -69,7 +69,7 @@ class ArticleInfo(BaseModel):
     link: HttpUrl
     pub_time: datetime
     content: Optional[str] = ""
-    image_link: Optional[HttpUrl] = "" # type: ignore
+    image_link: Optional[HttpUrl] = "" # todo
     chapter_number: Optional[int] = 0
     time4sort: Optional[datetime] = datetime.now()
     num4sort: Optional[int] = 0
