@@ -9,24 +9,18 @@ class Representative(WebsiteScraper):
     key4sort = "pub_time"   # todo
 
     @classmethod
-    async def create(cls, source_name: str, articles: list[dict]) -> Self:
-        # 对 articles 每项进行校验
-        if source_name and articles:
-            return cls(source_name, articles)
+    async def create(cls, source: dict, articles: list[dict]) -> Self:
+        # todo 对 articles 每项进行校验
+        if source and articles:
+            return cls(source, articles)
         raise CreateByInvalidParam
 
     def __init__(self, *args) -> None:
         super().__init__()
-        self.source_name, self.articles = args
+        self.source, self.articles = args
 
     def _source_info(self):
-        return {
-            "name": self.source_name,
-            "link": "http://rss.vfly2.com/",
-            "desc": "no body",
-            "lang": "zh-CN",
-            "key4sort": "pub_time"
-        }
+        return self.source
 
     @classmethod
     async def _parse(cls, flags, articles) -> AsyncGenerator[dict, None]:

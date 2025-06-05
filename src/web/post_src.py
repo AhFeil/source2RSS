@@ -18,13 +18,20 @@ router = APIRouter(
     tags=["post_src"],
 )
 
-# 现在无法覆盖原有数据
-@router.put("/rss_info/{source_name}")
-@router.post("/rss_info/{source_name}")
-async def add_rss(source_name: str, source_meta: SourceMeta):
-    meta = source_meta.model_dump(mode="json")
+
+@router.put("/", response_class=JSONResponse)
+async def update_source(m: SourceMeta):
+    meta = m.model_dump(mode="json")
     data.db_intf.exist_source_meta(meta) # type: ignore
-    return {"state": "true"}
+    return {"message": "done"}
+
+@router.post("/", response_class=JSONResponse)
+async def add_source(m: SourceMeta):
+    if data.db_intf.get_source_info(m.name):
+        return {"message": "There is already a source with the same name, you can use put to update it"}
+    meta = m.model_dump(mode="json")
+    data.db_intf.exist_source_meta(meta) # type: ignore
+    return {"message": "done"}
 
 
 class Delivery(BaseModel):
@@ -44,6 +51,14 @@ async def delivery(source_name: str, d: Delivery):
         )
     logger.info("reveice articles of %s", source_name)
     articles = [a.model_dump_to_json() for a in d.articles]
-    # todo 先查询是否有 source meta
-    source_file_name = await no_cache_flow("Representative", Representative, ((source_name, articles)))
+    source = data.db_intf.get_source_info(source_name)
+    if source is None:
+        source = {
+            "name": source_name,
+            "link": "http://rss.vfly2.com/",
+            "desc": "This RSS service is provided by source2RSS (https://github.com/AhFeil/source2RSS). if you like it, please give a star.",
+            "lang": "zh-CN",
+            "key4sort": "pub_time"
+        }
+    source_file_name = await no_cache_flow("Representative", Representative, ((source, articles)))
     return {"message": "succeed to deliver articles of " + source_name, "xml": "http://rss.vfly2.com/source2rss/" + source_file_name}

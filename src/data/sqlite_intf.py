@@ -143,10 +143,10 @@ class SQliteIntf(DatabaseIntf):
             session.add(article)
             session.commit()
 
-    def get_source_info(self, source_name: str) -> SrcMetaDict:
+    def get_source_info(self, source_name: str) -> SrcMetaDict | None:
         with self.Session() as session:
             res = session.query(SourceMeta4ORM).filter_by(name=source_name).first()
-            return res.export_to_dict()
+            return res.export_to_dict() if res else None
 
     def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reversed: bool=False) -> list[ArticleDict]:
         ArticleModel = ArticleBase.get_article_model(source_name)
