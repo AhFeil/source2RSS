@@ -77,4 +77,4 @@ crawler_default_cfg:
   image_root: config_and_data_files/images
   # 为了节省内存，限制只能打开一个浏览器，一个浏览器可以开多个 context
   # 每个抓取器实例需要一个 context 进而打开 page 访问网页，这里限制同时打开的 context 的个数，如果内存不够可以调小
-  max_opening_context: 1
+  max_opening_context: 2

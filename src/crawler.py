@@ -67,12 +67,23 @@ async def start_to_crawl(cls_names: Iterable[str]):
     await monitor_website(config, data, plugins)
 
 
+running_lock = asyncio.Lock()
+
+async def start_to_crawl_all():
+    global running_lock
+    if running_lock.locked():
+        logger.info("is crawling now")
+        return
+    async with running_lock:
+        from preproc import Plugins
+        await start_to_crawl(Plugins.get_all_id())
+
+
 if __name__ == "__main__":
-    from preproc import Plugins
     def handler(sig, frame):
         # 退出前清理环境
         exit(0)
     signal.signal(signal.SIGINT, handler)
 
-    asyncio.run(start_to_crawl(Plugins.get_all_id()))
+    asyncio.run(start_to_crawl_all())
     # .env/bin/python -m src.crawler
