@@ -1,5 +1,9 @@
 """注册插件，以字典存储"""
 from typing import Iterable
+import importlib
+import pkgutil
+
+from configHandle import config
 
 
 class Plugins():
@@ -22,3 +26,25 @@ class Plugins():
     @classmethod
     def get_all_cls(cls) -> Iterable[type]:
         return cls._registry.values()
+
+    @staticmethod
+    def iter_namespace(ns_pkg):
+        return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
+
+    @staticmethod
+    def load_plugins():
+        enabled_web_scraper = set()
+        available_web_scraper = set()
+        for package_path, module_names in config.enabled_web_scraper.items():
+            module = importlib.import_module(package_path)
+            enabled_web_scraper |= {f"{package_path}.{module_name}" for module_name in module_names}
+            available_web_scraper |= {name for _, name, _ in Plugins.iter_namespace(module)}
+        print("Config enabled web scraper: ", enabled_web_scraper)
+        print("Process Available web scraper: ", available_web_scraper)
+
+        # 只导入启用的插件
+        usable_web_scrapers = enabled_web_scraper & available_web_scraper
+        print("import plugins: ")
+        for usable_web_scraper in usable_web_scrapers:
+            importlib.import_module(usable_web_scraper)
+            print(usable_web_scraper)

@@ -80,8 +80,7 @@ class Config:
         self.mongodb_uri = user_configs.get("mongodb_uri")
         self.mongo_dbname = user_configs.get("mongo_dbname")
 
-        enabled_web_scraper = user_configs.get('enabled_web_scraper', [])
-        self.enabled_web_scraper = [f"src.website_scraper.examples.{scraper}" for scraper in enabled_web_scraper]
+        self.enabled_web_scraper = user_configs.get('enabled_web_scraper', {})
         self.remote_pub_scraper = user_configs.get('remote_pub_scraper', {})
 
         self.query_cache_maxsize = user_configs.get('query_cache_maxsize', 100)
