@@ -6,6 +6,7 @@ from fastapi import FastAPI
 
 from src.web import get_rss, post_src, query_rss, user, manage
 from src.run_as_scheduled import run_continuously
+from preproc import Plugins
 
 
 logger = logging.getLogger("main")
@@ -31,6 +32,11 @@ app.include_router(post_src.router)
 app.include_router(query_rss.router)
 app.include_router(user.router)
 app.include_router(manage.router)
+
+for path, module in Plugins.imported_modules.items():
+    if "router" in getattr(module, "__all__", []):
+        print("---", path)
+        app.include_router(module.router)
 
 
 @app.get("/")

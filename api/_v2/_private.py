@@ -1,5 +1,6 @@
 """注册插件，以字典存储"""
 from typing import Iterable
+from types import ModuleType
 import importlib
 import pkgutil
 
@@ -31,6 +32,8 @@ class Plugins():
     def iter_namespace(ns_pkg):
         return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
 
+    imported_modules: dict[str, ModuleType] = {}
+
     @staticmethod
     def load_plugins():
         enabled_web_scraper = set()
@@ -46,5 +49,6 @@ class Plugins():
         usable_web_scrapers = enabled_web_scraper & available_web_scraper
         print("import plugins: ")
         for usable_web_scraper in usable_web_scrapers:
-            importlib.import_module(usable_web_scraper)
+            module = importlib.import_module(usable_web_scraper)
+            Plugins.imported_modules[usable_web_scraper] = module
             print(usable_web_scraper)
