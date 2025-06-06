@@ -60,5 +60,8 @@ async def delivery(source_name: str, d: Delivery):
             "lang": "zh-CN",
             "key4sort": "pub_time"
         }
-    source_file_name = await no_cache_flow("Representative", Representative, ((source, articles)))
-    return {"message": "succeed to deliver articles of " + source_name, "xml": "http://rss.vfly2.com/source2rss/" + source_file_name}
+    f_source_name = await no_cache_flow("Representative", Representative, ((source, articles)))
+    url_without_suffix = "http://rss.vfly2.com/source2rss/" + f_source_name
+    xml_url = url_without_suffix + ".xml"
+    json_url = url_without_suffix + ".json"
+    return {"message": "succeed to deliver articles of " + source_name, "xml": xml_url, "json": json_url}

@@ -53,14 +53,15 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long when save_articles")
 
-    source_file_name = f"{format_source_name(source_name)}.xml"
-    if got_new | data.rss_is_absent(source_file_name):
+    f_source_name = format_source_name(source_name)
+    if got_new | data.rss_is_absent(f_source_name):
         # 当有新内容或文件缺失的情况下，会生成 RSS 并保存
         result = data.db_intf.get_top_n_articles_by_key(source_name, 50, key4sort)
         rss_feed = generate_rss(source_info, result)
+        rss_json = {"source_info": source_info, "articles": result}
         cls_id_or_none = None if instance.__class__.is_variety else instance.__class__.__name__
-        data.set_rss(source_file_name, rss_feed, cls_id_or_none)
+        data.set_rss(f_source_name, rss_feed, rss_json, cls_id_or_none)
     else:
         logger.info(f"{source_name} exists and doesn't update")
 
-    return source_file_name
+    return f_source_name

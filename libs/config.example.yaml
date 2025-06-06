@@ -8,7 +8,6 @@ port: 7500   # 程序运行时监听的端口
 enabled_web_scraper:
 - bentoml
 - cslrxyz
-- fanqie
 - cnu_daily
 - gatesnotes
 - career_tsinghua

@@ -45,8 +45,8 @@ async def process_crawl_flow_of_one(data, cls: WebsiteScraper, init_params: Iter
             #     await goto_remote_flow(config, data, instance, url)
             # else:
             #     await goto_uniform_flow(data, instance, amount)
-            source_file_name = await goto_uniform_flow(data, instance, amount)
-            res.append(source_file_name)
+            f_source_name = await goto_uniform_flow(data, instance, amount)
+            res.append(f_source_name)
     return res
 
 
