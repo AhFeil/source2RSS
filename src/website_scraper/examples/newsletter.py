@@ -1,6 +1,7 @@
 import asyncio
 from typing import AsyncGenerator
 
+from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from utils.imap_client import ImapMailBox
 
@@ -8,7 +9,6 @@ from utils.imap_client import ImapMailBox
 class NewsLetter(WebsiteScraper):
     title = "NewsLetter"
     page_turning_duration = 5
-    key4sort = "pub_time"
 
     def __init__(self, froms: dict[str, str], host, port, username, password, ssl=True) -> None:
         super().__init__()
@@ -24,7 +24,7 @@ class NewsLetter(WebsiteScraper):
             "link": self.website,
             "desc": self.desc or "DescriptionLack",   # 不能为空，否则无法生成 RSS
             "lang": "En",
-            "key4sort": self.__class__.key4sort}
+            "key4sort": SortKey.PUB_TIME}
 
     @classmethod
     async def _parse(cls, flags, from_email, website, mailbox: ImapMailBox) -> AsyncGenerator[dict, None]:

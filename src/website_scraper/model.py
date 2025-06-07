@@ -42,7 +42,7 @@ class SrcMetaDict(TypedDict):
     link: str
     desc: str
     lang: str
-    key4sort: str
+    key4sort: SortKey
 
 
 class SourceMeta(BaseModel):
@@ -55,7 +55,7 @@ class SourceMeta(BaseModel):
     link: HttpUrl
     desc: str
     lang: str = "zh-CN"
-    key4sort: str = "pub_time"
+    key4sort: SortKey = SortKey.PUB_TIME
 
 
 @init_field_names

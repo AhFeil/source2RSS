@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from src.website_scraper.examples.representative import Representative
-from src.website_scraper import SourceMeta, ArticleInfo
+from src.website_scraper import SourceMeta, ArticleInfo, SortKey
 from preproc import data
 from .query_rss import no_cache_flow
 from .security import UserRegistry
@@ -58,7 +58,7 @@ async def delivery(source_name: str, d: Delivery):
             "link": "http://rss.vfly2.com/",
             "desc": "This RSS service is provided by source2RSS (https://github.com/AhFeil/source2RSS). if you like it, please give a star.",
             "lang": "zh-CN",
-            "key4sort": "pub_time"
+            "key4sort": SortKey.PUB_TIME
         }
     f_source_name = await no_cache_flow("Representative", Representative, ((source, articles)))
     url_without_suffix = "http://rss.vfly2.com/source2rss/" + f_source_name

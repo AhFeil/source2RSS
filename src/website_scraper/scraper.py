@@ -85,7 +85,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                     return
             return
 
-        key4sort = cls.key4sort
+        key4sort = self.source_info["key4sort"]
         if flags.get(key4sort) is None:
             if cls.support_old2new:
                 cls._logger.warning(f"{self.source_info['name']}: flags need {key4sort} for old2new")

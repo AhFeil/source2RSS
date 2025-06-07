@@ -2,6 +2,7 @@ import asyncio
 from datetime import datetime
 from typing import AsyncGenerator
 
+from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper, FailtoGet
 from src.website_scraper.tools import get_response_or_none
 
@@ -10,7 +11,6 @@ class CNUDaily(WebsiteScraper):
     title = "CNU 每日精选"
     home_url = "http://www.cnu.cc/"
     page_turning_duration = 5
-    key4sort = "pub_time"
 
     headers = {
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',
@@ -28,7 +28,7 @@ class CNUDaily(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "CNU 每日精选",
             "lang": "zh-CN",
-            "key4sort": self.__class__.key4sort}
+            "key4sort": SortKey.PUB_TIME}
 
     @classmethod
     async def _parse(cls, flags) -> AsyncGenerator[dict, None]:

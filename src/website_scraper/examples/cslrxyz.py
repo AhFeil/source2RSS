@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
+from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.tools import get_response_or_none
 
@@ -11,7 +12,6 @@ class CSLRXYZ(WebsiteScraper):
     title = "二语习得英语学习中文网"
     home_url = "http://cslrxyz.xyz"
     page_turning_duration = 10
-    key4sort = "pub_time"
 
     headers = {
         'Accept-Language': 'zh-CN,en-US',
@@ -25,7 +25,7 @@ class CSLRXYZ(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "分享英语学习方法、工具使用和影评",
             "lang": "zh-CN",
-            "key4sort": self.__class__.key4sort
+            "key4sort": SortKey.PUB_TIME
         }
         return source_info
 

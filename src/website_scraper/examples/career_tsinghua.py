@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
+from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper, FailtoGet
 
 import httpx
@@ -13,7 +14,6 @@ class CareerTsinghua(WebsiteScraper):
     home_url = "https://career.cic.tsinghua.edu.cn/xsglxt/f/jyxt/anony/xxfb"
     domain_url = "https://career.cic.tsinghua.edu.cn"
     page_turning_duration = 10
-    key4sort = "time4sort"
 
     headers = {
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -41,7 +41,7 @@ class CareerTsinghua(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "清华大学学生职业发展指导中心的招聘信息，本源不会显示置顶文章",
             "lang": "zh-CN",
-            "key4sort": self.__class__.key4sort
+            "key4sort": SortKey.TIME4SORT
         }
         return source_info
 

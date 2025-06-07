@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import AsyncGenerator, Self
 
 from bs4 import BeautifulSoup
+from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam
 from src.website_scraper.tools import AsyncBrowserManager, get_response_or_none
 
@@ -11,7 +12,6 @@ class MangaCopy(WebsiteScraper):
     title = "拷貝漫畫"
     home_url = "https://www.mangacopy.com"
     page_turning_duration = 10
-    key4sort = "chapter_number"
 
     headers = {
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
@@ -43,7 +43,7 @@ class MangaCopy(WebsiteScraper):
             "link": f"{self.__class__.home_url}/comic/{self.book_id}",
             "desc": f"拷貝漫畫下的作品 —— {self.book_title}",
             "lang": "zh-CN",
-            "key4sort": self.__class__.key4sort}
+            "key4sort": SortKey.CHAPTER_NUMBER}
 
     @classmethod
     async def _parse(cls, flags, book_title: str, book_url: str) -> AsyncGenerator[dict, None]:

@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
+from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.tools import AsyncBrowserManager
 
@@ -10,7 +11,6 @@ class Chiphell(WebsiteScraper):
     title = "Chiphell"
     home_url = "https://www.chiphell.com/"
     page_turning_duration = 10
-    key4sort = "pub_time"
 
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -27,7 +27,7 @@ class Chiphell(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "一个数码硬件社区",
             "lang": "zh-CN",
-            "key4sort": self.__class__.key4sort
+            "key4sort": SortKey.PUB_TIME
         }
         return source_info
 

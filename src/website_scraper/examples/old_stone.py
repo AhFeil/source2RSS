@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
+from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.tools import get_response_or_none
 
@@ -11,7 +12,6 @@ class OldStone(WebsiteScraper):
     title = "Old Stone"
     home_url = "https://blog.mahyang.uk"
     page_turning_duration = 10
-    key4sort = "pub_time"
 
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -25,7 +25,7 @@ class OldStone(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "博客 Old Stone",
             "lang": "zh-CN",
-            "key4sort": self.__class__.key4sort
+            "key4sort": SortKey.PUB_TIME
         }
         return source_info
 

@@ -3,6 +3,7 @@ from typing import AsyncGenerator, Self
 
 from bs4 import BeautifulSoup
 import feedparser
+from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam
 from src.website_scraper.tools import get_response_or_none
 
@@ -11,7 +12,6 @@ class YoutubeChannel(WebsiteScraper):
     title = "Youtube Channel"
     home_url = "https://www.youtube.com"
     page_turning_duration = 10
-    key4sort = "pub_time"
 
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -37,7 +37,7 @@ class YoutubeChannel(WebsiteScraper):
             "link": f"{self.__class__.home_url}/@{self.channel_name}",
             "desc": "Youtube Channel" + self.channel_name,
             "lang": "en-US",
-            "key4sort": self.__class__.key4sort
+            "key4sort": SortKey.PUB_TIME
         }
         return source_info
 

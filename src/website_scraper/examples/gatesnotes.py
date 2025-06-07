@@ -2,6 +2,7 @@ from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
 
+from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.tools import AsyncBrowserManager, create_rp
 from src.utils import environment
@@ -11,7 +12,6 @@ class GatesNotes(WebsiteScraper):
     title = "GatesNotes"
     home_url = "https://www.gatesnotes.com/"
     page_turning_duration = 5
-    key4sort = "pub_time"
 
     headers = {
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -26,7 +26,7 @@ class GatesNotes(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "The Blog of Bill Gates",
             "lang": "en-US",
-            "key4sort": self.__class__.key4sort
+            "key4sort": SortKey.PUB_TIME
         }
         return source_info
 
