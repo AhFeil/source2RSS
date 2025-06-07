@@ -35,7 +35,6 @@ app.include_router(manage.router)
 
 for path, module in Plugins.imported_modules.items():
     if "router" in getattr(module, "__all__", []):
-        print("---", path)
         app.include_router(module.router)
 
 

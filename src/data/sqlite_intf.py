@@ -26,6 +26,7 @@ class SourceMeta4ORM(Base):
         return f"<SourceMeta(id={self.id}, name='{self.name}', link='{self.link}', desc='{self.desc}', lang='{self.lang}', key4sort={self.key4sort})>"
 
     def equal_to(self, source_info: SrcMetaDict) -> bool:
+        # 如果缺少键，运行时不会报错 KeyError ，而是会卡死
         return all(getattr(self, column.name) == source_info[column.name] for column in self.__table__.columns if not column.primary_key)
 
     def update_from(self, source_info: SrcMetaDict):

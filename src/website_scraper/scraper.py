@@ -181,6 +181,9 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         extra_keys = set(a.keys()) - ArticleDict.__field_names__ # type: ignore
         for k in extra_keys:
             a.pop(k)
+        lacked_keys = ArticleDict.__field_names__ - set(a.keys()) # type: ignore
+        for k in lacked_keys:
+            a[k] = None
         return a # type: ignore
 
     @staticmethod
@@ -188,6 +191,9 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         extra_keys = set(s.keys()) - SrcMetaDict.__field_names__ # type: ignore
         for k in extra_keys:
             s.pop(k)
+        lacked_keys = SrcMetaDict.__field_names__ - set(s.keys()) # type: ignore
+        for k in lacked_keys:
+            s[k] = None
         return s # type: ignore
 
     @staticmethod
