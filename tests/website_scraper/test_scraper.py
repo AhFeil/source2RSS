@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 
-from src.website_scraper import WebsiteScraper, LocateInfo
+from src.website_scraper import WebsiteScraper, LocateInfo, Sequence
 from tests.website_scraper.scrapers_test_params import CaseParam4Meta, scrapers_params
 
 
@@ -45,8 +45,8 @@ async def test_get_new(setup_and_tear_down):
 async def test_get_from_old2new(setup_and_tear_down):
     ins, _ = setup_and_tear_down
     if ins.__class__.support_old2new:
-        flags: LocateInfo = {ins.__class__.key4sort: datetime(2024, 4, 1), "prefer_old2new": True} # type: ignore
-        async for a in ins.get(flags):
+        flags: LocateInfo = {ins.__class__.key4sort: datetime(2024, 4, 1)} # type: ignore
+        async for a in ins.get(flags, Sequence.PREFER_OLD2NEW):
             for val in a.values():
                 assert val is not None
             break

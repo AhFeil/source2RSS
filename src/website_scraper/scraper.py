@@ -4,7 +4,7 @@ from abc import ABC, ABCMeta, abstractmethod
 from typing import Generator, AsyncGenerator, Self, Any
 
 from api._v2 import Plugins
-from .model import LocateInfo, SrcMetaDict, ArticleDict
+from .model import LocateInfo, Sequence, SrcMetaDict, ArticleDict
 
 
 class FailtoGet(Exception):
@@ -71,7 +71,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         """返回在本次执行中，从执行开始到结束占用最长时间，单位秒"""
         return self.__class__.page_turning_duration * 20
 
-    async def get(self, flags: LocateInfo) -> AsyncGenerator[ArticleDict, None]:
+    async def get(self, flags: LocateInfo, sequence=Sequence.PREFER_NEW2OLD) -> AsyncGenerator[ArticleDict, None]:
         """获取文章对外接口。若重写本方法，需要保证返回的字典中不能有 ArticleDict 之外的字段"""
         cls = self.__class__
         if amount := flags.get("amount"):
@@ -93,10 +93,10 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             else:
                 cls._logger.warning(f"{self.source_info['name']}: flags need {key4sort}")
 
-        if flags.get("must_old2new"):
+        if sequence is Sequence.MUST_OLD2NEW:
             async_gen = cls._parse_old2new if cls.support_old2new else \
                         await WebsiteScraper._force_old2new(cls._parse, flags, key4sort, *self._custom_parameter_of_parse())
-        elif flags.get("prefer_old2new"):
+        elif sequence is Sequence.PREFER_OLD2NEW:
             async_gen = cls._parse_old2new if cls.support_old2new else cls._parse
         else:
             async_gen = cls._parse

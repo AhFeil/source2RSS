@@ -1,7 +1,7 @@
 import logging
 import asyncio
 
-from src.website_scraper import FailtoGet, WebsiteScraper, LocateInfo
+from src.website_scraper import FailtoGet, WebsiteScraper, LocateInfo, Sequence
 from src.generate_rss import generate_rss
 
 logger = logging.getLogger("local_publish")
@@ -43,13 +43,15 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
     data.db_intf.exist_source_meta(source_info)
     result = data.db_intf.get_top_n_articles_by_key(source_name, 1, key4sort)
     if result:
-        flags: LocateInfo = {"article_title": result[0]["title"], key4sort: result[0][key4sort], "prefer_old2new": True} # type: ignore
+        flags: LocateInfo = {"article_title": result[0]["title"], key4sort: result[0][key4sort]} # type: ignore
+        sequence = Sequence.PREFER_OLD2NEW
     else: # 若是第一次，数据库中没有数据
         flags: LocateInfo = {"amount": amount} # type: ignore
+        sequence = Sequence.PREFER_NEW2OLD
 
     got_new = False
     try:
-        got_new = await asyncio.wait_for(save_articles(data, source_name, instance.get(flags)), max_wait_time)
+        got_new = await asyncio.wait_for(save_articles(data, source_name, instance.get(flags, sequence)), max_wait_time)
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long when save_articles")
 

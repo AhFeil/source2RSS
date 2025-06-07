@@ -1,6 +1,6 @@
 """抓取器返回字典定义和 FastAPI 的 Model 等"""
 from datetime import datetime
-from enum import Enum
+from enum import Enum, StrEnum, auto
 from typing import TypedDict, Required, Union, Optional, get_type_hints
 
 from pydantic import BaseModel, HttpUrl, ConfigDict, field_validator
@@ -13,6 +13,19 @@ def init_field_names(cls):
     return cls
 
 
+class Sequence(Enum):
+    PREFER_NEW2OLD = auto()
+    MUST_NEW2OLD = auto()
+    PREFER_OLD2NEW = auto()
+    MUST_OLD2NEW = auto()
+
+class SortKey(StrEnum):
+    PUB_TIME = auto()
+    CHAPTER_NUMBER = auto()
+    TIME4SORT = auto()
+    NUM4SORT = auto()
+
+
 class LocateInfo(TypedDict, total=False):
     article_title: Required[str]
     pub_time: Required[datetime]
@@ -21,9 +34,6 @@ class LocateInfo(TypedDict, total=False):
     num4sort: int
     # 如果 amount 有值，则返回指定数目的最新文章，忽略其他字段
     amount: int
-    # old2new 若有值，则调用相应接口
-    must_old2new: bool # todo 用枚举更合适
-    prefer_old2new: bool
 
 
 @init_field_names
@@ -88,11 +98,6 @@ class ArticleInfo(BaseModel):
         return res
 
 
-class SortKey(str, Enum):
-    pub_date = "pub_date"
-    pub_time = "pub_time"
-    chapter_number = "chapter_number"
-
 class PublishMethod(BaseModel):
     source_name: str | None = None
-    key4sort: SortKey = SortKey.pub_date
+    key4sort: SortKey = SortKey.PUB_TIME
