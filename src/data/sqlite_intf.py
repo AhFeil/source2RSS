@@ -20,6 +20,7 @@ class SourceMeta4ORM(Base):
     desc = Column(String)
     lang = Column(String)
     key4sort = Column(String(30), nullable=False)
+    access = Column(Integer)
 
     def __repr__(self):
         return f"<SourceMeta(id={self.id}, name='{self.name}', link='{self.link}', desc='{self.desc}', lang='{self.lang}', key4sort={self.key4sort})>"

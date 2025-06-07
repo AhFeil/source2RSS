@@ -1,6 +1,6 @@
 """抓取器返回字典定义和 FastAPI 的 Model 等"""
 from datetime import datetime
-from enum import Enum, StrEnum, auto
+from enum import Enum, StrEnum, IntEnum, auto
 from typing import TypedDict, Required, Union, Optional, get_type_hints
 
 from pydantic import BaseModel, HttpUrl, ConfigDict, field_validator
@@ -18,6 +18,13 @@ class Sequence(Enum):
     MUST_NEW2OLD = auto()
     PREFER_OLD2NEW = auto()
     MUST_OLD2NEW = auto()
+
+
+class AccessLevel(IntEnum):
+    """源信息可定义访问级别，限制低级别用户查看。主要为用于API发布RSS。数字不能更改，否则需要删除数据库"""
+    PUBLIC = 1
+    ADMIN = 9
+
 
 class SortKey(StrEnum):
     PUB_TIME = auto()
@@ -43,6 +50,7 @@ class SrcMetaDict(TypedDict):
     desc: str
     lang: str
     key4sort: SortKey
+    access: AccessLevel
 
 
 class SourceMeta(BaseModel):
@@ -56,6 +64,7 @@ class SourceMeta(BaseModel):
     desc: str
     lang: str = "zh-CN"
     key4sort: SortKey = SortKey.PUB_TIME
+    access: AccessLevel = AccessLevel.PUBLIC
 
 
 @init_field_names

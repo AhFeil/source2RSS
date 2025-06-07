@@ -59,7 +59,7 @@ async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [],
             headers={"WWW-Authenticate": "Basic"},
         )
     logger.info(f"{cls_id} get new request of {q}")
-
+    # todo cls 不能为 Representative
     cls: WebsiteScraper | None = Plugins.get_plugin_or_none(cls_id) # type: ignore
     if cls is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
