@@ -26,6 +26,9 @@ async def get_response_or_none(url: str, headers: dict, verify=True, retry: int=
                     return None
                 wait_time = backoff_factor * (2 ** attempt)
                 await asyncio.sleep(min(wait_time, 60))  # 上限60秒
+            except Exception as e:
+                logger.error("exception occurred when call get_response_or_none, url is '%s', e is '%s'", url, str(e))
+                return None
             else:
                 return response
 

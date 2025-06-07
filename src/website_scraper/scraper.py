@@ -10,7 +10,13 @@ from .model import LocateInfo, Sequence, SrcMetaDict, ArticleDict
 class FailtoGet(Exception):
     pass
 
-class CreateByInvalidParam(Exception):
+class ScraperError(Exception):
+    pass
+
+class CreateByInvalidParam(ScraperError):
+    pass
+
+class CreateByLocked(ScraperError):
     pass
 
 
@@ -55,6 +61,10 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     @classmethod
     async def create(cls) -> Self:
         return cls()
+
+    def destroy(self) -> None:
+        """用完实例后，进行某些资源的释放，比如锁"""
+        pass
 
     @property
     def source_info(self) -> SrcMetaDict:

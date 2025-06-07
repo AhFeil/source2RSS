@@ -3,7 +3,7 @@ import asyncio
 import signal
 from typing import Iterable
 
-from src.website_scraper import WebsiteScraper, FailtoGet, CreateByInvalidParam, AsyncBrowserManager
+from src.website_scraper import WebsiteScraper, FailtoGet, CreateByInvalidParam, CreateByLocked, AsyncBrowserManager
 from src.local_publish import goto_uniform_flow
 
 logger = logging.getLogger("crawler")
@@ -30,6 +30,8 @@ async def process_crawl_flow_of_one(data, cls: WebsiteScraper, init_params: Iter
                 instance = await cls.create()
         except TypeError:
             raise CrawlInitError(400, "The amount of parameters is incorrect")
+        except CreateByLocked:
+            raise CrawlInitError(422, "Server is busy")
         except CreateByInvalidParam:
             raise CrawlInitError(422, "Invalid parameters")
         except FailtoGet:
@@ -46,6 +48,7 @@ async def process_crawl_flow_of_one(data, cls: WebsiteScraper, init_params: Iter
             # else:
             #     await goto_uniform_flow(data, instance, amount)
             f_source_name = await goto_uniform_flow(data, instance, amount)
+            instance.destroy()
             res.append(f_source_name)
     return res
 
