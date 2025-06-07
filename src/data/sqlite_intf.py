@@ -15,7 +15,7 @@ class SourceMeta4ORM(Base):
     __tablename__ = "source_meta"  # config.source_meta
 
     id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True, nullable=False)   # 同样作为文章表的名称
+    name = Column(String, unique=True, nullable=False, index=True)   # 同样作为文章表的名称
     link = Column(String)
     desc = Column(String)
     lang = Column(String)
@@ -53,10 +53,10 @@ class ArticleBase:
     link = Column(String)
     image_link = Column(String)
     content = Column(String)
-    pub_time = Column(DateTime)
-    chapter_number = Column(Integer)
-    time4sort = Column(DateTime)
-    num4sort = Column(Integer)
+    pub_time = Column(DateTime, index=True)
+    chapter_number = Column(Integer, index=True)
+    time4sort = Column(DateTime, index=True)
+    num4sort = Column(Integer, index=True)
     # 动态外键关联（需要创建时赋值）
     @declared_attr
     def website_id(cls):
