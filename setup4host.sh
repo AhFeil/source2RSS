@@ -5,6 +5,8 @@ program_name="source2RSS"   # 不能有空格等特殊符号
 current_uid=$(id -u)
 current_dir=$(pwd)
 
+mkdir -p plugins
+
 # 确保存在虚拟环境并安装包
 if [ ! -d .env ]
 then

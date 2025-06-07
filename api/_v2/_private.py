@@ -39,7 +39,11 @@ class Plugins():
         enabled_web_scraper = set()
         available_web_scraper = set()
         for package_path, module_names in config.enabled_web_scraper.items():
-            module = importlib.import_module(package_path)
+            try:
+                module = importlib.import_module(package_path)
+            except ModuleNotFoundError:
+                print(package_path + " does not exist")
+                continue
             enabled_web_scraper |= {f"{package_path}.{module_name}" for module_name in module_names}
             available_web_scraper |= {name for _, name, _ in Plugins.iter_namespace(module)}
         print("Config enabled web scraper: ", enabled_web_scraper)
