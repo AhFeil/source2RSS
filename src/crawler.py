@@ -1,10 +1,12 @@
 import logging
 import asyncio
 import signal
-from typing import Iterable
+from dataclasses import dataclass
+from typing import Iterable, Self
 
 from src.website_scraper import WebsiteScraper, FailtoGet, CreateByInvalidParam, CreateByLocked, AsyncBrowserManager
 from src.local_publish import goto_uniform_flow
+from preproc import config, data, Plugins
 
 logger = logging.getLogger("crawler")
 
@@ -15,7 +17,7 @@ class CrawlInitError(Exception):
         self.code = code
 
 
-async def process_crawl_flow_of_one(data, cls: WebsiteScraper, init_params: Iterable, amount: int) -> list[str]:
+async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Iterable, amount: int) -> list[str]:
     """创建实例然后走统一流程"""
     res = []
     for params in init_params:
@@ -53,21 +55,28 @@ async def process_crawl_flow_of_one(data, cls: WebsiteScraper, init_params: Iter
     return res
 
 
-async def monitor_website(config, data, plugins):
-    """控制总流程： 解析，整合，保存，生成 RSS"""
+@dataclass
+class ClassNameAndParams:
+    name: str
+    init_params: Iterable
+    amount: int
+
+    @classmethod
+    def create(cls, cls_name: str, init_params: Iterable | None = None, amount: int | None = None) -> Self:
+        """如果没有传入初始化参数等，就从配置中去取"""
+        init_params = init_params or config.get_params(cls_name)
+        amount = amount or config.get_amount(cls_name)
+        return cls(cls_name, init_params, amount)
+
+
+async def start_to_crawl(clses: Iterable[ClassNameAndParams]):
+    """根据类名获得相应的类，和它们的初始化参数，组装协程然后放入事件循环"""
     logger.info("***Start all scrapers***")
-
-    tasks = (process_crawl_flow_of_one(data, cls, config.get_params(cls.__name__), config.get_amount(cls.__name__)) for cls in plugins)
-    await asyncio.gather(*tasks)
-
-    await AsyncBrowserManager.delayed_operation("crawler", 1)
+    tasks = (_process_one_kind_of_class(data, cls, item.init_params, item.amount) for item in clses if (cls := Plugins.get_plugin_or_none(item.name)))
+    res = await asyncio.gather(*tasks)
+    await AsyncBrowserManager.delayed_operation("crawler", 1) # 兜底 playwright 打开的浏览器被关闭
     logger.info("***Have finished all scrapers***")
-
-
-async def start_to_crawl(cls_names: Iterable[str]):
-    from preproc import config, data, Plugins
-    plugins = [cls for c in cls_names if (cls := Plugins.get_plugin_or_none(c))]
-    await monitor_website(config, data, plugins)
+    return res
 
 
 running_lock = asyncio.Lock()
@@ -79,8 +88,7 @@ async def start_to_crawl_all():
         return
     logger.info("start to crawl")
     async with running_lock:
-        from preproc import Plugins
-        await start_to_crawl(Plugins.get_all_id())
+        await start_to_crawl(ClassNameAndParams.create(name) for name in Plugins.get_all_id())
 
 
 if __name__ == "__main__":

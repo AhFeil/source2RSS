@@ -107,3 +107,213 @@ parse 方法（协程）要是一个生成器，按照一定顺序返回文章�
 有时候一些信息源不一定有时间条目，反而像是章节之类的，这时候可以修改类成员 key4sort = "something"，然后在返回的字典中包含 something 键，这样在生成 RSS 时，就会按照 something 排序。
 
 **如果你要编写自己的抓取器，看明白 "website_scraper/example.py" 和 "website_scraper/cslrxyz.py" 就够了**
+
+
+## 设计
+
+源，可以是网站（HTML、JSON、RSS）、API 接口、其他程序通过 API 发来的数据等等。
+
+一个源由两部分组成：
+1. 元信息。如源的名称、源的排列方式（比如发布时间、章节数）
+2. 文章。这里姑且统一叫文章，文章最少要有标题和用于排列的标志
+
+发布时间是客观必然存在的一种排列标志，在获取源的文章时，可以按时间排序，然后仅获取更新的，再把更新的存入数据库缓存起来，避免每次都要重复获取。根据源的特点，也可以采取其他标志进行排序。
+
+---
+
+为了扩展性，将每个源的抓取器作为插件加载，抓取器的主要职责是根据指定顺序返回文章。
+
+source2RSS 框架的职责主要为：
+1. 定期或在 API 请求下运行抓取器，可以指定初始化参数
+2. 从抓取器获取文章并保存
+3. 格式化为 RSS、JSON 等数据
+4. 提供 Web 提供访问
+
+
+### 抓取器流程
+
+先省略
+
+### Web 请求时序图
+
+查看信息源的接口
+
+```mermaid
+sequenceDiagram
+    actor User
+    box FastAPI
+    participant get_rss
+    participant templates
+    end
+    box source2RSS
+    participant data
+    end
+
+    alt 访问根路径
+        User->>get_rss: 请求首页
+        get_rss->>data: 获取可以公开访问的所有源的名称
+        data->>get_rss: 返回所有名称
+        get_rss->>templates: 传入数据，渲染页面
+        templates->>get_rss: 返回HTML
+        get_rss->>User: 返回首页
+    else 访问 /{source_name}.xml/
+        User->>get_rss: 请求某个源的 RSS
+        get_rss->>data: 以源名称获取数据
+        data->>get_rss: 返回 RSS 文本
+        get_rss->>User: 返回 RSS
+    else 访问 /{source_name}.json/
+        User->>get_rss: 请求某个源的 JSON
+        get_rss->>data: 以源名称获取数据
+        data->>get_rss: 返回 JSON
+        get_rss->>User: 返回 RSS 的 JSON
+    end
+```
+
+请求信息源的接口（需要权限）
+
+```mermaid
+sequenceDiagram
+    actor User
+    box FastAPI
+    participant query_rss
+    end
+    box source2RSS
+    participant crawler
+    participant data
+    end
+
+    alt 访问 /{source_name}.xml/
+        User->>query_rss: 请求某个源的 RSS
+        query_rss->>query_rss: 验证用户，为管理员才继续
+        query_rss->>data: 以源名称获取数据
+        data->>query_rss: 返回 RSS 文本
+        query_rss->>User: 返回 RSS
+    else 访问 /{cls_id}/?q=xx&q=yy
+        User->>query_rss: 请求某个源的 JSON
+        query_rss->>query_rss: 验证为有效用户才继续
+        query_rss->>query_rss: 根据 cls_id 能获得到类才继续
+        alt 用户是管理员且不在睡眠时间
+            query_rss->>crawler: 根据 cls_id 和请求参数 q 走立即请求路径
+        else 用户不是管理员
+            query_rss->>crawler: 根据 cls_id 和请求参数 q 走缓存路径
+        end
+        crawler->>crawler: 走抓取源流程
+        create participant get_rss
+        query_rss->>get_rss: 请求某个源的 RSS
+        destroy get_rss
+        query_rss-xget_rss: 返回 RSS
+        query_rss->>User: 返回 RSS
+    end
+```
+
+发送信息源的接口（需要权限）
+
+```mermaid
+sequenceDiagram
+    actor User
+    box FastAPI
+    participant post_rss
+    end
+    box source2RSS
+    participant crawler
+    participant data
+    end
+
+    User->>post_rss: 发起请求
+    post_rss->>post_rss: 验证用户，为管理员才继续
+    alt 访问 /{source_name}/，请求体里是文章列表
+        post_rss->>data: 以源名称获取元信息
+        data->>post_rss: 返回元信息
+        alt 元信息不存在
+            post_rss->>post_rss: 组装出默认的元信息
+        end
+        create participant no_cache_flow
+        post_rss->>no_cache_flow: 用特殊抓取器，将元信息和文章列表作为参数传入，走抓取源流程
+        destroy no_cache_flow
+        post_rss-xno_cache_flow: 返回源名称
+    else 以 post 访问根路径，请求体里是源的元信息
+        post_rss->>data: 以源名称获取元信息
+        data->>post_rss: 返回元信息
+        alt 元信息已存在
+            post_rss->>User: 返回需要使用 put 更新元信息
+        else 元信息不存在
+            post_rss->>data: 传入元信息，存储源到元表中
+        end
+    else 以 put 访问根路径，请求体里是源的元信息
+        post_rss->>data: 传入元信息，更新元表中的源
+    end
+    post_rss->>User: 返回相应信息
+```
+
+### 抓取源的时序图
+
+
+```mermaid
+sequenceDiagram
+    actor User
+    box source2RSS
+    participant config
+    participant Plugins
+    participant crawler
+    participant data
+    participant uniform_flow
+    end
+
+    User->>config: 加载配置
+    User->>Plugins: 加载插件
+    Plugins->>Plugins: import 插件，插件会注册自身的类
+    User->>data: 加载数据
+    User->>User: 组装 ClassNameAndParams 列表
+    User->>crawler: 传入参数 start_to_crawl
+
+    loop 组装协程
+        crawler->>Plugins: 根据类名获得抓取器的类
+        Plugins->>crawler: 返回类
+        create participant scraper
+        crawler->>scraper: 传入参数创建实例
+        scraper->>scraper: 查询信息、加锁等
+        scraper->>crawler: 返回实例
+    end
+    crawler->>crawler: 将全部协程放入事件循环
+
+    par 执行类A的协程
+        crawler->>uniform_flow: 传递实例，创建多个协程任务
+    and 执行类B的协程
+        crawler->>uniform_flow: ...
+    and 执行类X的协程
+        crawler->>uniform_flow: 类之间使用协程并行，类自身多个实例按次序执行
+    end
+
+    Note right of uniform_flow: "对于单个协程，其流程如图"
+    uniform_flow->>scraper: 获得源的元信息、表名等信息
+    scraper->>uniform_flow: 返回信息
+    uniform_flow->>data: 确保源在元表中存在
+    uniform_flow->>data: 根据指定维度获得最新的文章
+    data->>uniform_flow: 返回文章
+    alt 文章为空
+        uniform_flow->>uniform_flow: 构建参数：flags（获取10个文章）、sequence（优先从新到旧）
+    else 文章不为空
+        uniform_flow->>uniform_flow: 构建参数：flags（最新文章名称和标志等）、sequence（优先从旧到新）
+    end
+
+    uniform_flow->>scraper: 传入参数
+    loop 遍历 scraper 返回文章的生成器接口
+        uniform_flow->>scraper: 获得文章
+        scraper->>uniform_flow: 返回文章
+        uniform_flow->>data: 保存文章
+    end
+    alt 没有返回一篇文章
+        uniform_flow->>uniform_flow: 日志打印无更新
+    else 返回了文章
+        uniform_flow->>data: 获取最新的若干篇
+        data->>uniform_flow: 返回文章
+        uniform_flow->>uniform_flow: 生成 RSS 格式文本和 JSON 格式数据
+        uniform_flow->>data: 缓存数据并保存到硬盘
+    end
+    uniform_flow->>crawler: 返回源的名称
+
+    destroy scraper
+    crawler-xscraper: 调用实例销毁接口释放资源
+    crawler->>User: 返回所有实例源的名称
+
+```

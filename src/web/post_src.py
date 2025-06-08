@@ -4,7 +4,6 @@ import logging
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from src.website_scraper.examples.representative import Representative
 from src.website_scraper import SourceMeta, ArticleInfo, SortKey, AccessLevel
 from preproc import data
 from .query_rss import no_cache_flow
@@ -48,7 +47,7 @@ async def delivery(source_name: str, articles: list[ArticleInfo]):
             "key4sort": SortKey.PUB_TIME,
             "access": AccessLevel.ADMIN
         }
-    f_source_name = await no_cache_flow("Representative", Representative, ((source, j_articles)))
+    f_source_name = await no_cache_flow("Representative", ((source, j_articles), ))
     url_without_suffix = "http://rss.vfly2.com/source2rss/" + f_source_name
     xml_url = url_without_suffix + ".xml"
     json_url = url_without_suffix + ".json"
