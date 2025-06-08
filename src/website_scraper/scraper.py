@@ -177,16 +177,10 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     @staticmethod
     def _standardize_article(a: dict) -> ArticleDict:
-        extra_keys = set(a.keys()) - ArticleDict.__field_names__ # type: ignore
-        for k in extra_keys:
-            a.pop(k)
         return ArticleInfo(**a).model_dump() # type: ignore
 
     @staticmethod
     def _standardize_src_Info(s: dict) -> SrcMetaDict:
-        extra_keys = set(s.keys()) - SrcMetaDict.__field_names__ # type: ignore
-        for k in extra_keys:
-            s.pop(k)
         return SourceMeta(**s).model_dump() # type: ignore
 
     @staticmethod

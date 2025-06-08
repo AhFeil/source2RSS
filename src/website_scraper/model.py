@@ -55,6 +55,7 @@ class SrcMetaDict(TypedDict):
 
 class SourceMeta(BaseModel):
     model_config = ConfigDict(
+        frozen=True,
         json_encoders={HttpUrl: lambda v: str(v)}, # type: ignore  # 自动将HttpUrl转为字符串
         populate_by_name=True
     )
@@ -82,6 +83,8 @@ class ArticleDict(TypedDict, total=False):
 
 
 class ArticleInfo(BaseModel):
+    model_config = ConfigDict(frozen=True)
+
     id: Optional[int] = 0
     title: str
     summary: str

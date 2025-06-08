@@ -67,13 +67,15 @@ class HotJuejin(WebsiteScraper):
 
             html_content = await AsyncBrowserManager.get_html_or_none(cls.title, article_url, user_agent)
             if html_content is None:
-                continue
+                break
             soup = BeautifulSoup(html_content, features="lxml")
 
             meta_info = soup.find('div', class_='meta-box')
+            if not meta_info:
+                break
             time_sth = meta_info.find('time', class_="time")
             if not time_sth:
-                continue
+                break
             time = time_sth["datetime"]
             time_obj = datetime.strptime(time, "%Y-%m-%dT%H:%M:%S.%fZ")
             description = soup.find('div', class_='message')
