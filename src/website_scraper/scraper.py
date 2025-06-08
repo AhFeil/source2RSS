@@ -4,7 +4,7 @@ from abc import ABC, ABCMeta, abstractmethod
 from typing import Generator, AsyncGenerator, Self, Any
 
 from api._v2 import Plugins
-from .model import LocateInfo, Sequence, SrcMetaDict, ArticleDict
+from .model import LocateInfo, Sequence, SrcMetaDict, ArticleDict, SourceMeta, ArticleInfo
 
 
 class FailtoGet(Exception):
@@ -52,7 +52,6 @@ class ScraperMeta(ABCMeta):
 class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     # ***公开属性***
-    key4sort = "pub_time"
     # 下面属性由元类自动判别赋值
     is_variety: bool = False   # 创建时是否需要传入额外参数
     support_old2new: bool = False
@@ -112,7 +111,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             async_gen = cls._parse
 
         async for a in async_gen(flags, *self._custom_parameter_of_parse()):
-            if a[key4sort] > flags[key4sort]:
+            if a[key4sort] > flags[key4sort]: # type: ignore
                 yield WebsiteScraper._standardize_article(a)
             else:
                 if cls.support_old2new:
@@ -141,7 +140,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             'link': self.__class__.home_url,
             'desc': "Linux，单片机，编程",
             'lang': "zh-CN",
-            'key4sort': self.__class__.key4sort
+            'key4sort': "pub_time"
         }
 
     def _custom_parameter_of_parse(self) -> tuple:
@@ -181,20 +180,14 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         extra_keys = set(a.keys()) - ArticleDict.__field_names__ # type: ignore
         for k in extra_keys:
             a.pop(k)
-        lacked_keys = ArticleDict.__field_names__ - set(a.keys()) # type: ignore
-        for k in lacked_keys:
-            a[k] = None
-        return a # type: ignore
+        return ArticleInfo(**a).model_dump() # type: ignore
 
     @staticmethod
     def _standardize_src_Info(s: dict) -> SrcMetaDict:
         extra_keys = set(s.keys()) - SrcMetaDict.__field_names__ # type: ignore
         for k in extra_keys:
             s.pop(k)
-        lacked_keys = SrcMetaDict.__field_names__ - set(s.keys()) # type: ignore
-        for k in lacked_keys:
-            s[k] = None
-        return s # type: ignore
+        return SourceMeta(**s).model_dump() # type: ignore
 
     @staticmethod
     def _get_time_obj(reverse: bool=False, count: int=100, interval: int=2, current_time: datetime | None=None) -> Generator[datetime, None, None]:

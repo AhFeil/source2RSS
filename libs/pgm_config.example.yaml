@@ -1,6 +1,3 @@
-program_configuration: true
-
-
 screenshot_root: config_and_data_files
 
 desktop_user_agent: [

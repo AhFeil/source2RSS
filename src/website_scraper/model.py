@@ -60,7 +60,7 @@ class SourceMeta(BaseModel):
     )
 
     name: str
-    link: HttpUrl
+    link: str # HttpUrl 不能和字符串进行比较，不能被数据库用时自动转换为字符串，太不好用
     desc: str
     lang: str = "zh-CN"
     key4sort: SortKey = SortKey.PUB_TIME
@@ -85,10 +85,10 @@ class ArticleInfo(BaseModel):
     id: Optional[int] = 0
     title: str
     summary: str
-    link: HttpUrl
+    link: str
     pub_time: datetime
     content: Optional[str] = ""
-    image_link: Optional[HttpUrl] = "" # todo
+    image_link: Optional[str] = ""
     chapter_number: Optional[int] = 0
     time4sort: Optional[datetime] = datetime.now()
     num4sort: Optional[int] = 0

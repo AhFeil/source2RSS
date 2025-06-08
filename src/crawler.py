@@ -71,11 +71,9 @@ class ClassNameAndParams:
 
 async def start_to_crawl(clses: Iterable[ClassNameAndParams]):
     """根据类名获得相应的类，和它们的初始化参数，组装协程然后放入事件循环"""
-    logger.info("***Start all scrapers***")
     tasks = (_process_one_kind_of_class(data, cls, item.init_params, item.amount) for item in clses if (cls := Plugins.get_plugin_or_none(item.name)))
     res = await asyncio.gather(*tasks)
     await AsyncBrowserManager.delayed_operation("crawler", 1) # 兜底 playwright 打开的浏览器被关闭
-    logger.info("***Have finished all scrapers***")
     return res
 
 
@@ -86,9 +84,10 @@ async def start_to_crawl_all():
     if running_lock.locked():
         logger.info("is crawling now")
         return
-    logger.info("start to crawl")
+    logger.info("***Start all scrapers***")
     async with running_lock:
         await start_to_crawl(ClassNameAndParams.create(name) for name in Plugins.get_all_id())
+    logger.info("***Have finished all scrapers***")
 
 
 if __name__ == "__main__":

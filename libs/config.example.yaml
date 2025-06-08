@@ -1,5 +1,6 @@
-user_configuration: true
 is_production: true
+other_configs_path:   # 靠后的配置文件会覆盖前面的配置
+- libs/pgm_config.example.yaml
 
 # 启用抓取器，这里启用了所有可用的，可以删除不需要的
 enabled_web_scraper:
