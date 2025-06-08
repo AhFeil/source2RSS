@@ -3,7 +3,7 @@ import logging
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, constr
 
 from .security import UserRegistry
 
@@ -15,10 +15,12 @@ router = APIRouter(
 )
 
 
+username_password_regex = r'^[a-zA-Z0-9!@#$%^&*()_+={}\[\]<>,.?/~-]+$'
+
 class UserCreate(BaseModel):
     invite_code: str
-    name: str
-    passwd: str
+    name: constr(pattern=username_password_regex, min_length=3, max_length=20) # type: ignore
+    passwd: constr(pattern=username_password_regex, min_length=8, max_length=32) # type: ignore
 
 
 @router.post("/me/register", response_class=JSONResponse)
