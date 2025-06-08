@@ -130,6 +130,7 @@ class Config:
 
 config = Config(os.path.abspath(configfile))
 
+logger = logging.getLogger("post2RSS")
 
 async def post2RSS(title: str, summary: str) -> httpx.Response | None:
     url = f"http://127.0.0.1:{config.port}/post_src/source2rss_severe_log/"
@@ -150,7 +151,7 @@ async def post2RSS(title: str, summary: str) -> httpx.Response | None:
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(url=url, headers=headers, json=data_raw, timeout=timeout)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning(f"exception of post2RSS: {e}")
         else:
             return response

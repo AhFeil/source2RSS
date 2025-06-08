@@ -3,6 +3,7 @@ import asyncio
 
 from src.website_scraper import FailtoGet, WebsiteScraper, LocateInfo, Sequence
 from src.generate_rss import generate_rss
+from configHandle import post2RSS
 
 logger = logging.getLogger("local_publish")
 
@@ -27,7 +28,9 @@ async def save_articles(data, source_name, article_source) -> bool:
     except FailtoGet:
         logger.info(f"FailtoGet: Processing {source_name} 网络出错")
     except Exception as e:
-        logger.exception("Unpredictable Exception when get and save article of %s: %s", source_name, e)
+        msg = f"Unpredictable Exception when get and save article of {source_name}: {e}"
+        logger.exception(msg)
+        await post2RSS("error log of save_articles", msg)
     finally:
         return store_a_new_one
 

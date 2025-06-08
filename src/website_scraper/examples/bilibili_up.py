@@ -4,6 +4,7 @@ from typing import AsyncGenerator, Self
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam, FailtoGet
 from src.website_scraper.tools import AsyncBrowserManager
+from configHandle import post2RSS
 
 
 class BilibiliUp(WebsiteScraper):
@@ -123,7 +124,9 @@ class BilibiliUp(WebsiteScraper):
             except TimeoutError:
                 AsyncBrowserManager._logger.warning(f"Page navigation of {id} timed out")
             except Exception as e:
-                AsyncBrowserManager._logger.warning(f"Page navigation of {id} Exception occured: {e}")
+                msg = f"Page navigation of {id} Exception occured: {e}"
+                AsyncBrowserManager._logger.warning(msg)
+                await post2RSS("error log of BilibiliUp when get_response_json", msg)
                 raise FailtoGet
             finally:
                 await page.close()

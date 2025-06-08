@@ -6,6 +6,7 @@ from typing import Iterable, Self
 
 from src.website_scraper import WebsiteScraper, FailtoGet, CreateByInvalidParam, CreateByLocked, AsyncBrowserManager
 from src.local_publish import goto_uniform_flow
+from configHandle import post2RSS
 from preproc import config, data, Plugins
 
 logger = logging.getLogger("crawler")
@@ -39,7 +40,9 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
         except FailtoGet:
             raise CrawlInitError(500, "Failed when crawling")
         except Exception as e:
-            logger.exception(f"fail when query rss {cls.__name__}: {e}")
+            msg = f"fail when query rss {cls.__name__}: {e}"
+            logger.exception(msg)
+            await post2RSS("error log of _process_one_kind_of_class", msg)
             raise CrawlInitError(500, "Unknown Error")
         else:
             # todo

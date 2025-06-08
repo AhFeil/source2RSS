@@ -52,7 +52,7 @@ class HotBilibili(WebsiteScraper):
         if response is None:
             return
         res = response.json()
-        if res and res["data"]:
+        if res and res.get("data"):
             res["data"]["list"].sort(key=lambda x: x["ctime"], reverse=True)
             articles = res["data"]["list"] if not reverse else \
                         WebsiteScraper._range_by_desc_of(res["data"]["list"], pub_time, lambda a, f : f < datetime.fromtimestamp(a["ctime"]))
