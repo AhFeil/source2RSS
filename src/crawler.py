@@ -77,6 +77,7 @@ async def start_to_crawl_all():
     if running_lock.locked():
         logger.info("is crawling now")
         return
+    logger.info("start to crawl")
     async with running_lock:
         from preproc import Plugins
         await start_to_crawl(Plugins.get_all_id())

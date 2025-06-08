@@ -1,6 +1,7 @@
 import sys
 import os
 import json
+import base64
 from datetime import datetime
 import logging.config
 from typing import Generator, Iterable
@@ -64,7 +65,6 @@ class Config:
 
         # 用户配置
         self.is_production = user_configs['is_production']
-        self.port = user_configs.get("port", 8536)
         crawler_default_cfg = user_configs.get("crawler_default_cfg", {})
         run_everyday_at = crawler_default_cfg.get("run_everyday_at", "06:00")
         self.run_everyday_at = [run_everyday_at] if isinstance(run_everyday_at, str) else run_everyday_at
@@ -82,6 +82,9 @@ class Config:
 
         self.enabled_web_scraper = user_configs.get('enabled_web_scraper', {})
         self.remote_pub_scraper = user_configs.get('remote_pub_scraper', {})
+
+        self.ip_or_domain = user_configs.get('ip_or_domain', "127.0.0.1")
+        self.port = user_configs.get("port", 8536)
 
         self.query_cache_maxsize = user_configs.get('query_cache_maxsize', 100)
         self.query_cache_ttl_s = user_configs.get('query_cache_ttl_s', 3600)
@@ -134,20 +137,19 @@ config = Config(absolute_configfiles)
 async def post2RSS(title: str, summary: str) -> httpx.Response | None:
     url = f"http://127.0.0.1:{config.port}/post_src/source2rss_severe_log/"
     timeout = httpx.Timeout(10.0, read=10.0)
+    credentials = f"{config.query_username}:{config.query_password}"
+    encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
     headers = {
         "accept": "application/json",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": f"Basic {encoded_credentials}"
     }
-    data_raw = {
-        "name": config.query_username,
-        "passwd": config.query_password,
-        "articles": [{
+    data_raw = [{
             "title": title,
             "link": "http://rss.vfly2.com/source2rss/source2rss_severe_log",
             "summary": summary,
             "pub_time": datetime.now().timestamp()
         }]
-    }
     async with httpx.AsyncClient() as client:
         try:
             response = await client.post(url=url, headers=headers, json=data_raw, timeout=timeout)

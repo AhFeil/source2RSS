@@ -21,8 +21,8 @@ class Data:
                 self._users = json.load(f)
 
         # 内存里的RSS数据， todo 需要封装
-        self._rss: dict[str, str] = Data._load_files_to_dict(config.rss_dir)
-        self._rss_json: dict[str, dict] = {}
+        self._public_rss: dict[str, str] = Data._load_files_to_dict(config.rss_dir)
+        self._public_rss_json: dict[str, dict] = {}
 
         # DB
         from src.data import DatabaseIntf
@@ -36,28 +36,28 @@ class Data:
             self.db_intf: DatabaseIntf = SQliteIntf.connect(info)
 
     def get_rss_or_None(self, source_name: str) -> str | None:
-        return self._rss.get(source_name)
+        return self._public_rss.get(source_name)
 
     def get_rss_json_or_None(self, source_name: str) -> dict | None:
-        return self._rss_json.get(source_name)
+        return self._public_rss_json.get(source_name)
 
     def get_rss_list(self) -> list[str]:
-        return sorted([rss for rss in self._rss if rss.endswith(".xml")])
+        return sorted([rss for rss in self._public_rss if rss.endswith(".xml")])
 
     def set_rss(self, source_name: str, rss: bytes, rss_json: dict, cls_id_or_none: str | None):
         """将RSS文件名和RSS内容映射，如果是单例，还将类名和RSS内容映射"""
         rss_str = rss.decode()
-        self._rss[source_name] = rss_str
-        self._rss_json[source_name] = rss_json
+        self._public_rss[source_name] = rss_str
+        self._public_rss_json[source_name] = rss_json
         if cls_id_or_none:
-            self._rss[cls_id_or_none] = rss_str
-            self._rss_json[cls_id_or_none] = rss_json
+            self._public_rss[cls_id_or_none] = rss_str
+            self._public_rss_json[cls_id_or_none] = rss_json
         rss_filepath = Path(self.config.rss_dir) / (source_name + ".xml")
         with open(rss_filepath, 'wb') as rss_file:
             rss_file.write(rss)
 
     def rss_is_absent(self, source_name: str) -> bool:
-        return source_name not in self._rss or source_name not in self._rss_json
+        return source_name not in self._public_rss or source_name not in self._public_rss_json
 
     def get_users_and_etc(self) -> dict:
         return self._users

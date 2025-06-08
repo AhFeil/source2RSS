@@ -7,20 +7,29 @@ from functools import wraps
 from cachetools import TTLCache
 from fastapi import APIRouter, Query, HTTPException, status, Depends
 from fastapi.responses import PlainTextResponse
-from fastapi.security import HTTPBasicCredentials
 
 from src.website_scraper import WebsiteScraper
 from src.crawler import process_crawl_flow_of_one, CrawlInitError
 from preproc import Plugins, data, config
-from .security import security, UserRegistry
+from .security import User, get_valid_user, get_admin_user
 from .get_rss import get_saved_rss
 
-logger = logging.getLogger("query_rss")
+logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/query_rss",
-    tags=["query_rss"],
+    tags=[__name__],
 )
+
+
+@router.get("/{f_source_name}.xml/", response_class=PlainTextResponse, dependencies=[Depends(get_admin_user)])
+def get_api_rss(f_source_name: str):
+    """查看管理员通过 API 发布的 RSS"""
+    rss = data.get_rss_or_None(f_source_name + ".xml")
+    if rss is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
+    return rss
+
 
 cache=TTLCache(maxsize=config.query_cache_maxsize, ttl=config.query_cache_ttl_s)
 
@@ -48,16 +57,8 @@ async def cache_flow(cls_id: str, cls: WebsiteScraper, q: tuple) -> str:
     return await no_cache_flow(cls_id, cls, q)
 
 @router.get("/{cls_id}/", response_class=PlainTextResponse)
-async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [],
-                    credentials: HTTPBasicCredentials = Depends(security)):
+async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [], user: User = Depends(get_valid_user)):
     """主动请求，会触发更新，因此需要身份验证。对于普通用户，可以设置缓存防止滥用。获取结果和 get_rss 中的一样，复用即可。"""
-    user = UserRegistry.get_valid_user_or_none(credentials.username, credentials.password)
-    if user is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Basic"},
-        )
     logger.info(f"{cls_id} get new request of {q}")
     # todo cls 不能为 Representative
     cls: WebsiteScraper | None = Plugins.get_plugin_or_none(cls_id) # type: ignore

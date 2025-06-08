@@ -3,18 +3,10 @@ from dataclasses import dataclass
 import hashlib
 from typing import Self
 
-from fastapi.security import HTTPBasic
-from pydantic import BaseModel
+from fastapi import HTTPException, status, Depends
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from preproc import config, data
-
-
-security = HTTPBasic()
-
-
-class Identity(BaseModel):
-    name: str
-    passwd: str
 
 
 @dataclass
@@ -74,9 +66,9 @@ class UserRegistry():
         return user
 
     @classmethod
-    def update_ic(cls, code: str, count: int, name: str, passwd: str) -> bool:
+    def update_ic(cls, code: str, count: int, user: User) -> bool:
         """根据用户名和密码获取一个有效的实例"""
-        if (user := cls.get_valid_user_or_none(name, passwd)) and user.is_administrator:
+        if user.is_administrator:
             cls._invite_code = code
             cls._left_count = count
             cls._save_users_and_etc()
@@ -104,3 +96,24 @@ class UserRegistry():
 
 
 UserRegistry._load_users_and_etc(data.get_users_and_etc())
+
+
+security = HTTPBasic()
+
+async def get_valid_user(credentials: HTTPBasicCredentials = Depends(security)) -> User:
+    user = UserRegistry.get_valid_user_or_none(credentials.username, credentials.password)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid credentials",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return user
+
+async def get_admin_user(user: User = Depends(get_valid_user)) -> User:
+    if not user.is_administrator:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Not admin user",
+        )
+    return user

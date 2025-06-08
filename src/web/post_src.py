@@ -1,31 +1,30 @@
 """通过 API 向 source2RSS 发送消息，以 RSS 发布"""
 import logging
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 from src.website_scraper.examples.representative import Representative
 from src.website_scraper import SourceMeta, ArticleInfo, SortKey, AccessLevel
 from preproc import data
 from .query_rss import no_cache_flow
-from .security import UserRegistry
+from .security import get_admin_user
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(
     prefix="/post_src",
-    tags=["post_src"],
+    tags=[__name__],
 )
 
 
-@router.put("/", response_class=JSONResponse)
+@router.put("/", response_class=JSONResponse, dependencies=[Depends(get_admin_user)])
 async def update_source(m: SourceMeta):
     meta = m.model_dump(mode="json")
     data.db_intf.exist_source_meta(meta) # type: ignore
     return {"message": "done"}
 
-@router.post("/", response_class=JSONResponse)
+@router.post("/", response_class=JSONResponse, dependencies=[Depends(get_admin_user)])
 async def add_source(m: SourceMeta):
     if data.db_intf.get_source_info(m.name):
         return {"message": "There is already a source with the same name, you can use put to update it"}
@@ -34,23 +33,11 @@ async def add_source(m: SourceMeta):
     return {"message": "done"}
 
 
-class Delivery(BaseModel):
-    name: str
-    passwd: str
-    articles: list[ArticleInfo]
-
-
-@router.post("/{source_name}/", response_class=JSONResponse)
-async def delivery(source_name: str, d: Delivery):
+@router.post("/{source_name}/", response_class=JSONResponse, dependencies=[Depends(get_admin_user)])
+async def delivery(source_name: str, articles: list[ArticleInfo]):
     """用收到的文章构造一个特殊的抓取器，然后走正常处理流程"""
-    user = UserRegistry.get_valid_user_or_none(d.name, d.passwd)
-    if user is None or not user.is_administrator:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-        )
     logger.info("reveice articles of %s", source_name)
-    articles = [a.model_dump_to_json() for a in d.articles]
+    j_articles = [a.model_dump_to_json() for a in articles]
     source = data.db_intf.get_source_info(source_name)
     if source is None:
         source = {
@@ -61,7 +48,7 @@ async def delivery(source_name: str, d: Delivery):
             "key4sort": SortKey.PUB_TIME,
             "access": AccessLevel.ADMIN
         }
-    f_source_name = await no_cache_flow("Representative", Representative, ((source, articles)))
+    f_source_name = await no_cache_flow("Representative", Representative, ((source, j_articles)))
     url_without_suffix = "http://rss.vfly2.com/source2rss/" + f_source_name
     xml_url = url_without_suffix + ".xml"
     json_url = url_without_suffix + ".json"
