@@ -22,16 +22,15 @@ async def get_rss_list(request: Request):
     context = {"rss_list": data.rss_cache.get_rss_list()}
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
-@router.get("/{source_name}.xml/", response_class=PlainTextResponse)
-def get_saved_rss(source_name: str):
-    rss = data.rss_cache.get_rss_or_None(source_name)
-    if rss is None:
+@router.get("/{source_name_with_suffix}/")
+def get_saved_rss(source_name_with_suffix: str):
+    source_name, suffix = source_name_with_suffix.rsplit(".", 1)
+    rss_data = data.rss_cache.get_rss_or_None(source_name)
+    if rss_data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
-    return rss
-
-@router.get("/{source_name}.json/", response_class=JSONResponse)
-def get_saved_json(source_name: str):
-    rss_json = data.rss_cache.get_rss_json_or_None(source_name)
-    if rss_json is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS json is missed in cache")
-    return rss_json
+    if suffix == "xml":
+        return PlainTextResponse(rss_data.xml)
+    elif suffix == "json":
+        return JSONResponse(rss_data.json)
+    else:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="suffix is not supported")

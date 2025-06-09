@@ -2,47 +2,62 @@ import os
 from pathlib import Path
 import logging
 import json
+from dataclasses import dataclass
+
+from src.website_scraper import AccessLevel
+
+
+@dataclass
+class RSSData:
+    xml: str
+    json: dict
 
 
 class RSSCache:
     """内存里缓存的RSS数据"""
-    def __init__(self, rss_dir: str) -> None:
-        self.rss_dir = Path(rss_dir)
-        self._public_rss: dict[str, str] = RSSCache._load_files_to_dict(rss_dir)
-        self._public_rss_json: dict[str, dict] = {}
+    def __init__(self, rss_dir: str, rss_admin_dir: str) -> None:
+        self.rss_dir, self.rss_admin_dir = Path(rss_dir), Path(rss_admin_dir)
+        self._public: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_dir)
+        self._admin: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_admin_dir)
 
-    def get_rss_or_None(self, source_name: str) -> str | None:
-        return self._public_rss.get(source_name)
+    def get_rss_or_None(self, source_name: str) -> RSSData | None:
+        return self._public.get(source_name)
 
-    def get_rss_json_or_None(self, source_name: str) -> dict | None:
-        return self._public_rss_json.get(source_name)
+    def get_admin_rss_or_None(self, source_name: str) -> RSSData | None:
+        return self._admin.get(source_name)
 
     def get_rss_list(self) -> list[str]:
-        return sorted([rss for rss in self._public_rss])
+        return sorted([rss for rss in self._public])
 
-    def set_rss(self, source_name: str, rss: bytes, rss_json: dict, cls_id_or_none: str | None):
+    def get_admin_rss_list(self) -> list[str]:
+        return sorted([rss for rss in self._admin])
+
+    def set_rss(self, source_name: str, rss: bytes, rss_json: dict, cls_id_or_none: str | None, access: AccessLevel):
         """将RSS源名称和RSS内容映射，如果是单例，还将类名和RSS内容映射"""
-        rss_str = rss.decode()
-        self._public_rss[source_name] = rss_str
-        self._public_rss_json[source_name] = rss_json
-        if cls_id_or_none:
-            self._public_rss[cls_id_or_none] = rss_str
-            self._public_rss_json[cls_id_or_none] = rss_json
+        rss_data = RSSData(rss.decode(), rss_json)
+        if access == AccessLevel.ADMIN:
+            self._admin[source_name] = rss_data
+            if cls_id_or_none:
+                self._admin[cls_id_or_none] = rss_data
+        else:
+            self._public[source_name] = rss_data
+            if cls_id_or_none:
+                self._public[cls_id_or_none] = rss_data
         rss_filepath = self.rss_dir / (source_name + ".xml")
-        with open(rss_filepath, 'wb') as rss_file:
+        with open(rss_filepath, 'wb') as rss_file:   # todo 退出时保存一次
             rss_file.write(rss)
 
     def rss_is_absent(self, source_name: str) -> bool:
-        return source_name not in self._public_rss or source_name not in self._public_rss_json
+        return source_name not in self._public or source_name not in self._admin
 
     @staticmethod
-    def _load_files_to_dict(directory):
-        path = Path(directory)
+    def _load_files_to_dict(path: Path) -> dict[str, RSSData]:
         file_dict = {}
         for file_path in path.iterdir():
             if file_path.is_file():
                 file_content = file_path.read_text(encoding='utf-8')
-                file_dict[file_path.stem] = file_content
+                rss_data = RSSData(file_content, {"detail": "RSS json is missed in cache"})
+                file_dict[file_path.stem] = rss_data
         return file_dict
 
 
@@ -51,7 +66,7 @@ class Data:
     def __init__(self, config) -> None:
         self.config = config
         self.logger = logging.getLogger("dataHandle")
-        self.rss_cache = RSSCache(config.rss_dir)
+        self.rss_cache = RSSCache(config.rss_dir, config.rss_admin_dir)
 
         # 从文件里加载用户数据
         self._users = {"invite_code": None, "left_count": 0, "users": []}

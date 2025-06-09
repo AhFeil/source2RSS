@@ -25,8 +25,10 @@ class Config:
         # 用户不应该考虑的配置，开发者可以改的
         self.sqlite_uri = "sqlite:///config_and_data_files/source2rss.db"
         self.rss_dir = "config_and_data_files/rss"
-        self.users_file = "config_and_data_files/users.json"
+        self.rss_admin_dir = "config_and_data_files/rss_admin"
         os.makedirs(self.rss_dir, exist_ok=True)
+        os.makedirs(self.rss_admin_dir, exist_ok=True)
+        self.users_file = "config_and_data_files/users.json"
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
         self.run_test_every_seconds = 30
         self.bili_context = "config_and_data_files/bili_context.json"

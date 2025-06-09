@@ -5,13 +5,13 @@ from typing import Annotated
 from functools import wraps
 
 from cachetools import TTLCache
-from fastapi import APIRouter, Query, HTTPException, status, Depends
-from fastapi.responses import PlainTextResponse
+from fastapi import APIRouter, Query, HTTPException, status, Depends, Request
+from fastapi.responses import PlainTextResponse, HTMLResponse
 
 from src.crawler import start_to_crawl, ClassNameAndParams, CrawlInitError
 from preproc import Plugins, data, config
 from .security import User, get_valid_user, get_admin_user
-from .get_rss import get_saved_rss
+from .get_rss import get_saved_rss, templates
 
 logger = logging.getLogger(__name__)
 
@@ -21,13 +21,18 @@ router = APIRouter(
 )
 
 
+@router.get("/", response_class=HTMLResponse, dependencies=[Depends(get_admin_user)])
+async def get_rss_list(request: Request):
+    context = {"rss_list": data.rss_cache.get_admin_rss_list(), "is_admin": True}
+    return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
+
 @router.get("/{source_name}.xml/", response_class=PlainTextResponse, dependencies=[Depends(get_admin_user)])
 def get_api_rss(source_name: str):
     """查看管理员通过 API 发布的 RSS"""
-    rss = data.rss_cache.get_rss_or_None(source_name)
+    rss = data.rss_cache.get_admin_rss_or_None(source_name) or data.rss_cache.get_rss_or_None(source_name)
     if rss is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
-    return rss
+    return rss.xml
 
 
 cache=TTLCache(maxsize=config.query_cache_maxsize, ttl=config.query_cache_ttl_s)
@@ -47,7 +52,7 @@ def async_cached(func):
 async def no_cache_flow(cls_id: str, q: tuple) -> str:
     try:
         res = await start_to_crawl((ClassNameAndParams.create(cls_id, q), ))
-        return res[0][0]
+        return res[0][0] if res else "error"
     except CrawlInitError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
 
@@ -67,4 +72,4 @@ async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [], user: Us
         source_name = await no_cache_flow(cls_id, tuple(q))
     else:
         source_name = await cache_flow(cls_id, tuple(q))
-    return get_saved_rss(source_name)
+    return get_saved_rss(source_name + ".xml")
