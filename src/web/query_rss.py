@@ -69,7 +69,7 @@ async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [], user: Us
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
     if user.is_administrator and not config.in_bedtime(cls_id, datetime.now().strftime("%H:%M")):
         logger.info("go to no_cache_flow of " + cls_id)
-        source_name = await no_cache_flow(cls_id, tuple(q))
+        source_name = await no_cache_flow(cls_id, (q, ))
     else:
-        source_name = await cache_flow(cls_id, tuple(q))
+        source_name = await cache_flow(cls_id, (q, ))
     return get_saved_rss(source_name + ".xml")

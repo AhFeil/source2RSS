@@ -6,14 +6,14 @@ import threading
 import schedule
 
 import preproc
-from src.crawler import start_to_crawl
+from src.crawler import start_to_crawl, ClassNameAndParams
 
 
 config = preproc.config
 
 def sync_wrapper(cls_names, loop):
     try:
-        run_coroutine_threadsafe(start_to_crawl(cls_names), loop)
+        run_coroutine_threadsafe(start_to_crawl(ClassNameAndParams.create(name) for name in cls_names), loop)
     except:  # noqa
         import traceback
         with open("unpredictable_exception.txt", 'a', encoding="utf-8") as f:
