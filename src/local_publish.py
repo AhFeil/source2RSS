@@ -34,10 +34,6 @@ async def save_articles(data, source_name, article_source) -> bool:
     finally:
         return store_a_new_one
 
-def format_source_name(t: str) -> str:
-    """title会作为网址的一部分，因此不能出现空格等"""
-    return t.replace(' ', '_')
-
 async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
     """不对外抛错。让抓取器运行一次，把数据保存和转换"""
     source_info, source_name, max_wait_time = instance.source_info, instance.table_name, instance.max_wait_time
@@ -58,15 +54,14 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long when save_articles")
 
-    f_source_name = format_source_name(source_name)
-    if got_new | data.rss_is_absent(f_source_name):
+    if got_new | data.rss_cache.rss_is_absent(source_name):
         # 当有新内容或文件缺失的情况下，会生成 RSS 并保存
         result = data.db_intf.get_top_n_articles_by_key(source_name, 50, key4sort)
         rss_feed = generate_rss(source_info, result)
         rss_json = {"source_info": source_info, "articles": result}
         cls_id_or_none = None if instance.__class__.is_variety else instance.__class__.__name__
-        data.set_rss(f_source_name, rss_feed, rss_json, cls_id_or_none)
+        data.rss_cache.set_rss(source_name, rss_feed, rss_json, cls_id_or_none)
     else:
         logger.info(f"{source_name} exists and doesn't update")
 
-    return f_source_name
+    return source_name

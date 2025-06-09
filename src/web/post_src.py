@@ -1,5 +1,6 @@
 """通过 API 向 source2RSS 发送消息，以 RSS 发布"""
 import logging
+from urllib.parse import quote
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
@@ -47,8 +48,8 @@ async def delivery(source_name: str, articles: list[ArticleInfo]):
             "key4sort": SortKey.PUB_TIME,
             "access": AccessLevel.ADMIN
         }
-    f_source_name = await no_cache_flow("Representative", ((source, j_articles), ))
-    url_without_suffix = "http://rss.vfly2.com/source2rss/" + f_source_name
+    source_name = await no_cache_flow("Representative", ((source, j_articles), ))
+    url_without_suffix = "http://rss.vfly2.com/source2rss/" + quote(source_name)
     xml_url = url_without_suffix + ".xml"
     json_url = url_without_suffix + ".json"
     return {"message": "succeed to deliver articles of " + source_name, "xml": xml_url, "json": json_url}

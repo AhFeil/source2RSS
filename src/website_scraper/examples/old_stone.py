@@ -9,7 +9,6 @@ from src.website_scraper.tools import get_response_or_none
 
 
 class OldStone(WebsiteScraper):
-    title = "Old Stone"
     home_url = "https://blog.mahyang.uk"
     page_turning_duration = 10
 
@@ -21,7 +20,7 @@ class OldStone(WebsiteScraper):
 
     def _source_info(self):
         source_info = {
-            "name": self.__class__.title,
+            "name": "Old Stone",
             "link": self.__class__.home_url,
             "desc": "博客 Old Stone",
             "lang": "zh-CN",
@@ -34,7 +33,7 @@ class OldStone(WebsiteScraper):
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         start_page = 1
         while True:
-            cls._logger.info(f"{cls.title} start to parse page {start_page}")
+            cls._logger.info(f"Old Stone start to parse page {start_page}")
             page = "" if start_page == 1 else f"page/{start_page}/"
             response = await get_response_or_none(f"{OldStone.home_url}/{page}", cls.headers)
             if response is None:

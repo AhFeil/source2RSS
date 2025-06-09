@@ -9,7 +9,6 @@ from src.website_scraper.tools import get_response_or_none
 
 
 class BentoMLBlog(WebsiteScraper):
-    title = "BentoML Blog"
     home_url = "https://www.bentoml.com/blog"
     admin_url = "https://admin.bentoml.com"
     page_turning_duration = 5
@@ -39,7 +38,7 @@ class BentoMLBlog(WebsiteScraper):
 
     def _source_info(self):
         info = {
-            'name': self.__class__.title,
+            'name': "BentoML Blog",
             'link': self.__class__.home_url,
             'desc': "Dive into the transformative world of AI application development with us! From expert insights to innovative use cases, we bring you the latest in efficiently deploying AI at scale.",
             'lang': "En",
@@ -55,7 +54,7 @@ class BentoMLBlog(WebsiteScraper):
             query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items()) + '&' + cls.steady_query
             encoded_query = quote(query, safe='[]=&')
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
-            cls._logger.info(f"{cls.title} start to parse page {start_page}")
+            cls._logger.info(f"BentoML Blog start to parse page {start_page}")
             response = await get_response_or_none(url, cls.headers)
             if response is None:
                 return

@@ -29,7 +29,7 @@
 
         {% for rss_file_name in rss_list %}
             <p class="list-item">
-                <a href="/source2rss/{{ rss_file_name }}/">{{ rss_file_name }}</a>
+                <a href="/source2rss/{{ rss_file_name | urlencode }}.xml/">{{ rss_file_name }}</a>
             </p>
         {% endfor %}
     </div>

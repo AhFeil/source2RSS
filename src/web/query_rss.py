@@ -21,10 +21,10 @@ router = APIRouter(
 )
 
 
-@router.get("/{f_source_name}.xml/", response_class=PlainTextResponse, dependencies=[Depends(get_admin_user)])
-def get_api_rss(f_source_name: str):
+@router.get("/{source_name}.xml/", response_class=PlainTextResponse, dependencies=[Depends(get_admin_user)])
+def get_api_rss(source_name: str):
     """查看管理员通过 API 发布的 RSS"""
-    rss = data.get_rss_or_None(f_source_name + ".xml")
+    rss = data.rss_cache.get_rss_or_None(source_name)
     if rss is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
     return rss
@@ -47,7 +47,7 @@ def async_cached(func):
 async def no_cache_flow(cls_id: str, q: tuple) -> str:
     try:
         res = await start_to_crawl((ClassNameAndParams.create(cls_id, q), ))
-        return res[0][0]   # todo
+        return res[0][0]
     except CrawlInitError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
 
@@ -64,7 +64,7 @@ async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [], user: Us
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
     if user.is_administrator and not config.in_bedtime(cls_id, datetime.now().strftime("%H:%M")):
         logger.info("go to no_cache_flow of " + cls_id)
-        f_source_name = await no_cache_flow(cls_id, tuple(q))
+        source_name = await no_cache_flow(cls_id, tuple(q))
     else:
-        f_source_name = await cache_flow(cls_id, tuple(q))
-    return get_saved_rss(f_source_name)
+        source_name = await cache_flow(cls_id, tuple(q))
+    return get_saved_rss(source_name)

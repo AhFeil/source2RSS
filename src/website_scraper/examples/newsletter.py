@@ -7,7 +7,6 @@ from utils.imap_client import ImapMailBox
 
 
 class NewsLetter(WebsiteScraper):
-    title = "NewsLetter"
     page_turning_duration = 5
 
     def __init__(self, froms: dict[str, str], host, port, username, password, ssl=True) -> None:
@@ -28,7 +27,7 @@ class NewsLetter(WebsiteScraper):
 
     @classmethod
     async def _parse(cls, flags, from_email, website, mailbox: ImapMailBox) -> AsyncGenerator[dict, None]:
-        cls._logger.info(f"{cls.title} start to parse email {from_email}")
+        cls._logger.info(f"NewsLetter start to parse email {from_email}")
         with mailbox:
             for mail in mailbox.get_mails("ALL"):
                 # 当 from_email 不为空时，必须是 from_email 发来的邮件才会处理

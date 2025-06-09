@@ -9,7 +9,6 @@ from src.website_scraper.tools import get_response_or_none
 
 
 class CSLRXYZ(WebsiteScraper):
-    title = "二语习得英语学习中文网"
     home_url = "http://cslrxyz.xyz"
     page_turning_duration = 10
 
@@ -21,7 +20,7 @@ class CSLRXYZ(WebsiteScraper):
 
     def _source_info(self):
         source_info = {
-            "name": self.__class__.title,
+            "name": "二语习得英语学习中文网",
             "link": self.__class__.home_url,
             "desc": "分享英语学习方法、工具使用和影评",
             "lang": "zh-CN",
@@ -35,7 +34,7 @@ class CSLRXYZ(WebsiteScraper):
         start_page = 1
         while True:
             url = f"http://cslrxyz.xyz/index.php/page/{start_page}/"
-            cls._logger.info(f"{cls.title} start to parse page {start_page}")
+            cls._logger.info(f"二语习得英语学习中文网 start to parse page {start_page}")
             response = await get_response_or_none(url, cls.headers)
             if response is None:
                 return

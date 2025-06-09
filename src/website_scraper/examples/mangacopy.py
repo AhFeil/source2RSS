@@ -9,7 +9,6 @@ from src.website_scraper.tools import AsyncBrowserManager, get_response_or_none
 
 
 class MangaCopy(WebsiteScraper):
-    title = "拷貝漫畫"
     home_url = "https://www.mangacopy.com"
     page_turning_duration = 10
 
@@ -39,7 +38,7 @@ class MangaCopy(WebsiteScraper):
 
     def _source_info(self):
         return {
-            "name": self.book_title,
+            "name": "拷貝漫畫",
             "link": f"{self.__class__.home_url}/comic/{self.book_id}",
             "desc": f"拷貝漫畫下的作品 —— {self.book_title}",
             "lang": "zh-CN",
@@ -47,7 +46,7 @@ class MangaCopy(WebsiteScraper):
 
     @classmethod
     async def _parse(cls, flags, book_title: str, book_url: str) -> AsyncGenerator[dict, None]:
-        cls._logger.info(f"{cls.title} start to parse")
+        cls._logger.info("拷貝漫畫 start to parse")
         html_content = await AsyncBrowserManager.get_html_or_none(book_title, book_url, cls.headers["User-Agent"])
         if html_content is None:
             return

@@ -8,7 +8,6 @@ from configHandle import post2RSS
 
 
 class BilibiliUp(WebsiteScraper):
-    title = "B站UP"
     home_url = "https://space.bilibili.com"
     page_turning_duration = 60
     support_old2new = True
@@ -38,10 +37,11 @@ class BilibiliUp(WebsiteScraper):
         self.j_res = j_res
 
     def _source_info(self):
+        name_and_desc = f"B站UP{self.up_name}的动态"
         return {
-            "name": self.__class__.title + self.up_name + "的动态",
+            "name": name_and_desc,
             "link": self.space_url,
-            "desc": self.__class__.title + self.up_name + "的动态",
+            "desc": name_and_desc,
             "lang": "zh-CN",
             "key4sort": SortKey.PUB_TIME}
 
@@ -51,13 +51,13 @@ class BilibiliUp(WebsiteScraper):
 
     @classmethod
     async def _parse(cls, flags, up_name, j_res) -> AsyncGenerator[dict, None]:
-        cls._logger.info(f"{cls.title}{up_name} start to parse")
+        cls._logger.info(f"B站UP{up_name}的动态 start to parse")
         async for a in cls._parse_inner(j_res, flags.get("pub_time")):
             yield a
 
     @classmethod
     async def _parse_old2new(cls, flags, up_name, j_res) -> AsyncGenerator[dict, None]:
-        cls._logger.info(f"{cls.title}{up_name} start to parse from old to new")
+        cls._logger.info(f"B站UP{up_name}的动态 start to parse from old to new")
         async for a in cls._parse_inner(j_res, flags[SortKey.PUB_TIME], True):
             yield a
 

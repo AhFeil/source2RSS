@@ -9,7 +9,6 @@ from src.utils import environment
 
 
 class GatesNotes(WebsiteScraper):
-    title = "GatesNotes"
     home_url = "https://www.gatesnotes.com/"
     page_turning_duration = 5
 
@@ -22,7 +21,7 @@ class GatesNotes(WebsiteScraper):
 
     def _source_info(self):
         source_info = {
-            "name": self.__class__.title,
+            "name": "GatesNotes",
             "link": self.__class__.home_url,
             "desc": "The Blog of Bill Gates",
             "lang": "en-US",
@@ -36,11 +35,11 @@ class GatesNotes(WebsiteScraper):
         latest_article_title = flags.get("article_title", "")
         rp = await create_rp(cls.home_url + "robots.txt")
         if not rp.can_fetch("source2RSSbot", cls.home_url):
-            cls._logger.info(f"{cls.title} can't be fetched")
+            cls._logger.info("GatesNotes can't be fetched")
             return
-        cls._logger.info(f"{cls.title} start to parse")
+        cls._logger.info("GatesNotes start to parse")
         user_agent = environment.get_user_agent(cls.home_url)
-        html_content = await AsyncBrowserManager.get_html_or_none(cls.title, cls.home_url, user_agent)
+        html_content = await AsyncBrowserManager.get_html_or_none("GatesNotes", cls.home_url, user_agent)
         if html_content is None:
             return
 

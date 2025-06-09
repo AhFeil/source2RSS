@@ -11,7 +11,6 @@ from src.website_scraper.tools import AsyncBrowserManager, get_response_or_none
 
 # 逻辑有缺陷，目前是每次运行将热榜按照  排序，取最新的，不会缺少新写的上热榜，但是旧的上热榜会缺少
 class HotJuejin(WebsiteScraper):
-    title = "掘金热榜"
     home_url = "https://juejin.cn"
     admin_url = "https://api.juejin.cn/content_api/v1/content"
     page_turning_duration = 60
@@ -32,7 +31,7 @@ class HotJuejin(WebsiteScraper):
 
     def _source_info(self):
         return {
-            "name": self.__class__.title,
+            "name": "掘金热榜",
             "link": self.__class__.home_url,
             "desc": "掘金热榜",
             "lang": "zh-CN",
@@ -45,7 +44,7 @@ class HotJuejin(WebsiteScraper):
     @classmethod
     async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
         url = f"{cls.admin_url}/article_rank?{cls.steady_query}"
-        cls._logger.info(f"{cls.title} start to parse")
+        cls._logger.info("掘金热榜 start to parse")
         response = await get_response_or_none(url, cls.headers)
         if response is None:
             return
@@ -65,7 +64,7 @@ class HotJuejin(WebsiteScraper):
             content_id = a["content"]["content_id"]
             article_url = f"{cls.home_url}/post/{content_id}"
 
-            html_content = await AsyncBrowserManager.get_html_or_none(cls.title, article_url, user_agent)
+            html_content = await AsyncBrowserManager.get_html_or_none("HotJuejin", article_url, user_agent)
             if html_content is None:
                 break
             soup = BeautifulSoup(html_content, features="lxml")

@@ -4,7 +4,6 @@ from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam
 
 
 class Representative(WebsiteScraper):
-    title = "no body"
     home_url = ""
 
     @classmethod

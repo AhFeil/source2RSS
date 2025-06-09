@@ -9,7 +9,6 @@ from src.website_scraper.tools import get_response_or_none
 
 
 class YoutubeChannel(WebsiteScraper):
-    title = "Youtube Channel"
     home_url = "https://www.youtube.com"
     page_turning_duration = 10
 

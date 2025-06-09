@@ -10,7 +10,6 @@ import httpx
 
 
 class CareerTsinghua(WebsiteScraper):
-    title = "清华大学学生职业发展指导中心-招聘信息"
     home_url = "https://career.cic.tsinghua.edu.cn/xsglxt/f/jyxt/anony/xxfb"
     domain_url = "https://career.cic.tsinghua.edu.cn"
     page_turning_duration = 10
@@ -37,7 +36,7 @@ class CareerTsinghua(WebsiteScraper):
 
     def _source_info(self):
         source_info = {
-            "name": self.__class__.title,
+            "name": "清华大学学生职业发展指导中心-招聘信息",
             "link": self.__class__.home_url,
             "desc": "清华大学学生职业发展指导中心的招聘信息，本源不会显示置顶文章",
             "lang": "zh-CN",
@@ -66,7 +65,7 @@ class CareerTsinghua(WebsiteScraper):
 
         while True:
             data_raw['pgno'] = str(start_page)
-            cls._logger.info(f"{cls.title} start to parse page {start_page}")
+            cls._logger.info(f"清华大学学生职业发展指导中心-招聘信息 start to parse page {start_page}")
             response = await cls._request(cls.home_url, data_raw)
             if response is None:
                 return

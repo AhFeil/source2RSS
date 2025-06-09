@@ -8,7 +8,6 @@ from src.website_scraper.tools import get_response_or_none
 
 # 逻辑有缺陷，目前是每次运行将热榜按照  排序，取最新的，不会缺少新写的上热榜，但是旧的上热榜会缺少
 class HotBilibili(WebsiteScraper):
-    title = "B站热榜"
     home_url = "https://www.bilibili.com/"
     page_turning_duration = 60
 
@@ -23,7 +22,7 @@ class HotBilibili(WebsiteScraper):
 
     def _source_info(self):
         return {
-            "name": self.__class__.title,
+            "name": "B站热榜",
             "link": self.__class__.home_url,
             "desc": "B站热榜",
             "lang": "zh-CN",
@@ -35,13 +34,13 @@ class HotBilibili(WebsiteScraper):
 
     @classmethod
     async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
-        cls._logger.info(f"{cls.title} start to parse")
+        cls._logger.info("B站热榜 start to parse")
         async for a in cls._parse_inner(flags.get("pub_time")):
             yield a
 
     @classmethod
     async def _parse_old2new(cls, flags) -> AsyncGenerator[dict, None]:
-        cls._logger.info(f"{cls.title} start to parse from old to new")
+        cls._logger.info("B站热榜 start to parse from old to new")
         async for a in cls._parse_inner(flags[SortKey.PUB_TIME], True):
             yield a
 

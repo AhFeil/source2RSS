@@ -52,9 +52,9 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
             #     await goto_remote_flow(config, data, instance, url)
             # else:
             #     await goto_uniform_flow(data, instance, amount)
-            f_source_name = await goto_uniform_flow(data, instance, amount)
+            source_name = await goto_uniform_flow(data, instance, amount)
             instance.destroy()
-            res.append(f_source_name)
+            res.append(source_name)
     return res
 
 

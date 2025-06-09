@@ -120,7 +120,6 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                     return
 
     # ***内部方法和属性***
-    title = "技焉洲"
     home_url = "https://yanh.tech/"
     # 请求每页之间的间隔，秒
     page_turning_duration = 5
@@ -136,7 +135,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     @abstractmethod
     def _source_info(self) -> dict:
         return {
-            'name': self.__class__.title,   # todo 考虑不作为类属性
+            'name': "技焉洲",
             'link': self.__class__.home_url,
             'desc': "Linux，单片机，编程",
             'lang': "zh-CN",

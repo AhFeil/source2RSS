@@ -8,7 +8,6 @@ from src.website_scraper.tools import get_response_or_none
 
 
 class CNUDaily(WebsiteScraper):
-    title = "CNU 每日精选"
     home_url = "http://www.cnu.cc/"
     page_turning_duration = 5
 
@@ -24,7 +23,7 @@ class CNUDaily(WebsiteScraper):
 
     def _source_info(self):
         return {
-            "name": self.__class__.title,
+            "name": "CNU 每日精选",
             "link": self.__class__.home_url,
             "desc": "CNU 每日精选",
             "lang": "zh-CN",
@@ -36,7 +35,7 @@ class CNUDaily(WebsiteScraper):
         start_page = 1
         while True:
             url = f"http://www.cnu.cc/selectedsFlow/{start_page}"
-            cls._logger.info(f"{cls.title} start to parse page {start_page}")
+            cls._logger.info(f"CNU 每日精选 start to parse page {start_page}")
             response = await get_response_or_none(url, cls.headers)
             if response is None:
                 return

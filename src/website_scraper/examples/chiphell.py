@@ -8,7 +8,6 @@ from src.website_scraper.tools import AsyncBrowserManager
 
 
 class Chiphell(WebsiteScraper):
-    title = "Chiphell"
     home_url = "https://www.chiphell.com/"
     page_turning_duration = 10
 
@@ -23,7 +22,7 @@ class Chiphell(WebsiteScraper):
 
     def _source_info(self):
         source_info = {
-            "name": self.__class__.title,
+            "name": "Chiphell",
             "link": self.__class__.home_url,
             "desc": "一个数码硬件社区",
             "lang": "zh-CN",
@@ -35,8 +34,8 @@ class Chiphell(WebsiteScraper):
     async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         start_page = 1
-        cls._logger.info(f"{cls.title} start to parse")
-        html_content = await AsyncBrowserManager.get_html_or_none(cls.title, cls.home_url, cls.headers["User-Agent"])
+        cls._logger.info("Chiphell start to parse")
+        html_content = await AsyncBrowserManager.get_html_or_none("Chiphell", cls.home_url, cls.headers["User-Agent"])
         if html_content is None:
             return
 
@@ -45,7 +44,7 @@ class Chiphell(WebsiteScraper):
         if not test_room:
             return
         if test_room.div.span.text.strip() != "最新文章":
-            cls._logger.warning(f"{cls.title} structure has changed")
+            cls._logger.warning("Chiphell structure has changed")
             return
 
         articles = test_room.find('div', class_='acon cl')
