@@ -5,19 +5,21 @@ import threading
 
 import schedule
 
-import preproc
+from configHandle import post2RSS
+from preproc import config, Plugins
 from src.crawler import start_to_crawl, ClassNameAndParams
 
 
-config = preproc.config
-
 def sync_wrapper(cls_names, loop):
     try:
-        run_coroutine_threadsafe(start_to_crawl(ClassNameAndParams.create(name) for name in cls_names), loop)
+        future = run_coroutine_threadsafe(start_to_crawl(ClassNameAndParams.create(name) for name in cls_names), loop)
+        result = future.result()  # noqa
     except:  # noqa
         import traceback
+        tb = traceback.format_exc()
         with open("unpredictable_exception.txt", 'a', encoding="utf-8") as f:
-            f.write(traceback.format_exc())
+            f.write(tb)
+        run_coroutine_threadsafe(post2RSS("error log of run_as_scheduled", tb), loop)
 
 job = sync_wrapper
 
@@ -34,7 +36,7 @@ def run_continuously(loop: asyncio.AbstractEventLoop):
     class ScheduleThread(threading.Thread):
         @classmethod
         def run(cls):
-            for point, cls_names in config.get_schedule_and_cls_names(preproc.Plugins.get_all_id()).items():
+            for point, cls_names in config.get_schedule_and_cls_names(Plugins.get_all_id()).items():
                 schedule.every().day.at(point, config.timezone).do(job, cls_names, loop)
                 print(point, cls_names)
             for job_info in schedule.get_jobs():

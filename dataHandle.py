@@ -4,6 +4,7 @@ import logging
 import json
 from dataclasses import dataclass
 
+from configHandle import config
 from src.website_scraper import AccessLevel
 
 
@@ -99,5 +100,4 @@ class Data:
             json.dump(self._users, f)
 
 
-from configHandle import config  # noqa
 data = Data(config)

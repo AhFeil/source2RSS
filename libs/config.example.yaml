@@ -73,7 +73,7 @@ query_bedtime:   # 睡眠时间里，管理员的请求走缓存路径，减少�
 # 抓取器的默认配置，如果没有在 webscraper_profile 定义相关量，就会使用这里的
 crawler_default_cfg:
   timezone: Asia/Shanghai
-  run_everyday_at: "03:00"
+  run_everyday_at: ["05:00", "11:00", "17:00", "23:00"]
   WAIT: 5
   amount_when_firstly_add: 10
   # 运行中获取的图片默认保存的位置
