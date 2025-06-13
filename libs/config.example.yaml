@@ -8,7 +8,7 @@ enabled_web_scraper:
   - bentoml
   - cslrxyz
   - cnu_daily
-  # - gatesnotes
+  - gatesnotes
   - career_tsinghua
   - old_stone
   - hot_juejin

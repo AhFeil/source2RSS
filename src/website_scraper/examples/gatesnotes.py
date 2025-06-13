@@ -1,3 +1,5 @@
+from datetime import datetime
+from itertools import islice
 from typing import AsyncGenerator, Any
 
 from bs4 import BeautifulSoup
@@ -5,7 +7,6 @@ from bs4 import BeautifulSoup
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.tools import AsyncBrowserManager, create_rp
-from src.utils import environment
 
 
 class GatesNotes(WebsiteScraper):
@@ -33,31 +34,32 @@ class GatesNotes(WebsiteScraper):
     async def _parse(cls, flags) -> AsyncGenerator[dict, Any]:
         """返回首页前几个封面文章"""
         latest_article_title = flags.get("article_title", "")
+        reader_url = cls.home_url + "home/home-page-topic/reader"
         rp = await create_rp(cls.home_url + "robots.txt")
-        if not rp.can_fetch("source2RSSbot", cls.home_url):
+        if not rp.can_fetch("source2RSSbot", reader_url):
             cls._logger.info("GatesNotes can't be fetched")
             return
+
         cls._logger.info("GatesNotes start to parse")
-        user_agent = environment.get_user_agent(cls.home_url)
-        html_content = await AsyncBrowserManager.get_html_or_none("GatesNotes", cls.home_url, user_agent)
+        blocked = ["image", "font", "media"]
+        def block_func(route): return route.abort() if route.request.resource_type in blocked else route.continue_()
+        html_content = await AsyncBrowserManager.get_html_or_none("GatesNotes", reader_url, cls.headers["User-Agent"], block_func)
         if html_content is None:
             return
 
         soup = BeautifulSoup(html_content, features="lxml")
-        # 找到 4 个文章所在 div，遍历所有<div class="TGN_site_ArticleItem">元素
-        articles_title = soup.find_all('div', class_='articleHeadline')
-        articles_desc = soup.find_all('div', class_='articleDesc')
-        articles_url = soup.find_all('a', class_=lambda cls_: cls_ and cls_.startswith('articleLeftF'))
-        articles_img = soup.find_all('video', class_=lambda cls_: cls_ and cls_.startswith('TabletOnly articleBackF'))
-        articles_times = WebsiteScraper._get_time_obj(True)
-        for title, description, url, image_link, time_obj in zip(articles_title, articles_desc, articles_url, articles_img, articles_times):
+        articles_title = soup.find_all('h1', class_='ArtHeadline')
+        articles_desc = soup.find_all('div', class_='ArtDesc GNDescCopy')
+        articles_url = soup.find_all('div', class_='Arteyebrow')
+        articles_times = soup.find_all('span', class_='ArtDateTime')
+        date_strs = islice(articles_times, 0, None, 2)
+        for title, description, url, date_str in zip(articles_title, articles_desc, articles_url, date_strs):
             if title.text == latest_article_title:
                 return
             article = {
                 "title": title.text,
                 "summary": description.text,
-                "link": url["href"],
-                "image_link": image_link["src"],
-                "pub_time": time_obj
+                "link": reader_url + '/' + url["id"].split("/", 1)[-1],
+                "pub_time": datetime.strptime(date_str.text, "on %A, %b %d, %Y")
             }
             yield article

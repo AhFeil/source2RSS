@@ -101,9 +101,11 @@ class AsyncBrowserManager:
 
 
     @staticmethod
-    async def get_html_or_none(id: str, url: str, user_agent):
+    async def get_html_or_none(id: str, url: str, user_agent, block_func=None):
         html_content = None
         async with AsyncBrowserManager(id, user_agent) as context:
+            if block_func:
+                await context.route("**/*", block_func)
             page = await context.new_page()
             AsyncBrowserManager._logger.debug("create page for " + id)
             try:

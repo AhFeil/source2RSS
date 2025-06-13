@@ -49,7 +49,7 @@ class RSSCache:
             rss_file.write(rss)
 
     def rss_is_absent(self, source_name: str) -> bool:
-        return source_name not in self._public or source_name not in self._admin
+        return not (source_name in self._public or source_name in self._admin)
 
     @staticmethod
     def _load_files_to_dict(path: Path) -> dict[str, RSSData]:

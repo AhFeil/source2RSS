@@ -3,7 +3,6 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
-from src.utils import environment
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.tools import AsyncBrowserManager, get_response_or_none
@@ -58,13 +57,12 @@ class HotJuejin(WebsiteScraper):
             return
         articles.sort(key=lambda x: x["content"]["content_id"], reverse=True)
 
-        user_agent = environment.get_user_agent(cls.home_url)
         for a in articles:
             title = a["content"]["title"]
             content_id = a["content"]["content_id"]
             article_url = f"{cls.home_url}/post/{content_id}"
 
-            html_content = await AsyncBrowserManager.get_html_or_none("HotJuejin", article_url, user_agent)
+            html_content = await AsyncBrowserManager.get_html_or_none("HotJuejin", article_url, cls.headers["User-Agent"])
             if html_content is None:
                 break
             soup = BeautifulSoup(html_content, features="lxml")
