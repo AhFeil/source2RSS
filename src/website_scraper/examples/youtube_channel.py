@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import AsyncGenerator, Self
+import re
 
 from bs4 import BeautifulSoup
 import feedparser
@@ -19,39 +20,43 @@ class YoutubeChannel(WebsiteScraper):
     }
 
     @classmethod
-    async def create(cls, channel_name: str) -> Self:
-        feed_url = await cls.get_feed_url(channel_name)
+    async def create(cls, channel_id: str) -> Self:
+        feed_url = await cls.get_feed_url(channel_id)
         if feed_url:
-            return cls(channel_name, feed_url)
+            response = await get_response_or_none(feed_url, cls.headers)
+            if response and response.status_code == 200:
+                feed = feedparser.parse(response.text)
+                return cls(channel_id, feed.feed.title, feed) # type: ignore
         raise CreateByInvalidParam
 
-    def __init__(self, channel_name, feed_url) -> None:
+    def __init__(self, channel_id, channel_name, feed) -> None:
         super().__init__()
+        self.channel_id = channel_id
         self.channel_name = channel_name
-        self.feed_url = feed_url
+        self.feed = feed
 
     def _source_info(self):
-        source_info = {
-            "name": self.channel_name,
-            "link": f"{self.__class__.home_url}/@{self.channel_name}",
+        return {
+            "name": self.channel_id,
+            "link": f"{self.__class__.home_url}/@{self.channel_id}",
             "desc": "Youtube Channel" + self.channel_name,
             "lang": "en-US",
             "key4sort": SortKey.PUB_TIME
         }
-        return source_info
 
     @classmethod
-    async def _parse(cls, flags, channel_name, feed_url) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags, channel_name, feed) -> AsyncGenerator[dict, None]:
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         cls._logger.info(f"{channel_name} start to parse")
-        response = await get_response_or_none(feed_url, cls.headers)
-        if response is None or response.status_code != 200:
-            return
-        feed = feedparser.parse(response.text)   # feed.feed.title 频道名称
         for entry in feed.entries:
+            res = await get_response_or_none(entry.link, cls.headers) # type: ignore
+            if res is None or res.status_code != 200:
+                return
+            duration_seconds = int(cls.extract_duration(res.text)) // 1000
+            duration_m, duration_s = divmod(duration_seconds, 60)
             article = {
                 "title": entry.title,
-                "summary": entry.summary[0:50],
+                "summary": f"video duration is {duration_m}:{duration_s}. " + entry.summary[0:50], # type: ignore
                 "link": entry.link,
                 "image_link": entry.media_thumbnail[0]['url'],
                 "content": entry.summary,
@@ -60,13 +65,19 @@ class YoutubeChannel(WebsiteScraper):
             yield article
 
     def _custom_parameter_of_parse(self) -> list:
-        return [self.channel_name, self.feed_url]
+        return [self.channel_name, self.feed]
 
     @classmethod
-    async def get_feed_url(cls, channel_name) -> str:
-        response = await get_response_or_none(f"{YoutubeChannel.home_url}/@{channel_name}", cls.headers)
+    async def get_feed_url(cls, channel_id) -> str:
+        response = await get_response_or_none(f"{YoutubeChannel.home_url}/@{channel_id}", cls.headers)
         if response is None or response.status_code != 200:
             return ""
         soup = BeautifulSoup(response.text, features="lxml")
         feed_url = soup.find('link', rel='alternate', type="application/rss+xml", title="RSS")
         return feed_url["href"] if feed_url else "" # type: ignore
+
+    @classmethod
+    def extract_duration(cls, html_content):
+        # 匹配 "approxDurationMs": "1310120",
+        match = re.search(r'"approxDurationMs":\s*"(\d+)"', html_content)
+        return match.group(1) if match else "1000"
