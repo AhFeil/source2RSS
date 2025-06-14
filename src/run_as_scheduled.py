@@ -13,8 +13,8 @@ from src.crawler import start_to_crawl, ClassNameAndParams
 def sync_wrapper(cls_names, loop):
     try:
         future = run_coroutine_threadsafe(start_to_crawl(ClassNameAndParams.create(name) for name in cls_names), loop)
-        result = future.result()  # noqa
-    except:  # noqa
+        future.result()
+    except Exception:
         import traceback
         tb = traceback.format_exc()
         with open("unpredictable_exception.txt", 'a', encoding="utf-8") as f:
