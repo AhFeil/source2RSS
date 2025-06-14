@@ -1,8 +1,9 @@
 import logging
 import asyncio
 
-from src.website_scraper import FailtoGet, WebsiteScraper, LocateInfo, Sequence
-from src.generate_rss import generate_rss
+from src.website_scraper import WebsiteScraper, LocateInfo, Sequence
+from src.website_scraper.scraper_error import FailtoGet
+from .generate_rss import generate_rss
 from configHandle import post2RSS
 
 logger = logging.getLogger("local_publish")
@@ -27,7 +28,7 @@ async def save_articles(data, source_name, article_source) -> bool:
         logger.info(f"Processing {source_name} articles took too long.")
     except FailtoGet:
         logger.info(f"FailtoGet: Processing {source_name} 网络出错")
-    except Exception as e:
+    except Exception as e:   # todo 这里是否应该捕获全部
         msg = f"Unpredictable Exception when get and save article of {source_name}: {e}"
         logger.exception(msg)
         await post2RSS("error log of save_articles", msg)
@@ -54,7 +55,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
     except asyncio.TimeoutError:
         logger.info(f"Processing {source_name} articles took too long when save_articles")
 
-    if got_new | data.rss_cache.rss_is_absent(source_name):
+    if got_new or data.rss_cache.rss_is_absent(source_name):
         # 当有新内容或文件缺失的情况下，会生成 RSS 并保存
         result = data.db_intf.get_top_n_articles_by_key(source_name, 50, key4sort)
         rss_feed = generate_rss(source_info, result)

@@ -4,18 +4,14 @@ import signal
 from dataclasses import dataclass
 from typing import Iterable, Self
 
-from src.website_scraper import WebsiteScraper, FailtoGet, CreateByInvalidParam, CreateByLocked, AsyncBrowserManager
-from src.local_publish import goto_uniform_flow
+from src.website_scraper import WebsiteScraper, AsyncBrowserManager
+from src.website_scraper.scraper_error import FailtoGet, CreateByInvalidParam, CreateByLocked
+from .crawl_error import CrawlInitError
+from .local_publish import goto_uniform_flow
 from configHandle import post2RSS
 from preproc import config, data, Plugins
 
 logger = logging.getLogger("crawler")
-
-
-class CrawlInitError(Exception):
-    def __init__(self, code: int, message: str):
-        super().__init__(message)
-        self.code = code
 
 
 async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Iterable, amount: int) -> list[str]:
@@ -100,4 +96,4 @@ if __name__ == "__main__":
     signal.signal(signal.SIGINT, handler)
 
     asyncio.run(start_to_crawl_all())
-    # .env/bin/python -m src.crawler
+    # .env/bin/python -m src.crawl.crawler

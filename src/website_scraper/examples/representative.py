@@ -1,6 +1,7 @@
 from typing import AsyncGenerator, Self
 
-from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam
+from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.scraper_error import CreateByInvalidParam
 
 
 class Representative(WebsiteScraper):
@@ -11,7 +12,7 @@ class Representative(WebsiteScraper):
         # todo 对 articles 每项进行校验
         if source and articles:
             return cls(source, articles)
-        raise CreateByInvalidParam
+        raise CreateByInvalidParam()
 
     def __init__(self, *args) -> None:
         super().__init__()

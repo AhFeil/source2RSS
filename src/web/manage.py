@@ -5,7 +5,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from src.crawler import start_to_crawl_all
+from src.crawl import start_to_crawl_all
 from .security import User, UserRegistry, get_admin_user
 
 logger = logging.getLogger(__name__)

@@ -3,7 +3,8 @@ from datetime import datetime
 from typing import AsyncGenerator
 
 from src.website_scraper.model import SortKey
-from src.website_scraper.scraper import WebsiteScraper, FailtoGet
+from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.scraper_error import FailtoGet
 from src.website_scraper.tools import get_response_or_none
 
 
@@ -45,7 +46,7 @@ class CNUDaily(WebsiteScraper):
             if json_res["status"] == "empty":
                 return
             if json_res["status"] != "success":
-                raise FailtoGet
+                raise FailtoGet()
 
             for day in json_res["data"]:
                 create_time = day["date"]

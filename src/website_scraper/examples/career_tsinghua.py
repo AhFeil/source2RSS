@@ -4,7 +4,8 @@ from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
 from src.website_scraper.model import SortKey
-from src.website_scraper.scraper import WebsiteScraper, FailtoGet
+from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.scraper_error import FailtoGet
 
 import httpx
 
@@ -113,5 +114,5 @@ class CareerTsinghua(WebsiteScraper):
             try:
                 response = await client.post(url=url, headers=cls.headers, data=data_raw, timeout=timeout)
             except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout):
-                raise FailtoGet
+                raise FailtoGet()
         return response

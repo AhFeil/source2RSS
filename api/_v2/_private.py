@@ -1,5 +1,5 @@
 """注册插件，以字典存储"""
-from typing import Iterable
+from typing import Iterable, Any
 from types import ModuleType
 import importlib
 import pkgutil
@@ -8,7 +8,7 @@ from configHandle import config
 
 
 class Plugins():
-    _registry: dict[str, type] = {}
+    _registry: dict[str, Any] = {}
 
     @classmethod
     def register(cls, id, cls_instance):

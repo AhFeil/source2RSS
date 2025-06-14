@@ -1,24 +1,26 @@
+import logging
 import time
 import asyncio
 from asyncio import run_coroutine_threadsafe
 import threading
+import traceback
 
 import schedule
 
 from configHandle import post2RSS
 from preproc import config, Plugins
-from src.crawler import start_to_crawl, ClassNameAndParams
+from src.crawl import start_to_crawl, ClassNameAndParams
+
+logger = logging.getLogger(__name__)
 
 
 def sync_wrapper(cls_names, loop):
     try:
         future = run_coroutine_threadsafe(start_to_crawl(ClassNameAndParams.create(name) for name in cls_names), loop)
         future.result()
-    except Exception:
-        import traceback
+    except Exception as e:
         tb = traceback.format_exc()
-        with open("unpredictable_exception.txt", 'a', encoding="utf-8") as f:
-            f.write(tb)
+        logger.error(f"Exception occurred: {e.__class__.__name__}\n{tb}")
         run_coroutine_threadsafe(post2RSS("error log of run_as_scheduled", tb), loop)
 
 job = sync_wrapper

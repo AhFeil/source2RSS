@@ -6,7 +6,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker, declared_attr
 from sqlalchemy.sql import text
 
 from .db_intf import DatabaseIntf
-from src.website_scraper.scraper import SrcMetaDict, ArticleDict
+from src.website_scraper import SrcMetaDict, ArticleDict
 
 
 Base = declarative_base()
@@ -188,6 +188,7 @@ class SQliteIntf(DatabaseIntf):
 
 if __name__ == "__main__":
     from datetime import datetime
+    from src.website_scraper import SortKey
 
     info = SQliteConnInfo("sqlite:///config_and_data_files/test.db")
     db_intf: DatabaseIntf = SQliteIntf.connect(info)
@@ -198,7 +199,7 @@ if __name__ == "__main__":
         'link': 'https://www.bentoml.com/blog',
         'desc': "description---------",
         'lang': "En",
-        'key4sort': 'pub_time'
+        'key4sort': SortKey.PUB_TIME
     }
     db_intf.exist_source_meta(source_info)
     assert db_intf.get_source_info(source_info["name"]) == source_info

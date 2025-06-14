@@ -135,6 +135,7 @@ config = Config(os.path.abspath(configfile))
 logger = logging.getLogger("post2RSS")
 
 async def post2RSS(title: str, summary: str) -> httpx.Response | None:
+    """不引发异常"""
     url = f"http://127.0.0.1:{config.port}/post_src/source2rss_severe_log/"
     timeout = httpx.Timeout(10.0, read=10.0)
     credentials = f"{config.query_username}:{config.query_password}"

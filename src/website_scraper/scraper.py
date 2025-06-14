@@ -4,20 +4,7 @@ from abc import ABC, ABCMeta, abstractmethod
 from typing import Generator, AsyncGenerator, Self, Any
 
 from api._v2 import Plugins
-from .model import LocateInfo, Sequence, SrcMetaDict, ArticleDict, SourceMeta, ArticleInfo
-
-
-class FailtoGet(Exception):
-    pass
-
-class ScraperError(Exception):
-    pass
-
-class CreateByInvalidParam(ScraperError):
-    pass
-
-class CreateByLocked(ScraperError):
-    pass
+from .model import LocateInfo, Sequence, SrcMetaDict, ArticleDict, SourceMeta, ArticleInfo, SortKey
 
 
 class ScraperMeta(ABCMeta):
@@ -123,14 +110,6 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     home_url = "https://yanh.tech/"
     # 请求每页之间的间隔，秒
     page_turning_duration = 5
-    # https://curlconverter.com/
-    headers = {
-        'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
-        'Content-Type': 'application/json',
-        'Origin': 'https://yanh.tech',
-        'Referer': 'https://yanh.tech',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 Edg/124.0.0.0',
-    }
 
     @abstractmethod
     def _source_info(self) -> dict:
@@ -139,7 +118,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             'link': self.__class__.home_url,
             'desc': "Linux，单片机，编程",
             'lang': "zh-CN",
-            'key4sort': "pub_time"
+            'key4sort': SortKey.PUB_TIME
         }
 
     def _custom_parameter_of_parse(self) -> tuple:

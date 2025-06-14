@@ -1,8 +1,10 @@
 from datetime import datetime
+from contextlib import suppress
 from typing import AsyncGenerator, Self
 
 from src.website_scraper.model import SortKey
-from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam, FailtoGet
+from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.scraper_error import CreateByInvalidParam, FailtoGet
 from src.website_scraper.tools import AsyncBrowserManager
 from configHandle import post2RSS
 
@@ -28,7 +30,7 @@ class BilibiliUp(WebsiteScraper):
         if j_res and j_res.get("data"):
             up_name = j_res["data"]["items"][0]["modules"]["module_author"]["name"]
             return cls(up_name, space_url, j_res)
-        raise CreateByInvalidParam
+        raise CreateByInvalidParam()
 
     def __init__(self, up_name, space_url, j_res) -> None:
         super().__init__()
@@ -127,7 +129,7 @@ class BilibiliUp(WebsiteScraper):
                 msg = f"Page navigation of {id} Exception occured: {e}"
                 AsyncBrowserManager._logger.warning(msg)
                 await post2RSS("error log of BilibiliUp when get_response_json", msg)
-                raise FailtoGet
+                raise FailtoGet() from e
             finally:
                 await page.close()
                 AsyncBrowserManager._logger.debug("destroy page of " + id)
@@ -136,7 +138,5 @@ class BilibiliUp(WebsiteScraper):
     @classmethod
     async def handle_response(cls, response, j_res) -> None:
         if '/x/polymer/web-dynamic/v1/feed/space' in response.url:
-            try:
+            with suppress(Exception):
                 j_res[0] = await response.json()
-            except Exception:
-                pass

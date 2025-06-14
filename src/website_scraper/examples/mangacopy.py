@@ -4,7 +4,8 @@ from typing import AsyncGenerator, Self
 
 from bs4 import BeautifulSoup
 from src.website_scraper.model import SortKey
-from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam
+from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.scraper_error import CreateByInvalidParam
 from src.website_scraper.tools import AsyncBrowserManager, get_response_or_none
 
 
@@ -30,7 +31,7 @@ class MangaCopy(WebsiteScraper):
         book_url = f"{cls.home_url}/comic/{book_id}"
         if await cls.book_exists(book_url):
             return cls(book_title, book_id, book_url)
-        raise CreateByInvalidParam
+        raise CreateByInvalidParam()
 
     def __init__(self, book_title, book_id, book_url) -> None:
         super().__init__()

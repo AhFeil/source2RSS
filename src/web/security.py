@@ -82,7 +82,7 @@ class UserRegistry():
         cls._left_count = users["left_count"]
         for (name, passwd_hash) in users["users"]:
             if name in cls._user_registry:
-                raise RuntimeError
+                raise RuntimeError("error that shouldn't exist")
             cls._user_registry[name] = User(name, passwd_hash, False)
         user = User.create(config.query_username, config.query_password)
         user.is_administrator = True

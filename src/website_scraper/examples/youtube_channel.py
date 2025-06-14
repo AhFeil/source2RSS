@@ -5,7 +5,8 @@ import re
 from bs4 import BeautifulSoup
 import feedparser
 from src.website_scraper.model import SortKey
-from src.website_scraper.scraper import WebsiteScraper, CreateByInvalidParam
+from src.website_scraper.scraper import WebsiteScraper
+from src.website_scraper.scraper_error import CreateByInvalidParam
 from src.website_scraper.tools import get_response_or_none
 
 
@@ -27,7 +28,7 @@ class YoutubeChannel(WebsiteScraper):
             if response and response.status_code == 200:
                 feed = feedparser.parse(response.text)
                 return cls(channel_id, feed.feed.title, feed) # type: ignore
-        raise CreateByInvalidParam
+        raise CreateByInvalidParam()
 
     def __init__(self, channel_id, channel_name, feed) -> None:
         super().__init__()
