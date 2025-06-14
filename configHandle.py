@@ -146,7 +146,7 @@ async def post2RSS(title: str, summary: str) -> httpx.Response | None:
     }
     data_raw = [{
             "title": title,
-            "link": "http://rss.vfly2.com/source2rss/source2rss_severe_log",
+            "link": "http://rss.vfly2.com/query_rss/source2rss_severe_log.xml/#" + str(datetime.now().timestamp()),
             "summary": summary,
             "pub_time": datetime.now().timestamp()
         }]
