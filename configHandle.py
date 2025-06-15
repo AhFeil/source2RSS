@@ -1,4 +1,3 @@
-import sys
 import os
 import json
 import base64
@@ -149,9 +148,9 @@ class Config:
             with open(f, 'r', encoding="utf-8") as fp:
                 return Config.yaml.load(fp)
         except YAMLError as e:
-            sys.exit(f"The config file is illegal as a YAML: {e}")
+            raise YAMLError(f"The config file is illegal as a YAML: {e}")
         except FileNotFoundError:
-            sys.exit("The config does not exist")
+            raise FileNotFoundError("The config does not exist")
 
 
 config = Config(os.path.abspath(configfile))
