@@ -20,6 +20,7 @@ enabled_web_scraper:
   - representative   # 删除这个则无法通过 API 发布 RSS
   plugins.source2RSS-scraper:
   - fanqie
+  - weather_from_amap
 # 暂时没有维护无法正常运行的抓取器
 # - newsletter
 # - bili_follow_dynamic

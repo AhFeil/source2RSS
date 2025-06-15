@@ -12,12 +12,12 @@ from configHandle import config, post2RSS
 logger = logging.getLogger(__name__)
 
 
-async def get_response_or_none(url: str, headers: dict, verify=True, retry: int=0, timeout: int=10) -> httpx.Response | None:
+async def get_response_or_none(url: str, headers=None, params=None, verify=True, retry: int=0, timeout: int=10) -> httpx.Response | None:
     backoff_factor: float = 0.5   # 指数退避因子
     async with httpx.AsyncClient(follow_redirects=True, verify=verify, timeout=timeout) as client:
         for attempt in range(retry + 1):  # 包含首次请求
             try:
-                response = await client.get(url=url, headers=headers)
+                response = await client.get(url, params=params, headers=headers)
                 if response.status_code in {429, 500, 502, 503, 504}:
                     raise httpx.HTTPStatusError("Retryable status code", request=response.request, response=response)
             except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.HTTPStatusError) as e:
