@@ -51,9 +51,9 @@ class Config:
         configs = self._load_config()
         # 默认无须用户改动的
         logging.config.dictConfig(configs["logging"])
-        self.desktop_user_agent = configs["desktop_user_agent"]
-        self.mobile_user_agent = configs["mobile_user_agent"]
-        self.init_script_path = configs["init_script_path"]
+        self.desktop_user_agent = []
+        self.mobile_user_agent = []
+        self.init_script_path = "" # todo
         self.screenshot_root = configs["screenshot_root"]
         # 用户配置
         self.is_production = configs['is_production']

@@ -23,7 +23,7 @@ playwright install
 if [ ! -d config_and_data_files ]
 then
     mkdir config_and_data_files && \
-    cp libs/config.example.yaml config_and_data_files/config.yaml
+    cp examples/config.example.yaml config_and_data_files/config.yaml
 fi
 
 # 创建 systemd 配置文件
