@@ -23,6 +23,7 @@ class Sequence(Enum):
 class AccessLevel(IntEnum):
     """源信息可定义访问级别，限制低级别用户查看。主要为用于API发布RSS。数字不能更改，否则需要删除数据库"""
     PUBLIC = 1
+    USER = 5
     ADMIN = 9
 
 

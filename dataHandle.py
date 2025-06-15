@@ -16,9 +16,10 @@ class RSSData:
 
 class RSSCache:
     """内存里缓存的RSS数据"""
-    def __init__(self, rss_dir: str, rss_admin_dir: str) -> None:
-        self.rss_dir, self.rss_admin_dir = Path(rss_dir), Path(rss_admin_dir)
+    def __init__(self, rss_dir: str, rss_user_dir: str, rss_admin_dir: str) -> None:
+        self.rss_dir, self.rss_user_dir, self.rss_admin_dir = Path(rss_dir), Path(rss_user_dir), Path(rss_admin_dir)
         self._public: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_dir)
+        self._user: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_dir)
         self._admin: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_admin_dir)
 
     def get_rss_or_None(self, source_name: str) -> RSSData | None:
@@ -27,11 +28,14 @@ class RSSCache:
     def get_admin_rss_or_None(self, source_name: str) -> RSSData | None:
         return self._admin.get(source_name)
 
+    def get_user_rss_or_None(self, source_name: str) -> RSSData | None:
+        return self._user.get(source_name)
+
     def get_rss_list(self) -> list[str]:
         return sorted([rss for rss in self._public])
 
     def get_admin_rss_list(self) -> list[str]:
-        return sorted([rss for rss in self._admin])
+        return sorted([rss for rss in self._admin] + [rss for rss in self._user])
 
     def set_rss(self, source_name: str, rss: bytes, rss_json: dict, cls_id_or_none: str | None, access: AccessLevel):
         """将RSS源名称和RSS内容映射，如果是单例，还将类名和RSS内容映射"""
@@ -40,6 +44,10 @@ class RSSCache:
             self._admin[source_name] = rss_data
             if cls_id_or_none:
                 self._admin[cls_id_or_none] = rss_data
+        elif access == AccessLevel.USER:
+            self._user[source_name] = rss_data
+            if cls_id_or_none:
+                self._user[cls_id_or_none] = rss_data
         else:
             self._public[source_name] = rss_data
             if cls_id_or_none:
@@ -49,7 +57,7 @@ class RSSCache:
             rss_file.write(rss)
 
     def rss_is_absent(self, source_name: str) -> bool:
-        return not (source_name in self._public or source_name in self._admin)
+        return not (source_name in self._public or source_name in self._user or source_name in self._admin)
 
     @staticmethod
     def _load_files_to_dict(path: Path) -> dict[str, RSSData]:
@@ -67,7 +75,7 @@ class Data:
     def __init__(self, config) -> None:
         self.config = config
         self.logger = logging.getLogger("dataHandle")
-        self.rss_cache = RSSCache(config.rss_dir, config.rss_admin_dir)
+        self.rss_cache = RSSCache(config.rss_dir, config.rss_user_dir, config.rss_admin_dir)
 
         # 从文件里加载用户数据
         self._users = {"invite_code": None, "left_count": 0, "users": []}
@@ -97,7 +105,7 @@ class Data:
         self._users["left_count"] = count
         self._users["users"] = users
         with open(config.users_file, 'w', encoding="utf-8") as f:
-            json.dump(self._users, f)
+            json.dump(self._users, f, ensure_ascii=False, indent=4)
 
 
 data = Data(config)

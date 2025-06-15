@@ -28,7 +28,7 @@ async def get_rss_list(request: Request):
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
 @router.get("/{source_name}.xml/", response_class=PlainTextResponse, dependencies=[Depends(get_admin_user)])
-def get_api_rss(source_name: str):
+async def get_api_rss(source_name: str):
     """查看管理员通过 API 发布的 RSS"""
     rss = data.rss_cache.get_admin_rss_or_None(source_name) or data.rss_cache.get_rss_or_None(source_name)
     if rss is None:

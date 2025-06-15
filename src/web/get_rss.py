@@ -5,6 +5,7 @@ from fastapi import APIRouter, Request, HTTPException, status
 from fastapi.responses import PlainTextResponse, HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 
+from .security import UserRegistry
 from preproc import data
 
 logger = logging.getLogger(__name__)
@@ -22,10 +23,7 @@ async def get_rss_list(request: Request):
     context = {"rss_list": data.rss_cache.get_rss_list()}
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
-@router.get("/{source_name_with_suffix}/")
-def get_saved_rss(source_name_with_suffix: str):
-    source_name, suffix = source_name_with_suffix.rsplit(".", 1)
-    rss_data = data.rss_cache.get_rss_or_None(source_name)
+def select_rss(rss_data, suffix: str):
     if rss_data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
     if suffix == "xml":
@@ -34,3 +32,23 @@ def get_saved_rss(source_name_with_suffix: str):
         return JSONResponse(rss_data.json)
     else:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="suffix is not supported")
+
+@router.get("/{source_name_with_suffix}/")
+async def get_saved_rss(source_name_with_suffix: str):
+    source_name, suffix = source_name_with_suffix.rsplit(".", 1)
+    rss_data = data.rss_cache.get_rss_or_None(source_name)
+    return select_rss(rss_data, suffix)
+
+
+@router.get("/{username}/{source_name_with_suffix}/")
+async def get_their_rss(username: str, source_name_with_suffix: str):
+    source_name, suffix = source_name_with_suffix.rsplit(".", 1)
+    src_names = UserRegistry.get_sources_by_name(username)
+    if not src_names or source_name not in src_names:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"the source '{source_name}' is not accessed by '{username}'"
+        )
+
+    rss_data = data.rss_cache.get_user_rss_or_None(source_name)
+    return select_rss(rss_data, suffix)

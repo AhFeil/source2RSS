@@ -123,7 +123,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     def _custom_parameter_of_parse(self) -> tuple:
         """调用 _parse 时，额外需要提供的参数"""
-        return ()
+        return tuple()
 
     @classmethod
     @abstractmethod
