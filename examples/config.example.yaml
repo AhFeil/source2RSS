@@ -1,6 +1,7 @@
 is_production: true
 other_configs_path:   # 靠后的配置文件会覆盖前面的配置
 - examples/pgm_config.example.yaml
+- plugins/source2RSS-scraper/config.example.yaml
 
 # 启用抓取器，这里启用了所有可用的，可以删除不需要的
 enabled_web_scraper:
@@ -18,23 +19,12 @@ enabled_web_scraper:
   - youtube_channel
   - bilibili_up
   - representative   # 删除这个则无法通过 API 发布 RSS
-  plugins.source2RSS-scraper:
-  - fanqie
-  - weather_from_amap
 # 暂时没有维护无法正常运行的抓取器
 # - newsletter
 # - bili_follow_dynamic
 
 webscraper_profile:
   # 这里的名称，使用类名，除非定义了类变量 name
-  FanQie:
-    custom_cfg:
-      run_everyday_at: ["06:00", "12:00", "19:00", "22:00", "23:00", "23:37", "00:00"]
-      amount_when_firstly_add: 3
-    cls_init_params:
-    - [6999592647790693413, 82.157.53.75, 1180, 我靠焚尸超凡入圣]
-    - [6995119385308302344, 82.157.53.75, 1180, 系统炸了，我成了系统]
-
   BilibiliUp:
     custom_cfg:
       run_everyday_at: ["06:00", "12:00", "19:00", "22:00", "23:00", "23:37", "00:00"]

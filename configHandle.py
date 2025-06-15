@@ -4,6 +4,7 @@ import json
 import base64
 from datetime import datetime
 import logging.config
+from contextlib import suppress
 from typing import Iterable
 from collections import defaultdict
 
@@ -39,12 +40,33 @@ class Config:
                 json.dump({}, f)
 
     def _load_config(self) -> dict:
-        """定义如何加载配置文件"""
+        """加载第一个配置文件，从中取出其他配置文件的路径并加载（文件不存在不报错），最终合并得到一份配置"""
         config = Config._load_config_file(self.config_path)
         for f in config.get("other_configs_path", ()):
-            other_config = Config._load_config_file(f)
-            config.update(other_config)
+            with suppress(FileNotFoundError):
+                other_config = Config._load_config_file(f)
+                Config._update(config, other_config)
         return config
+
+    @staticmethod
+    def _update(config: dict, other_config: dict):
+        """
+        遍历新的配置中每个键值对，如果在当前配置中不存在，就新增；存在，若是不可变类型，就用新的覆盖；
+        若是列表，就在原有的追加；若是字典，就递归。
+        """
+        for key, val in other_config.items():
+            if key not in config:
+                config[key] = val
+                continue
+            if isinstance(val, (bool, int, float, str)):
+                config[key] = val
+                continue
+            if isinstance(val, list):
+                config[key].extend(val)
+                continue
+            if isinstance(val, dict):
+                Config._update(config[key], val)
+                continue
 
     def reload(self) -> None:
         """将配置文件里的参数，赋予单独的变量，方便后面程序调用"""
