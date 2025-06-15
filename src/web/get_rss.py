@@ -35,14 +35,20 @@ def select_rss(rss_data, suffix: str):
 
 @router.get("/{source_name_with_suffix}/")
 async def get_saved_rss(source_name_with_suffix: str):
-    source_name, suffix = source_name_with_suffix.rsplit(".", 1)
+    try:
+        source_name, suffix = source_name_with_suffix.rsplit(".", 1)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="lack of suffix")
     rss_data = data.rss_cache.get_rss_or_None(source_name)
     return select_rss(rss_data, suffix)
 
 
 @router.get("/{username}/{source_name_with_suffix}/")
 async def get_their_rss(username: str, source_name_with_suffix: str):
-    source_name, suffix = source_name_with_suffix.rsplit(".", 1)
+    try:
+        source_name, suffix = source_name_with_suffix.rsplit(".", 1)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="lack of suffix")
     src_names = UserRegistry.get_sources_by_name(username)
     if not src_names or source_name not in src_names:
         raise HTTPException(
