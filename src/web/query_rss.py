@@ -73,4 +73,4 @@ async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [], user: Us
         source_name = await no_cache_flow(cls_id, (q, ))
     else:
         source_name = await cache_flow(cls_id, (q, ))
-    return get_saved_rss(source_name + ".xml")
+    return await get_saved_rss(source_name + ".xml")
