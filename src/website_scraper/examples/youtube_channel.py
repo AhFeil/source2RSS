@@ -55,12 +55,13 @@ class YoutubeChannel(WebsiteScraper):
                 return
             duration_seconds = int(cls.extract_duration(res.text)) // 1000
             duration_m, duration_s = divmod(duration_seconds, 60)
+            d = f"video duration is {duration_m}:{duration_s}. "
             article = {
                 "title": entry.title,
-                "summary": f"video duration is {duration_m}:{duration_s}. " + entry.summary[0:50], # type: ignore
+                "summary": d + entry.summary[0:50],
                 "link": entry.link,
                 "image_link": entry.media_thumbnail[0]['url'],
-                "content": entry.summary,
+                "content": d + entry.summary,
                 "pub_time": datetime.fromisoformat(entry.published).replace(tzinfo=None), # type: ignore
             }
             yield article

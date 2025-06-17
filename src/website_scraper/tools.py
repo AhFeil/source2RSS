@@ -4,7 +4,7 @@ import asyncio
 from urllib.robotparser import RobotFileParser
 
 import httpx
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, TimeoutError
 
 from configHandle import config, post2RSS
 
@@ -40,6 +40,7 @@ class AsyncBrowserManager:
     _browser = None
     _playwright = None
     _users = 0
+    _users_that_is_waiting = 0
     _lock = asyncio.Lock()
     _logger = logging.getLogger("AsyncBrowserManager")
 
@@ -50,15 +51,13 @@ class AsyncBrowserManager:
 
     async def __aenter__(self):
         # 协程并发下，如果不加锁，有可能会实例化多个 _browser 或其他非预期状况
-        # 这里加锁并不会导致同时只有一个协程能使用浏览器
-        await AsyncBrowserManager.waiting_operation(self.id, config.max_opening_context)
         async with AsyncBrowserManager._lock:
             # 首次使用时初始化浏览器和 Playwright
             if AsyncBrowserManager._browser is None:
                 AsyncBrowserManager._playwright = await async_playwright().start()
                 AsyncBrowserManager._browser = await AsyncBrowserManager._playwright.chromium.launch(headless=True)
                 AsyncBrowserManager._logger.info("create browser for " + self.id)
-            AsyncBrowserManager._users += 1
+        await AsyncBrowserManager.waiting_operation(self.id, config.max_opening_context)
         self.context = await AsyncBrowserManager._browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent)
         AsyncBrowserManager._logger.debug("create context for " + self.id)
         return self.context
@@ -69,35 +68,42 @@ class AsyncBrowserManager:
             AsyncBrowserManager._logger.debug("destroy context of " + self.id)
             AsyncBrowserManager._users -= 1
             # 所有用户都退出后清理资源
-        asyncio.create_task(AsyncBrowserManager.delayed_operation(self.id, 180))
+        asyncio.create_task(AsyncBrowserManager.delayed_clean(self.id, 180))
 
     @classmethod
-    async def delayed_operation(cls, id, delay: int):
+    async def delayed_clean(cls, id, delay: int):
         async with AsyncBrowserManager._lock:
             if cls._users > 0:
                 return
         await asyncio.sleep(delay)
         async with AsyncBrowserManager._lock:
-            if cls._users == 0 and cls._browser is not None:
+            all_users = cls._users + cls._users_that_is_waiting
+            if all_users == 0 and cls._browser is not None:
                 await cls._browser.close()
                 await cls._playwright.stop() # type: ignore
                 cls._browser = None
                 cls._playwright = None
                 cls._logger.info("destroy browser by " + id)
-            elif cls._users > 0:
+            elif all_users > 0:
                 cls._logger.info("leave browser alone, said by " + id)
+            else:
+                cls._logger.warning(f"unexpected situcation {id}, {cls._users=}, {cls._users_that_is_waiting=}, {cls._browser=}")
 
     @classmethod
     async def waiting_operation(cls, id, max: int):
         need_wait = True
+        cls._users_that_is_waiting += 1
         while(need_wait):
-            async with AsyncBrowserManager._lock:
-                if AsyncBrowserManager._users >= max:
+            async with cls._lock:
+                if cls._users >= max:
                     cls._logger.info(id + " need to wait for context")
                     need_wait = True
                 else:
+                    cls._users += 1
                     need_wait = False
-            await asyncio.sleep(15 * need_wait)
+            if need_wait:
+                await asyncio.sleep(15)
+        cls._users_that_is_waiting -= 1
 
 
     @staticmethod

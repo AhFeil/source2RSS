@@ -1,5 +1,6 @@
 #!/bin/bash
 # setup4host.sh - set up virtual environment, install dependencies and create systemd file
+# 确保脚本运行幂等，有更新时保证运行一次脚本就可以满足更新的需要
 
 program_name="source2RSS"   # 不能有空格等特殊符号
 current_uid=$(id -u)

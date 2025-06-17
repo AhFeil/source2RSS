@@ -2,6 +2,8 @@ from datetime import datetime
 from contextlib import suppress
 from typing import AsyncGenerator, Self
 
+from playwright.async_api import TimeoutError
+
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.scraper_error import CreateByInvalidParam, FailtoGet
@@ -26,7 +28,7 @@ class BilibiliUp(WebsiteScraper):
     @classmethod
     async def create(cls, uid: int) -> Self:
         space_url = f"{cls.home_url}/{uid}/dynamic"
-        j_res = await cls.get_response_json(uid, space_url)
+        j_res = await cls.get_response_json(uid, space_url) # todo 如果是因为超时，应该对外表现为没有更新
         if j_res and j_res.get("data"):
             up_name = j_res["data"]["items"][0]["modules"]["module_author"]["name"]
             return cls(up_name, space_url, j_res)
