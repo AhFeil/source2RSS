@@ -68,7 +68,7 @@ class AsyncBrowserManager:
             AsyncBrowserManager._logger.debug("destroy context of " + self.id)
             AsyncBrowserManager._users -= 1
             # 所有用户都退出后清理资源
-        asyncio.create_task(AsyncBrowserManager.delayed_clean(self.id, 180))
+        asyncio.create_task(AsyncBrowserManager.delayed_clean(self.id, config.wait_before_close_browser))
 
     @classmethod
     async def delayed_clean(cls, id, delay: int):
@@ -86,6 +86,8 @@ class AsyncBrowserManager:
                 cls._logger.info("destroy browser by " + id)
             elif all_users > 0:
                 cls._logger.info("leave browser alone, said by " + id)
+            elif all_users == 0 and cls._browser is None:
+                pass
             else:
                 cls._logger.warning(f"unexpected situcation {id}, {cls._users=}, {cls._users_that_is_waiting=}, {cls._browser=}")
 

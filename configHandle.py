@@ -32,7 +32,7 @@ class Config:
         os.makedirs(self.rss_admin_dir, exist_ok=True)
         self.users_file = "config_and_data_files/users.json"
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
-        self.run_test_every_seconds = 30
+        self.wait_before_close_browser = 180
         self.bili_context = "config_and_data_files/bili_context.json"
         if not os.path.exists(self.bili_context):
             with open(self.bili_context, 'w', encoding="utf-8") as f:

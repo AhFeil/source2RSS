@@ -72,7 +72,7 @@ async def start_to_crawl(clses: Iterable[ClassNameAndParams]):
     """根据类名获得相应的类，和它们的初始化参数，组装协程然后放入事件循环"""
     tasks = (_process_one_kind_of_class(data, cls, item.init_params, item.amount) for item in clses if (cls := Plugins.get_plugin_or_none(item.name)))
     res = await asyncio.gather(*tasks)
-    await AsyncBrowserManager.delayed_clean("crawler", 1) # 兜底 playwright 打开的浏览器被关闭
+    await AsyncBrowserManager.delayed_clean("crawler", config.wait_before_close_browser) # 兜底 playwright 打开的浏览器被关闭
     return res
 
 

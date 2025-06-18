@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from itertools import islice
 from typing import AsyncGenerator, Any
 
@@ -56,10 +56,18 @@ class GatesNotes(WebsiteScraper):
         for title, description, url, date_str in zip(articles_title, articles_desc, articles_url, date_strs):
             if title.text == latest_article_title:
                 return
+            try:
+                time_obj = datetime.strptime(date_str.text, "on %A, %b %d, %Y")
+            except ValueError:
+                time_obj = datetime.now()
+                if date_str.text.endswith("hours ago"):
+                    num = int(date_str.text.split(maxsplit=1)[0])
+                    time_obj -= timedelta(hours=num)
+
             article = {
                 "title": title.text,
                 "summary": description.text,
                 "link": reader_url + '/' + url["id"].split("/", 1)[-1],
-                "pub_time": datetime.strptime(date_str.text, "on %A, %b %d, %Y")
+                "pub_time": time_obj
             }
             yield article

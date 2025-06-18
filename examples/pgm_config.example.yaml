@@ -26,7 +26,7 @@ logging:
       level: INFO
       formatter: simple
       filename: source2rss_info.log
-      maxBytes: 10485760  # 10MB
+      maxBytes: 1048576  # 1MB
       backupCount: 3
       encoding: utf8
 
@@ -35,7 +35,7 @@ logging:
       level: ERROR
       formatter: error
       filename: source2rss_error.log
-      maxBytes: 10485760  # 10MB
+      maxBytes: 1048576  # 1MB
       backupCount: 3
       encoding: utf8
 
