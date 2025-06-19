@@ -1,8 +1,8 @@
-import os
-from pathlib import Path
-import logging
 import json
+import logging
+import os
 from dataclasses import dataclass
+from pathlib import Path
 
 from configHandle import config
 from src.website_scraper import AccessLevel
@@ -44,15 +44,17 @@ class RSSCache:
             self._admin[source_name] = rss_data
             if cls_id_or_none:
                 self._admin[cls_id_or_none] = rss_data
+            rss_filepath = self.rss_admin_dir / (source_name + ".xml")
         elif access == AccessLevel.USER:
             self._user[source_name] = rss_data
             if cls_id_or_none:
                 self._user[cls_id_or_none] = rss_data
+            rss_filepath = self.rss_user_dir / (source_name + ".xml")
         else:
             self._public[source_name] = rss_data
             if cls_id_or_none:
                 self._public[cls_id_or_none] = rss_data
-        rss_filepath = self.rss_dir / (source_name + ".xml")
+            rss_filepath = self.rss_dir / (source_name + ".xml")
         with open(rss_filepath, 'wb') as rss_file:   # todo 退出时保存一次
             rss_file.write(rss)
 
@@ -89,11 +91,11 @@ class Data:
         # DB
         from src.data import DatabaseIntf
         if config.mongodb_uri is not None:
-            from src.data import MongodbIntf, MongodbConnInfo
+            from src.data import MongodbConnInfo, MongodbIntf
             info = MongodbConnInfo(config.mongodb_uri, config.mongo_dbname, config.source_meta)
             self.db_intf: DatabaseIntf = MongodbIntf.connect(info)
         else:
-            from src.data import SQliteIntf, SQliteConnInfo
+            from src.data import SQliteConnInfo, SQliteIntf
             info = SQliteConnInfo(config.sqlite_uri)
             self.db_intf: DatabaseIntf = SQliteIntf.connect(info)
 

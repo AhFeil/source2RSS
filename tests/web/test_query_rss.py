@@ -1,10 +1,10 @@
 """对 Web 接口 query rss 测试"""
-import base64
 import asyncio
+import base64
 
-from httpx import ASGITransport, AsyncClient
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
+from httpx import ASGITransport, AsyncClient
 
 from configHandle import config
 from main import app

@@ -1,8 +1,8 @@
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
 
 from feedgen.feed import FeedGenerator
 
-from src.website_scraper import SrcMetaDict, ArticleDict
+from src.website_scraper import ArticleDict, SrcMetaDict
 
 
 def generate_rss(source_info: SrcMetaDict, articles: list[ArticleDict]) -> bytes:

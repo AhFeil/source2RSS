@@ -1,18 +1,19 @@
 """主动请求某个源的 RSS ，会触发抓取过程并返回结果"""
 import logging
 from datetime import datetime
-from typing import Annotated
 from functools import wraps
+from typing import Annotated
 
 from cachetools import TTLCache
-from fastapi import APIRouter, Query, HTTPException, status, Depends, Request
-from fastapi.responses import PlainTextResponse, HTMLResponse
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import HTMLResponse, PlainTextResponse
 
-from src.crawl import start_to_crawl, ClassNameAndParams
+from preproc import Plugins, config, data
+from src.crawl import ClassNameAndParams, start_to_crawl
 from src.crawl.crawl_error import CrawlInitError
-from preproc import Plugins, data, config
-from .security import User, get_valid_user, get_admin_user
+
 from .get_rss import get_saved_rss, templates
+from .security import User, get_admin_user, get_valid_user
 
 logger = logging.getLogger(__name__)
 

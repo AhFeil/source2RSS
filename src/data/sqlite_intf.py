@@ -1,13 +1,24 @@
 from dataclasses import dataclass
 from typing import Self
 
-from sqlalchemy import create_engine, inspect, MetaData, Column, Integer, String, DateTime, ForeignKey, asc, desc
-from sqlalchemy.orm import declarative_base, sessionmaker, declared_attr
+from sqlalchemy import (
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    MetaData,
+    String,
+    asc,
+    create_engine,
+    desc,
+    inspect,
+)
+from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
 from sqlalchemy.sql import text
 
-from .db_intf import DatabaseIntf
-from src.website_scraper import SrcMetaDict, ArticleDict
+from src.website_scraper import ArticleDict, SrcMetaDict
 
+from .db_intf import DatabaseIntf
 
 Base = declarative_base()
 
@@ -188,6 +199,7 @@ class SQliteIntf(DatabaseIntf):
 
 if __name__ == "__main__":
     from datetime import datetime
+
     from src.website_scraper import SortKey
 
     info = SQliteConnInfo("sqlite:///config_and_data_files/test.db")

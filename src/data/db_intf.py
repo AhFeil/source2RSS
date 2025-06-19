@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-from src.website_scraper.scraper import SrcMetaDict, ArticleDict
+from src.website_scraper.scraper import ArticleDict, SrcMetaDict
 
 
 class DatabaseIntf(ABC):

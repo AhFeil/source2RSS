@@ -1,15 +1,20 @@
-import logging
 import asyncio
+import logging
 import signal
 from dataclasses import dataclass
 from typing import Iterable, Self
 
-from src.website_scraper import WebsiteScraper, AsyncBrowserManager
-from src.website_scraper.scraper_error import FailtoGet, CreateByInvalidParam, CreateByLocked
+from configHandle import post2RSS
+from preproc import Plugins, config, data
+from src.website_scraper import AsyncBrowserManager, WebsiteScraper
+from src.website_scraper.scraper_error import (
+    CreateByInvalidParam,
+    CreateByLocked,
+    FailtoGet,
+)
+
 from .crawl_error import CrawlInitError
 from .local_publish import goto_uniform_flow
-from configHandle import post2RSS
-from preproc import config, data, Plugins
 
 logger = logging.getLogger("crawler")
 

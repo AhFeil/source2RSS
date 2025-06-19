@@ -1,9 +1,9 @@
+import hashlib
 import os
 from dataclasses import dataclass
-import hashlib
 from typing import Self
 
-from fastapi import HTTPException, status, Depends
+from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from preproc import config, data

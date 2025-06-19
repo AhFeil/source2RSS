@@ -1,5 +1,15 @@
 
-from .model import SourceMeta, ArticleInfo, PublishMethod, SrcMetaDict, ArticleDict, LocateInfo, Sequence, SortKey, AccessLevel
+from .model import (
+    AccessLevel,
+    ArticleDict,
+    ArticleInfo,
+    LocateInfo,
+    PublishMethod,
+    Sequence,
+    SortKey,
+    SourceMeta,
+    SrcMetaDict,
+)
 from .scraper import WebsiteScraper
 from .tools import AsyncBrowserManager
 

@@ -1,6 +1,6 @@
 """对 Web 接口 get rss 测试"""
-from fastapi.testclient import TestClient
 import pytest
+from fastapi.testclient import TestClient
 
 from configHandle import config
 from main import app

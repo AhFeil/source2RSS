@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from src.crawl import start_to_crawl_all
+
 from .security import User, UserRegistry, get_admin_user
 
 logger = logging.getLogger(__name__)

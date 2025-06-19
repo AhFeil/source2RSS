@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import AsyncGenerator, Self
 
 from bs4 import BeautifulSoup
+
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.scraper_error import CreateByInvalidParam

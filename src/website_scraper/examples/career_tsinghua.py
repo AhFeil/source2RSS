@@ -2,12 +2,12 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import AsyncGenerator
 
+import httpx
 from bs4 import BeautifulSoup
+
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.scraper_error import FailtoGet
-
-import httpx
 
 
 class CareerTsinghua(WebsiteScraper):

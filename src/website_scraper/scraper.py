@@ -1,10 +1,19 @@
 import logging
-from datetime import datetime, timedelta
 from abc import ABC, ABCMeta, abstractmethod
-from typing import Generator, AsyncGenerator, Self, Any
+from datetime import datetime, timedelta
+from typing import Any, AsyncGenerator, Generator, Self
 
 from api._v2 import Plugins
-from .model import LocateInfo, Sequence, SrcMetaDict, ArticleDict, SourceMeta, ArticleInfo, SortKey
+
+from .model import (
+    ArticleDict,
+    ArticleInfo,
+    LocateInfo,
+    Sequence,
+    SortKey,
+    SourceMeta,
+    SrcMetaDict,
+)
 
 
 class ScraperMeta(ABCMeta):

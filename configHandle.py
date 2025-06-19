@@ -1,15 +1,14 @@
-import os
-import json
 import base64
-from datetime import datetime
+import json
 import logging.config
-from contextlib import suppress
-from typing import Iterable
+import os
 from collections import defaultdict
+from contextlib import suppress
+from datetime import datetime
+from typing import Iterable
 
-from ruamel.yaml import YAML, YAMLError
 import httpx
-
+from ruamel.yaml import YAML, YAMLError
 
 configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default='config_and_data_files/config.yaml')
 

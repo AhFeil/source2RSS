@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 
-from src.website_scraper import WebsiteScraper, LocateInfo, Sequence
+from src.website_scraper import LocateInfo, Sequence, WebsiteScraper
 from tests.website_scraper.scrapers_test_params import CaseParam4Meta, scrapers_params
 
 

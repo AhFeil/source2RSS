@@ -1,10 +1,11 @@
-import logging
 import asyncio
+import logging
 
-from src.website_scraper import WebsiteScraper, LocateInfo, Sequence
-from src.website_scraper.scraper_error import FailtoGet
-from .generate_rss import generate_rss
 from configHandle import post2RSS
+from src.website_scraper import LocateInfo, Sequence, WebsiteScraper
+from src.website_scraper.scraper_error import FailtoGet
+
+from .generate_rss import generate_rss
 
 logger = logging.getLogger("local_publish")
 

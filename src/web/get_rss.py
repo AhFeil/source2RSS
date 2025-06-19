@@ -1,12 +1,13 @@
 """能公开访问的 RSS ，无须用户验证"""
 import logging
 
-from fastapi import APIRouter, Request, HTTPException, status
-from fastapi.responses import PlainTextResponse, HTMLResponse, JSONResponse
+from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
-from .security import UserRegistry
 from preproc import data
+
+from .security import UserRegistry
 
 logger = logging.getLogger(__name__)
 

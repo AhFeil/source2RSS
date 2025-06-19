@@ -1,7 +1,7 @@
-from typing import Generator
-import imaplib
 import email
 import email.utils
+import imaplib
+from typing import Generator
 
 imaplib._MAXLINE = 10000000
 

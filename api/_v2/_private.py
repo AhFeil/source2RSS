@@ -1,8 +1,8 @@
 """注册插件，以字典存储"""
-from typing import Iterable, Any
-from types import ModuleType
 import importlib
 import pkgutil
+from types import ModuleType
+from typing import Any, Iterable
 
 from configHandle import config
 

@@ -1,13 +1,12 @@
+import asyncio
 import logging
 from contextlib import asynccontextmanager
-import asyncio
 
 from fastapi import FastAPI
 
-from src.web import get_rss, post_src, query_rss, user, manage
-from src.run_as_scheduled import run_continuously
 from preproc import Plugins
-
+from src.run_as_scheduled import run_continuously
+from src.web import get_rss, manage, post_src, query_rss, user
 
 logger = logging.getLogger("main")
 

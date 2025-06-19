@@ -1,17 +1,17 @@
-import time
-from urllib.parse import urlencode
-from hashlib import md5
 import asyncio
+import time
 from datetime import datetime
-from typing import AsyncGenerator, Any
+from hashlib import md5
+from typing import Any, AsyncGenerator
+from urllib.parse import urlencode
 
 import httpx
-from playwright.async_api import BrowserContext, async_playwright
 from playwright._impl._errors import TimeoutError as pw_TimeoutError
+from playwright.async_api import BrowserContext, async_playwright
 
-from utils import environment, image_
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.scraper_error import FailtoGet
+from utils import environment, image_
 
 
 class BiliFoDynamic(WebsiteScraper):

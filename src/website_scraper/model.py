@@ -1,9 +1,9 @@
 """抓取器返回字典定义和 FastAPI 的 Model 等"""
 from datetime import datetime
-from enum import Enum, StrEnum, IntEnum, auto
-from typing import TypedDict, Required, Union, Optional, get_type_hints
+from enum import Enum, IntEnum, StrEnum, auto
+from typing import Optional, Required, TypedDict, Union, get_type_hints
 
-from pydantic import BaseModel, HttpUrl, ConfigDict, field_validator
+from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
 
 
 def init_field_names(cls):

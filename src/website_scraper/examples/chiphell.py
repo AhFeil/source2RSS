@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
+
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
 from src.website_scraper.tools import AsyncBrowserManager

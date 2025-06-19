@@ -1,15 +1,15 @@
-import logging
-import time
 import asyncio
-from asyncio import run_coroutine_threadsafe
+import logging
 import threading
+import time
 import traceback
+from asyncio import run_coroutine_threadsafe
 
 import schedule
 
 from configHandle import post2RSS
-from preproc import config, Plugins
-from src.crawl import start_to_crawl, ClassNameAndParams
+from preproc import Plugins, config
+from src.crawl import ClassNameAndParams, start_to_crawl
 
 logger = logging.getLogger(__name__)
 
