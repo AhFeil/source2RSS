@@ -113,6 +113,6 @@ class CareerTsinghua(WebsiteScraper):
         async with httpx.AsyncClient(follow_redirects=True) as client:
             try:
                 response = await client.post(url=url, headers=cls.headers, data=data_raw, timeout=timeout)
-            except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout):
-                raise FailtoGet()
+            except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout) as e:
+                raise FailtoGet() from e
         return response

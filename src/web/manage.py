@@ -1,5 +1,6 @@
 """供管理员使用的管理类接口"""
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -34,7 +35,7 @@ class InviteCodeCreate(BaseModel):
     count: int
 
 @router.post("/invite_code", response_class=JSONResponse)
-async def update_invite_code(ic_data: InviteCodeCreate, user: User = Depends(get_admin_user)):
+async def update_invite_code(ic_data: InviteCodeCreate, user: Annotated[User, Depends(get_admin_user)]):
     if UserRegistry.update_ic(ic_data.code, ic_data.count, user):
         return {"message": "Invite Code updated"}
     return {"message": "Invite Code failed to be updated"}

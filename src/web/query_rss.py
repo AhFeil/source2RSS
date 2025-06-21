@@ -63,7 +63,7 @@ async def cache_flow(cls_id: str, q: tuple) -> str:
     return await no_cache_flow(cls_id, q)
 
 @router.get("/{cls_id}/", response_class=PlainTextResponse)
-async def query_rss(cls_id: str, q: Annotated[list[str], Query()] = [], user: User = Depends(get_valid_user)):
+async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []):
     """主动请求，会触发更新，因此需要身份验证。对于普通用户，可以设置缓存防止滥用。获取结果和 get_rss 中的一样，复用即可。"""
     logger.info(f"{cls_id} get new request of {q}")
     # todo cls 不能为 Representative
