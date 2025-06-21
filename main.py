@@ -2,7 +2,8 @@ import asyncio
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
 
 from preproc import Plugins
 from src.run_as_scheduled import run_continuously
@@ -32,14 +33,14 @@ app.include_router(query_rss.router)
 app.include_router(user.router)
 app.include_router(manage.router)
 
-for path, module in Plugins.imported_modules.items():
+for _path, module in Plugins.imported_modules.items():
     if "router" in getattr(module, "__all__", []):
         app.include_router(module.router)
 
 
-@app.get("/")
-async def index():
-    return {"message": "Source2RSS HomePage"}
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return get_rss.templates.TemplateResponse(request=request, name="home.html")
 
 
 if __name__ == "__main__":

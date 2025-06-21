@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>source2RSS</title>
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+</head>
+<body>
+    <h1>manage page</h1>
+
+    <button hx-post="crawler/run_all" hx-target="#result">
+        运行全部抓取器
+    </button>
+
+    <div id="result"></div>
+</body>
+</html>

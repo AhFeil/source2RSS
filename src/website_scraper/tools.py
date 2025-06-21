@@ -127,7 +127,7 @@ class AsyncBrowserManager:
         return html_content
 
 
-async def create_rp(robots_txt: str, headers: dict={}) -> RobotFileParser:
+async def create_rp(robots_txt: str, headers: dict | None = None) -> RobotFileParser:
     """robots_txt 可以是字符串或网址，使用 rp.can_fetch(url) 判断是否能爬取"""
     if robots_txt.startswith("http"):
         res = await get_response_or_none(robots_txt, headers)
