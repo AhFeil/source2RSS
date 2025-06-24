@@ -41,6 +41,8 @@ def test_query_rss_success(setup_and_tear_down):
     assert response.status_code == 200
     # todo 普通用户访问
 
+    # todo 抓取器的 Access 是 user 级别，也要能访问
+
 
 @pytest.mark.asyncio
 async def test_query_rss_high_concurrency():

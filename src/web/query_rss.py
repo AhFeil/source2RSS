@@ -12,7 +12,7 @@ from preproc import Plugins, config, data
 from src.crawl import ClassNameAndParams, start_to_crawl
 from src.crawl.crawl_error import CrawlInitError
 
-from .get_rss import get_saved_rss, templates
+from .get_rss import select_rss, templates
 from .security import User, get_admin_user, get_valid_user
 
 logger = logging.getLogger(__name__)
@@ -74,4 +74,6 @@ async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)],
         source_name = await no_cache_flow(cls_id, (q, ))
     else:
         source_name = await cache_flow(cls_id, (q, ))
-    return await get_saved_rss(source_name + ".xml")
+
+    rss_data = data.rss_cache.get_user_rss_or_None(source_name) or data.rss_cache.get_rss_or_None(source_name)
+    return select_rss(rss_data, "xml")

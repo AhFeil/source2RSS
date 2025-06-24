@@ -19,7 +19,7 @@ class RSSCache:
     def __init__(self, rss_dir: str, rss_user_dir: str, rss_admin_dir: str) -> None:
         self.rss_dir, self.rss_user_dir, self.rss_admin_dir = Path(rss_dir), Path(rss_user_dir), Path(rss_admin_dir)
         self._public: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_dir)
-        self._user: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_dir)
+        self._user: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_user_dir)
         self._admin: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_admin_dir)
 
     def get_rss_or_None(self, source_name: str) -> RSSData | None:
