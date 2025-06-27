@@ -171,6 +171,7 @@ async def post2RSS(title: str, summary: str) -> httpx.Response | None:
             "title": title,
             "link": "http://rss.vfly2.com/query_rss/source2rss_severe_log.xml/#" + str(datetime.now().timestamp()),
             "summary": summary,
+            "content": summary,
             "pub_time": datetime.now().timestamp()
         }]
     async with httpx.AsyncClient() as client:

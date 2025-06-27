@@ -63,6 +63,8 @@ class GatesNotes(WebsiteScraper):
                 if date_str.text.endswith("hours ago"):
                     num = int(date_str.text.split(maxsplit=1)[0])
                     time_obj -= timedelta(hours=num)
+                elif date_str.text.endswith("coming soon"):
+                    return
 
             article = {
                 "title": title.text,

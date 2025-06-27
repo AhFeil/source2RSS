@@ -90,7 +90,11 @@ async def start_to_crawl_all():
         return
     logger.info("***Start all scrapers***")
     async with running_lock:
-        await start_to_crawl(ClassNameAndParams.create(name) for name in Plugins.get_all_id())
+        try:
+            await start_to_crawl(ClassNameAndParams.create(name) for name in Plugins.get_all_id())
+        except CrawlInitError as e:
+            if e.code == 500:
+                raise # 已知的错误就抑制
     logger.info("***Have finished all scrapers***")
 
 
