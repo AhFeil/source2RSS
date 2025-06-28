@@ -72,3 +72,10 @@ crawler_default_cfg:
   # 为了节省内存，限制只能打开一个浏览器，一个浏览器可以开多个 context
   # 每个抓取器实例需要一个 context 进而打开 page 访问网页，这里限制同时打开的 context 的个数，如果内存不够可以调小
   max_opening_context: 2
+
+# 广告
+ad_html: |
+  <p>
+      <span>自己的广告，定制 RSS 服务：</span>
+      <a href="https://tashcp.com/2025/06/customize-rss/">定制网站 RSS - 他山测评</a>
+  </p>

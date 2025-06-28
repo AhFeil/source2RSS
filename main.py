@@ -5,7 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse
 
-from preproc import Plugins
+from preproc import Plugins, config
 from src.run_as_scheduled import run_continuously
 from src.web import get_rss, manage, post_src, query_rss, user
 
@@ -40,7 +40,7 @@ for _path, module in Plugins.imported_modules.items():
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return get_rss.templates.TemplateResponse(request=request, name="home.html")
+    return get_rss.templates.TemplateResponse(request=request, name="home.html", context={"ad_html": config.ad_html})
 
 
 if __name__ == "__main__":

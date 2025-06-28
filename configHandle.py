@@ -105,6 +105,7 @@ class Config:
         self.query_bedtime = configs.get('query_bedtime', [])
 
         self.webscraper_profile = configs['webscraper_profile']
+        self.ad_html = configs.get("ad_html", "")
 
     def get_schedule(self, class_name: str) -> list:
         try:

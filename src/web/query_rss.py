@@ -25,7 +25,7 @@ router = APIRouter(
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(get_admin_user)])
 async def get_rss_list(request: Request):
-    context = {"rss_list": data.rss_cache.get_admin_rss_list(), "is_admin": True}
+    context = {"rss_list": data.rss_cache.get_admin_rss_list(), "is_admin": True, "ad_html": config.ad_html}
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
 @router.get("/{source_name}.xml/", response_class=PlainTextResponse, dependencies=[Depends(get_admin_user)])

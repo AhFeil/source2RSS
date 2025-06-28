@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 
-from preproc import data
+from preproc import config, data
 
 from .security import UserRegistry
 
@@ -21,7 +21,7 @@ templates = Jinja2Templates(directory='src/web/templates')
 @router.get("", response_class=HTMLResponse)
 @router.get("/", response_class=HTMLResponse)
 async def get_rss_list(request: Request):
-    context = {"rss_list": data.rss_cache.get_rss_list()}
+    context = {"rss_list": data.rss_cache.get_rss_list(), "ad_html": config.ad_html}
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
 def select_rss(rss_data, suffix: str):
