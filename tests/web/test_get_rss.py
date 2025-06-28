@@ -44,8 +44,8 @@ def test_get_saved_rss(setup_and_tear_down):
     assert response.status_code == 404
 
 
-
-def test_get_their_rss(setup_and_tear_down):
+# todo 自动创建普通用户
+def test_get_user_rss(setup_and_tear_down):
     # 访问的网址不符合格式
     response = client.get(f"/source2rss/{config.query_username}/我靠焚尸超凡入圣/")
     assert response.status_code == 400
@@ -59,7 +59,11 @@ def test_get_their_rss(setup_and_tear_down):
     assert response.status_code == 200
     response = client.get(f"/source2rss/{config.query_username}/不存在的源.json/")
     assert response.status_code == 404
-    # todo 普通用户可以访问其下名单里的
+    # 普通用户可以访问其下名单里的
+    response = client.get("/source2rss/yyy/我靠焚尸超凡入圣.xml/")
+    assert response.status_code == 200
+    response = client.get("/source2rss/yyy/我靠焚尸超凡入圣.json/")
+    assert response.status_code == 200
 
     # 用户不存在
     response = client.get("/source2rss/invalid_user/我靠焚尸超凡入圣.xml/")
