@@ -13,16 +13,16 @@ from preproc import config, data
 class User:
     name: str
     passwd_hash: str  # 格式: salt:hexdigest
-    is_administrator: bool = False
     # 允许查看的非公开源，管理员不受此限制，可以查看所有源
-    source_names: tuple[str] = tuple()
+    source_names: set[str]
+    is_administrator: bool = False
 
     @classmethod
     def create(cls, name: str, passwd: str) -> Self:
         """创建用户并生成加盐哈希"""
         salt = os.urandom(16)  # 生成16字节随机盐
         derived_key = User._gen_hash(passwd, salt)
-        return cls(name, f"{salt.hex()}:{derived_key.hex()}", False, tuple())
+        return cls(name, f"{salt.hex()}:{derived_key.hex()}", set())
 
     def check_passwd(self, passwd: str) -> bool:
         salt_hex, key_hex = self.passwd_hash.split(":")
@@ -55,12 +55,10 @@ class UserRegistry():
         return None
 
     @classmethod
-    def get_sources_by_name(cls, name: str) -> tuple[str]:
+    def get_sources_by_name(cls, name: str) -> set[str]:
         """根据用户名获取源列表"""
-        if name == config.query_username:
-            return data.rss_cache.get_admin_rss_list() # type: ignore
         user = cls._user_registry.get(name)
-        return user.source_names if user else tuple()
+        return user.source_names if user else set()
 
     @classmethod
     def register_user_or_none(cls, invite_code: str, name: str, passwd: str) -> User | None:
@@ -90,12 +88,15 @@ class UserRegistry():
         """加载用户到注册表里"""
         cls._invite_code = users["invite_code"]
         cls._left_count = users["left_count"]
+        all_source_names = set()
         for (name, passwd_hash, source_names) in users["users"]:
             if name in cls._user_registry:
                 raise RuntimeError("error that shouldn't exist")
-            cls._user_registry[name] = User(name, passwd_hash, False, source_names)
+            cls._user_registry[name] = User(name, passwd_hash, set(source_names))
+            all_source_names.update(source_names)
         user = User.create(config.query_username, config.query_password)
         user.is_administrator = True
+        user.source_names = all_source_names
         cls._user_registry[config.query_username] = user
 
     @classmethod

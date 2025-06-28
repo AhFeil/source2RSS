@@ -46,16 +46,16 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
             await post2RSS("error log of _process_one_kind_of_class", msg)
             raise CrawlInitError(500, "Unknown Error")
         else:
-            # todo
-            # if url := config.remote_pub_scraper.get(cls.__name__):
-            #     # 指定了远程发布网址，则通过 source2RSS 生成 RSS
-            #     from src.remote_publish import goto_remote_flow
-            #     await goto_remote_flow(config, data, instance, url)
-            # else:
-            #     await goto_uniform_flow(data, instance, amount)
-            source_name = await goto_uniform_flow(data, instance, amount)
-            instance.destroy()
-            res.append(source_name)
+            try:
+                source_name = await goto_uniform_flow(data, instance, amount)
+            except Exception as e:
+                msg = f"fail when goto_uniform_flow of {source_name}: {e}"
+                logger.exception(msg)
+                await post2RSS("error log of goto_uniform_flow", msg)
+            else:
+                res.append(source_name)
+            finally:
+                instance.destroy()
     return res
 
 

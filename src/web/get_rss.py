@@ -51,7 +51,7 @@ async def get_their_rss(username: str, source_name_with_suffix: str):
     except ValueError:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="lack of suffix")
     src_names = UserRegistry.get_sources_by_name(username)
-    if not src_names or source_name not in src_names:
+    if source_name not in src_names:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"the source '{source_name}' is not accessed by '{username}'"

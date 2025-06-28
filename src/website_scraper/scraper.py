@@ -54,8 +54,8 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     # ***对外接口***
     @classmethod
-    async def create(cls) -> Self:
-        return cls()
+    async def create(cls, *args) -> Self:
+        return cls(*args)
 
     def destroy(self) -> None:
         """用完实例后，进行某些资源的释放，比如锁"""

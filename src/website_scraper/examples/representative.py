@@ -9,7 +9,6 @@ class Representative(WebsiteScraper):
 
     @classmethod
     async def create(cls, source: dict, articles: list[dict]) -> Self:
-        # todo 对 articles 每项进行校验
         if source and articles:
             return cls(source, articles)
         raise CreateByInvalidParam()

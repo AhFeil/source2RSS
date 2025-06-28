@@ -44,6 +44,14 @@ def test_query_rss_success(setup_and_tear_down):
     # todo 抓取器的 Access 是 user 级别，也要能访问
 
 
+def test_query_rss_not_exist(setup_and_tear_down):
+    """测试触发更新在抓取器不存在时表现"""
+    response = client.get("/query_rss/NotExistScraper", headers=get_headers(config.query_username, config.query_password))
+    assert response.status_code == 404
+    response = client.get("/query_rss/Representative", headers=get_headers(config.query_username, config.query_password))
+    assert response.status_code == 404
+
+
 @pytest.mark.asyncio
 async def test_query_rss_high_concurrency():
     """测试触发更新的并发表现"""

@@ -31,7 +31,7 @@ async def get_rss_list(request: Request):
 @router.get("/{source_name}.xml/", response_class=PlainTextResponse, dependencies=[Depends(get_admin_user)])
 async def get_api_rss(source_name: str):
     """查看管理员通过 API 发布的 RSS"""
-    rss = data.rss_cache.get_admin_rss_or_None(source_name) or data.rss_cache.get_rss_or_None(source_name)
+    rss = data.rss_cache.get_admin_rss_or_None(source_name) or data.rss_cache.get_user_rss_or_None(source_name)
     if rss is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
     return rss.xml
@@ -66,8 +66,7 @@ async def cache_flow(cls_id: str, q: tuple) -> str:
 async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []):
     """主动请求，会触发更新，因此需要身份验证。对于普通用户，可以设置缓存防止滥用。获取结果和 get_rss 中的一样，复用即可。"""
     logger.info(f"{cls_id} get new request of {q}")
-    # todo cls 不能为 Representative
-    if Plugins.get_plugin_or_none(cls_id) is None:
+    if Plugins.get_plugin_or_none(cls_id) is None or cls_id == "Representative":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
     if user.is_administrator and not config.in_bedtime(cls_id, datetime.now().strftime("%H:%M")):
         logger.info("go to no_cache_flow of " + cls_id)
