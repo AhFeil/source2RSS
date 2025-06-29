@@ -94,6 +94,7 @@ class UserRegistry():
                 raise RuntimeError("error that shouldn't exist")
             cls._user_registry[name] = User(name, passwd_hash, set(source_names))
             all_source_names.update(source_names)
+        all_source_names.update(data.rss_cache.get_admin_rss_list())
         user = User.create(config.query_username, config.query_password)
         user.is_administrator = True
         user.source_names = all_source_names
