@@ -1,6 +1,6 @@
 # ruff: noqa: E402
 """
-添加命令行参数解析，调用 configHandle，加载插件，调用 dataHandle，实例一些全局类
+调用 configHandle，加载插件，调用 dataHandle，实例一些全局类
 """
 from api._v2 import Plugins
 from configHandle import config

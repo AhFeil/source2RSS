@@ -10,7 +10,7 @@ from typing import Iterable
 import httpx
 from ruamel.yaml import YAML, YAMLError
 
-configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default='config_and_data_files/config.yaml')
+configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default="config_and_data_files/config.yaml")
 
 
 # 非线程安全，但在单个事件循环下是协程安全的
@@ -37,38 +37,9 @@ class Config:
             with open(self.bili_context, 'w', encoding="utf-8") as f:
                 json.dump({}, f)
 
-    def _load_config(self) -> dict:
-        """加载第一个配置文件，从中取出其他配置文件的路径并加载（文件不存在不报错），最终合并得到一份配置"""
-        config = Config._load_config_file(self.config_path)
-        for f in config.get("other_configs_path", ()):
-            with suppress(FileNotFoundError):
-                other_config = Config._load_config_file(f)
-                Config._update(config, other_config)
-        return config
-
-    @staticmethod
-    def _update(config: dict, other_config: dict):
-        """
-        遍历新的配置中每个键值对，如果在当前配置中不存在，就新增；存在，若是不可变类型，就用新的覆盖；
-        若是列表，就在原有的追加；若是字典，就递归。
-        """
-        for key, val in other_config.items():
-            if key not in config:
-                config[key] = val
-                continue
-            if isinstance(val, (bool, int, float, str)):
-                config[key] = val
-                continue
-            if isinstance(val, list):
-                config[key].extend(val)
-                continue
-            if isinstance(val, dict):
-                Config._update(config[key], val)
-                continue
-
     def reload(self) -> None:
         """将配置文件里的参数，赋予单独的变量，方便后面程序调用"""
-        configs = self._load_config()
+        configs = self._load_config(self.config_path)
         # 默认无须用户改动的
         logging.config.dictConfig(configs["logging"])
         self.desktop_user_agent = []
@@ -141,6 +112,36 @@ class Config:
         except KeyError:
             bedtime = self.query_bedtime
         return any(t[0] <= hm <= t[1] for t in bedtime)
+
+    @staticmethod
+    def _load_config(config_path: str) -> dict:
+        """加载第一个配置文件，从中取出其他配置文件的路径并加载（文件不存在不报错），最终合并得到一份配置"""
+        config = Config._load_config_file(config_path)
+        for f in config.get("other_configs_path", ()):
+            with suppress(FileNotFoundError):
+                other_config = Config._load_config_file(f)
+                Config._update(config, other_config)
+        return config
+
+    @staticmethod
+    def _update(config: dict, other_config: dict):
+        """
+        遍历新的配置中每个键值对，如果在当前配置中不存在，就新增；存在，若是不可变类型，就用新的覆盖；
+        若是列表，就在原有的追加；若是字典，就递归。
+        """
+        for key, val in other_config.items():
+            if key not in config:
+                config[key] = val
+                continue
+            if isinstance(val, (bool, int, float, str)):
+                config[key] = val
+                continue
+            if isinstance(val, list):
+                config[key].extend(val)
+                continue
+            if isinstance(val, dict):
+                Config._update(config[key], val)
+                continue
 
     @staticmethod
     def _load_config_file(f) -> dict:
