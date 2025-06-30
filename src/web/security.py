@@ -103,7 +103,7 @@ class UserRegistry():
     @classmethod
     def _save_users_and_etc(cls) -> None:
         """保存用户到文件里"""
-        users = [(name, user.passwd_hash, user.source_names) for name, user in cls._user_registry.items() if name != config.query_username]
+        users = [(name, user.passwd_hash, list(user.source_names)) for name, user in cls._user_registry.items() if name != config.query_username]
         data.save_users_and_etc(cls._invite_code, cls._left_count, users)
 
 

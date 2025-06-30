@@ -106,8 +106,8 @@ class Data:
         self._users["invite_code"] = code
         self._users["left_count"] = count
         self._users["users"] = users
+        json_string = json.dumps(self._users, ensure_ascii=False, indent=4)
         with open(config.users_file, 'w', encoding="utf-8") as f:
-            json.dump(self._users, f, ensure_ascii=False, indent=4)
-
+            f.write(json_string)
 
 data = Data(config)
