@@ -9,6 +9,11 @@ class Representative(WebsiteScraper):
 
     @classmethod
     async def create(cls, source: dict, articles: list[dict]) -> Self:
+        """
+        Args:
+            source: 源的元信息字典
+            articles: 要在源中发布的文章列表
+        """
         if source and articles:
             return cls(source, articles)
         raise CreateByInvalidParam()

@@ -41,7 +41,27 @@ def test_query_rss_success(setup_and_tear_down):
     assert response.status_code == 200
     # todo 普通用户访问
 
+    # 未登录访问
+    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin")
+    assert response.status_code == 401
+
     # todo 抓取器的 Access 是 user 级别，也要能访问
+
+
+def test_query_rss_all_success(setup_and_tear_down):
+    """全量测试触发更新"""
+    # todo 从 usage 网页获得网址
+    response = client.get("/query_rss/BentoMLBlog/", headers=get_headers(config.query_username, config.query_password))
+    assert response.status_code == 200
+
+    response = client.get("/query_rss/BilibiliUp/?q=483246073", headers=get_headers(config.query_username, config.query_password))
+    assert response.status_code == 200
+
+    response = client.get("/query_rss/MangaCopy/?q=花咲家的性福生活&q=huaxoajiedexinfushenghuo", headers=get_headers(config.query_username, config.query_password))
+    assert response.status_code == 200
+
+    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers(config.query_username, config.query_password))
+    assert response.status_code == 200
 
 
 def test_query_rss_not_exist(setup_and_tear_down):

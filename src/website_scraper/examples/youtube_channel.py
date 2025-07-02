@@ -23,6 +23,10 @@ class YoutubeChannel(WebsiteScraper):
 
     @classmethod
     async def create(cls, channel_id: str) -> Self:
+        """
+        Args:
+            channel_id: 可以在频道主页的网址中拿到，如 https://www.youtube.com/@kurzgesagt 中最后一串 kurzgesagt
+        """
         feed_url = await cls.get_feed_url(channel_id)
         if feed_url:
             response = await get_response_or_none(feed_url, cls.headers)

@@ -55,6 +55,16 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     # ***对外接口***
     @classmethod
     async def create(cls, *args) -> Self:
+        """
+        创建抓取器实例的工厂函数。
+
+        Args:
+            无参数
+
+        Examples:
+            instance = WebsiteScraper.create(*args)
+            instance.source_info
+        """
         return cls(*args)
 
     def destroy(self) -> None:
@@ -68,7 +78,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     @property
     def table_name(self) -> str:
-        """返回表名，并会用于 RSS 文件的名称"""
+        """返回表名，并会用于 RSS 文件的名称""" # todo 放入 source_info ？
         return self.source_info["name"]
 
     @property

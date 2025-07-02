@@ -27,6 +27,10 @@ class BilibiliUp(WebsiteScraper):
 
     @classmethod
     async def create(cls, uid: int) -> Self:
+        """
+        Args:
+            uid: B 站用户的 uid ，可以在其个人主页查看，如 27016853
+        """
         space_url = f"{cls.home_url}/{uid}/dynamic"
         j_res = await cls.get_response_json(uid, space_url) # todo 如果是因为超时，应该对外表现为没有更新
         if j_res and j_res.get("data"):

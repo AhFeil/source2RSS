@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block head_extend %}
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+{% endblock head_extend %}
+
+{% block content %}
+    <h1>Usage Page</h1>
+
+    <ol>
+        {% for scraper_name in all_scrapers %}
+        <li>
+            <a href="/usage/{{ scraper_name | urlencode }}/">{{ scraper_name }}</a>
+        </li>
+        {% endfor %}
+    </ol>
+
+{% endblock content %}

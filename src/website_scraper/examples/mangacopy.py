@@ -29,6 +29,11 @@ class MangaCopy(WebsiteScraper):
 
     @classmethod
     async def create(cls, book_title: str, book_id: str) -> Self:
+        """
+        Args:
+            book_title: 漫画名称
+            book_id: 漫画在该网站下的 id ，可以在漫画主页的网址中拿到，如 https://www.mangacopy.com/comic/huaxoajiedexinfushenghuo 中最后一串
+        """
         book_url = f"{cls.home_url}/comic/{book_id}"
         if await cls.book_exists(book_url):
             return cls(book_title, book_id, book_url)
@@ -40,9 +45,9 @@ class MangaCopy(WebsiteScraper):
 
     def _source_info(self):
         return {
-            "name": "拷貝漫畫",
-            "link": f"{self.__class__.home_url}/comic/{self.book_id}",
-            "desc": f"拷貝漫畫下的作品 —— {self.book_title}",
+            "name": self.book_title,
+            "link": self.book_url,
+            "desc": f"拷貝漫畫里的漫画 —— {self.book_title}",
             "lang": "zh-CN",
             "key4sort": SortKey.CHAPTER_NUMBER}
 
