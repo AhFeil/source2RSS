@@ -1,4 +1,8 @@
-"""对提供的工具，如 AsyncBrowserManager 等测试"""
+"""
+对提供的工具，如 AsyncBrowserManager 等测试
+
+.env/bin/python -m pytest -s tests/website_scraper/test_tools.py
+"""
 import pytest
 import pytest_asyncio
 

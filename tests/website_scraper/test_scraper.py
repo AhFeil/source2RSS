@@ -1,4 +1,8 @@
-"""对 WebsiteScraper 的对外接口测试即可"""
+"""
+对 WebsiteScraper 的对外接口测试即可
+
+.env/bin/python -m pytest -s tests/website_scraper/test_scraper.py
+"""
 from datetime import datetime
 from typing import AsyncGenerator
 

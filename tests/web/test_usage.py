@@ -1,4 +1,8 @@
-"""对 Web 接口 get rss 测试"""
+"""
+对 Web 接口 get rss 测试
+
+.env/bin/python -m pytest -s tests/web/test_usage.py
+"""
 import pytest
 from fastapi.testclient import TestClient
 

@@ -1,4 +1,8 @@
-"""对 Web 接口 get rss 测试"""
+"""
+对 Web 接口 get rss 测试
+
+.env/bin/python -m pytest -s tests/web/test_get_rss.py
+"""
 import pytest
 from fastapi.testclient import TestClient
 
@@ -59,7 +63,7 @@ def test_get_user_rss(setup_and_tear_down):
     assert response.status_code == 200
     response = client.get(f"/source2rss/{config.query_username}/不存在的源.json/")
     assert response.status_code == 404
-    # 普通用户可以访问其下名单里的
+    # todo 普通用户可以访问其下名单里的
     response = client.get("/source2rss/yyy/我靠焚尸超凡入圣.xml/")
     assert response.status_code == 200
     response = client.get("/source2rss/yyy/我靠焚尸超凡入圣.json/")
