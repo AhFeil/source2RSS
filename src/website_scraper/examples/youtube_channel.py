@@ -93,4 +93,4 @@ class YoutubeChannel(WebsiteScraper):
 
     @staticmethod
     def is_valid_channel_id(s: str) -> bool:
-        return isinstance(s, str) and 0 < len(s) and all(c.isalnum() for c in s)
+        return isinstance(s, str) and 0 < len(s) and all(c.isalnum() or c in "-_" for c in s)
