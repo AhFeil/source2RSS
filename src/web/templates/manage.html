@@ -11,6 +11,7 @@
     <button hx-post="crawler/run_all" hx-target="#run_all_result">
         运行全部抓取器
     </button>
+    <div id="run_all_result"></div>
 
     <br><br>
     <p>当前邀请码：{{ invite_code }}</p>
@@ -23,7 +24,5 @@
         <input type="integer" name="count" placeholder="有效次数" required>
         <button type="submit">更新邀请码</button>
     </form>
-
-    <div id="run_all_result"></div>
     <div id="invite_code_result"></div>
 {% endblock content %}

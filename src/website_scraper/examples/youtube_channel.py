@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.scraper_error import CreateByInvalidParam
+from src.website_scraper.scraper_error import CreateButRequestFail, CreateByInvalidParam
 from src.website_scraper.tools import get_response_or_none
 
 
@@ -25,15 +25,17 @@ class YoutubeChannel(WebsiteScraper):
     async def create(cls, channel_id: str) -> Self:
         """
         Args:
-            channel_id: 可以在频道主页的网址中拿到，如 https://www.youtube.com/@kurzgesagt 中最后一串 kurzgesagt
+            channel_id: 可以在频道主页的网址中拿到，如 https://www.youtube.com/@kurzgesagt 中最后一串 kurzgesagt 。约束：不为空且由数字或字母组成。
         """
+        if not YoutubeChannel.is_valid_channel_id(channel_id):
+            raise CreateByInvalidParam()
         feed_url = await cls.get_feed_url(channel_id)
         if feed_url:
             response = await get_response_or_none(feed_url, cls.headers)
             if response and response.status_code == 200:
                 feed = feedparser.parse(response.text)
                 return cls(channel_id, feed.feed.title, feed) # type: ignore
-        raise CreateByInvalidParam()
+        raise CreateButRequestFail()
 
     def __init__(self, channel_id, channel_name, feed) -> None:
         super().__init__()
@@ -88,3 +90,7 @@ class YoutubeChannel(WebsiteScraper):
         # 匹配 "approxDurationMs": "1310120",
         match = re.search(r'"approxDurationMs":\s*"(\d+)"', html_content)
         return match.group(1) if match else "1000"
+
+    @staticmethod
+    def is_valid_channel_id(s: str) -> bool:
+        return isinstance(s, str) and 0 < len(s) and all(c.isalnum() for c in s)

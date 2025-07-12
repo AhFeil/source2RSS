@@ -7,7 +7,11 @@ from playwright.async_api import TimeoutError
 from configHandle import post2RSS
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.scraper_error import CreateByInvalidParam, FailtoGet
+from src.website_scraper.scraper_error import (
+    CreateButRequestFail,
+    CreateByInvalidParam,
+    FailtoGet,
+)
 from src.website_scraper.tools import AsyncBrowserManager
 
 
@@ -26,17 +30,19 @@ class BilibiliUp(WebsiteScraper):
     }
 
     @classmethod
-    async def create(cls, uid: int) -> Self:
+    async def create(cls, uid: str) -> Self:
         """
         Args:
-            uid: B 站用户的 uid ，可以在其个人主页查看，如 27016853
+            uid: B 站用户的 uid ，可以在其个人主页查看，如 27016853 。约束：至少 4 位最多 25 位，由 0 - 9 组成。
         """
+        if not BilibiliUp.is_valid_uid(uid):
+            raise CreateByInvalidParam()
         space_url = f"{cls.home_url}/{uid}/dynamic"
         j_res = await cls.get_response_json(uid, space_url) # todo 如果是因为超时，应该对外表现为没有更新
         if j_res and j_res.get("data"):
             up_name = j_res["data"]["items"][0]["modules"]["module_author"]["name"]
             return cls(up_name, space_url, j_res)
-        raise CreateByInvalidParam()
+        raise CreateButRequestFail()
 
     def __init__(self, up_name, space_url, j_res) -> None:
         super().__init__()
@@ -146,3 +152,7 @@ class BilibiliUp(WebsiteScraper):
         if '/x/polymer/web-dynamic/v1/feed/space' in response.url:
             with suppress(Exception):
                 j_res[0] = await response.json()
+
+    @staticmethod
+    def is_valid_uid(s: str) -> bool:
+        return isinstance(s, str) and 4 <= len(s) <= 25 and all(c.isdigit() for c in s)

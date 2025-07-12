@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 
 from src.website_scraper.model import SortKey
 from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.scraper_error import CreateByInvalidParam
+from src.website_scraper.scraper_error import CreateButRequestFail, CreateByInvalidParam
 from src.website_scraper.tools import AsyncBrowserManager, get_response_or_none
 
 
@@ -31,13 +31,15 @@ class MangaCopy(WebsiteScraper):
     async def create(cls, book_title: str, book_id: str) -> Self:
         """
         Args:
-            book_title: 漫画名称
-            book_id: 漫画在该网站下的 id ，可以在漫画主页的网址中拿到，如 https://www.mangacopy.com/comic/huaxoajiedexinfushenghuo 中最后一串
+            book_title: 漫画名称。约束：不为空。
+            book_id: 漫画在该网站下的 id ，可以在漫画主页的网址中拿到，如 https://www.mangacopy.com/comic/huaxoajiedexinfushenghuo 中最后一串。约束：不为空且由数字或字母组成。
         """
+        if not (book_title and MangaCopy.is_valid_book_id(book_id)):
+            raise CreateByInvalidParam()
         book_url = f"{cls.home_url}/comic/{book_id}"
         if await cls.book_exists(book_url):
             return cls(book_title, book_id, book_url)
-        raise CreateByInvalidParam()
+        raise CreateButRequestFail()
 
     def __init__(self, book_title, book_id, book_url) -> None:
         super().__init__()
@@ -96,3 +98,7 @@ class MangaCopy(WebsiteScraper):
     async def book_exists(cls, book_url: str):
         response = await get_response_or_none(book_url, cls.headers)
         return response is not None and response.status_code == 200
+
+    @staticmethod
+    def is_valid_book_id(s: str) -> bool:
+        return isinstance(s, str) and 0 < len(s) and all(c.isalnum() for c in s)

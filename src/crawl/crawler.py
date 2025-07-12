@@ -8,6 +8,7 @@ from configHandle import post2RSS
 from preproc import Plugins, config, data
 from src.website_scraper import AsyncBrowserManager, WebsiteScraper
 from src.website_scraper.scraper_error import (
+    CreateButRequestFail,
     CreateByInvalidParam,
     CreateByLocked,
     FailtoGet,
@@ -35,11 +36,11 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
         except TypeError:
             raise CrawlInitError(400, "The amount of parameters is incorrect")
         except CreateByLocked:
-            raise CrawlInitError(422, "Server is busy")
+            raise CrawlInitError(423, "Server is busy")
         except CreateByInvalidParam:
             raise CrawlInitError(422, "Invalid parameters")
-        except FailtoGet:
-            raise CrawlInitError(500, "Failed when crawling")
+        except CreateButRequestFail | FailtoGet: # todo 多次连续出现，则 post2RSS
+            raise CrawlInitError(503, "Failed when crawling")
         except Exception as e:
             msg = f"fail when query rss {cls.__name__}: {e}"
             logger.exception(msg)
@@ -93,7 +94,7 @@ async def start_to_crawl_all():
         try:
             await start_to_crawl(ClassNameAndParams.create(name) for name in Plugins.get_all_id())
         except CrawlInitError as e:
-            if e.code == 500:
+            if e.code in (400, 422, 500):
                 raise # 已知的错误就抑制
     logger.info("***Have finished all scrapers***")
 
