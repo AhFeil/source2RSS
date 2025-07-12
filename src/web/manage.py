@@ -20,7 +20,8 @@ router = APIRouter(
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(get_admin_user)])
 async def manage_page(request: Request):
-    return templates.TemplateResponse(request=request, name="manage.html")
+    context = {"invite_code": UserRegistry._invite_code, "count": UserRegistry._left_count}
+    return templates.TemplateResponse(request=request, name="manage.html", context=context)
 
 
 # todo 可能会出现同一个抓取器同时运行，会有什么影响

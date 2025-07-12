@@ -2,14 +2,28 @@
 
 {% block head_extend %}
     <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.2/dist/ext/json-enc.js"></script>
 {% endblock head_extend %}
 
 {% block content %}
     <h1>manage page</h1>
 
-    <button hx-post="crawler/run_all" hx-target="#result">
+    <button hx-post="crawler/run_all" hx-target="#run_all_result">
         运行全部抓取器
     </button>
 
-    <div id="result"></div>
+    <br><br>
+    <p>当前邀请码：{{ invite_code }}</p>
+    <p>剩余有效次数：{{ count }}</p>
+    <form hx-post="invite_code"
+        hx-target="#invite_code_result"
+        hx-ext="json-enc"
+        hx-headers='{"accept": "application/json"}'>
+        <input type="text" name="code" placeholder="邀请码" required>
+        <input type="integer" name="count" placeholder="有效次数" required>
+        <button type="submit">更新邀请码</button>
+    </form>
+
+    <div id="run_all_result"></div>
+    <div id="invite_code_result"></div>
 {% endblock content %}
