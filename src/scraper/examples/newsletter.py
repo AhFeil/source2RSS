@@ -1,8 +1,8 @@
 import asyncio
 from typing import AsyncGenerator
 
-from src.website_scraper.model import SortKey
-from src.website_scraper.scraper import WebsiteScraper
+from src.scraper.model import SortKey
+from src.scraper.scraper import WebsiteScraper
 from utils.imap_client import ImapMailBox
 
 

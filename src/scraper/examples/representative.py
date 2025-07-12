@@ -1,7 +1,7 @@
 from typing import AsyncGenerator, Self
 
-from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.scraper_error import CreateByInvalidParam
+from src.scraper.scraper import WebsiteScraper
+from src.scraper.scraper_error import CreateByInvalidParam
 
 
 class Representative(WebsiteScraper):

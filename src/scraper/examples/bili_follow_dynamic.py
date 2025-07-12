@@ -10,8 +10,8 @@ import httpx
 from playwright._impl._errors import TimeoutError as pw_TimeoutError
 from playwright.async_api import BrowserContext, async_playwright
 
-from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.scraper_error import FailtoGet
+from src.scraper.scraper import WebsiteScraper
+from src.scraper.scraper_error import FailtoGet
 from utils import environment, image_
 
 

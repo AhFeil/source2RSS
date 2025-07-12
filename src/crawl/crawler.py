@@ -6,8 +6,8 @@ from typing import Iterable, Self
 
 from configHandle import post2RSS
 from preproc import Plugins, config, data
-from src.website_scraper import AsyncBrowserManager, WebsiteScraper
-from src.website_scraper.scraper_error import (
+from src.scraper import AsyncBrowserManager, WebsiteScraper
+from src.scraper.scraper_error import (
     CreateButRequestFail,
     CreateByInvalidParam,
     CreateByLocked,

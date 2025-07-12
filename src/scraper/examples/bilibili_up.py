@@ -5,14 +5,14 @@ from typing import AsyncGenerator, Self
 from playwright.async_api import TimeoutError
 
 from configHandle import post2RSS
-from src.website_scraper.model import SortKey
-from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.scraper_error import (
+from src.scraper.model import SortKey
+from src.scraper.scraper import WebsiteScraper
+from src.scraper.scraper_error import (
     CreateButRequestFail,
     CreateByInvalidParam,
     FailtoGet,
 )
-from src.website_scraper.tools import AsyncBrowserManager
+from src.scraper.tools import AsyncBrowserManager
 
 
 class BilibiliUp(WebsiteScraper):

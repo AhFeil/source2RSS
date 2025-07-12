@@ -1,8 +1,8 @@
 import asyncio
 import logging
 
-from src.website_scraper import LocateInfo, Sequence, WebsiteScraper
-from src.website_scraper.scraper_error import FailtoGet
+from src.scraper import LocateInfo, Sequence, WebsiteScraper
+from src.scraper.scraper_error import FailtoGet
 
 from .generate_rss import generate_rss
 

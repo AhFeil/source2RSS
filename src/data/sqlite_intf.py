@@ -16,7 +16,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import declarative_base, declared_attr, sessionmaker
 from sqlalchemy.sql import text
 
-from src.website_scraper import ArticleDict, SrcMetaDict
+from src.scraper import ArticleDict, SrcMetaDict
 
 from .db_intf import DatabaseIntf
 
@@ -200,7 +200,7 @@ class SQliteIntf(DatabaseIntf):
 if __name__ == "__main__":
     from datetime import datetime
 
-    from src.website_scraper import SortKey
+    from src.scraper import SortKey
 
     info = SQliteConnInfo("sqlite:///config_and_data_files/test.db")
     db_intf: DatabaseIntf = SQliteIntf.connect(info)

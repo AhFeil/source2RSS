@@ -1,7 +1,7 @@
 """
 对 WebsiteScraper 的对外接口测试即可
 
-.env/bin/python -m pytest -s tests/website_scraper/test_scraper.py
+.env/bin/python -m pytest -s tests/scraper/test_scraper.py
 """
 from datetime import datetime
 from typing import AsyncGenerator
@@ -9,8 +9,8 @@ from typing import AsyncGenerator
 import pytest
 import pytest_asyncio
 
-from src.website_scraper import LocateInfo, Sequence, WebsiteScraper
-from tests.website_scraper.scrapers_test_params import CaseParam4Meta, scrapers_params
+from src.scraper import LocateInfo, Sequence, WebsiteScraper
+from tests.scraper.scrapers_test_params import CaseParam4Meta, scrapers_params
 
 
 @pytest_asyncio.fixture(params=scrapers_params)

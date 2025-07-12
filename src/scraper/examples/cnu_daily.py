@@ -2,10 +2,10 @@ import asyncio
 from datetime import datetime
 from typing import AsyncGenerator
 
-from src.website_scraper.model import SortKey
-from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.scraper_error import FailtoGet
-from src.website_scraper.tools import get_response_or_none
+from src.scraper.model import SortKey
+from src.scraper.scraper import WebsiteScraper
+from src.scraper.scraper_error import FailtoGet
+from src.scraper.tools import get_response_or_none
 
 
 class CNUDaily(WebsiteScraper):

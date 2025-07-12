@@ -1,13 +1,13 @@
 """
 对提供的工具，如 AsyncBrowserManager 等测试
 
-.env/bin/python -m pytest -s tests/website_scraper/test_tools.py
+.env/bin/python -m pytest -s tests/scraper/test_tools.py
 """
 import pytest
 import pytest_asyncio
 
-from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.tools import create_rp
+from src.scraper.scraper import WebsiteScraper
+from src.scraper.tools import create_rp
 
 
 @pytest.fixture()

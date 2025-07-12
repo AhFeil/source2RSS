@@ -4,9 +4,9 @@ from typing import Any, AsyncGenerator
 
 from bs4 import BeautifulSoup
 
-from src.website_scraper.model import SortKey
-from src.website_scraper.scraper import WebsiteScraper
-from src.website_scraper.tools import AsyncBrowserManager, create_rp
+from src.scraper.model import SortKey
+from src.scraper.scraper import WebsiteScraper
+from src.scraper.tools import AsyncBrowserManager, create_rp
 
 
 class GatesNotes(WebsiteScraper):

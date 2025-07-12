@@ -77,7 +77,7 @@ API 的工作流程
 
 ### 抓取器接口
 
-对于结构简单的静态网站，可以查看 "website_scraper.cslrxyz" 这个例子，基本上只需要编写 parse 协程就可以了。
+对于结构简单的静态网站，可以查看 "scraper.cslrxyz" 这个例子，基本上只需要编写 parse 协程就可以了。
 
 parse 方法（协程）要是一个生成器，按照一定顺序返回文章，比如时间、章节等。它要实现能获取一个网站的所有文章，即便是多页，也要整合成一条信息流一篇文章一篇文章地返回。
 
@@ -106,7 +106,7 @@ parse 方法（协程）要是一个生成器，按照一定顺序返回文章�
 
 有时候一些信息源不一定有时间条目，反而像是章节之类的，这时候可以修改类成员 key4sort = "something"，然后在返回的字典中包含 something 键，这样在生成 RSS 时，就会按照 something 排序。
 
-**如果你要编写自己的抓取器，看明白 "website_scraper/example.py" 和 "website_scraper/cslrxyz.py" 就够了**
+**如果你要编写自己的抓取器，看明白 "scraper/example.py" 和 "scraper/cslrxyz.py" 就够了**
 
 
 ## 设计

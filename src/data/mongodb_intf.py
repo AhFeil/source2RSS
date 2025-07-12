@@ -3,7 +3,7 @@ from typing import Self
 
 from pymongo import MongoClient
 
-from src.website_scraper.scraper import ArticleDict, SrcMetaDict
+from src.scraper.scraper import ArticleDict, SrcMetaDict
 
 from .db_intf import DatabaseIntf
 

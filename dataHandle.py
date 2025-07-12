@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from configHandle import config
-from src.website_scraper import AccessLevel
+from src.scraper import AccessLevel
 
 
 @dataclass
