@@ -37,23 +37,17 @@ class RSSCache:
     def get_admin_rss_list(self) -> list[str]:
         return sorted([rss for rss in self._admin] + [rss for rss in self._user])
 
-    def set_rss(self, source_name: str, rss: bytes, rss_json: dict, cls_id_or_none: str | None, access: AccessLevel):
+    def set_rss(self, source_name: str, rss: bytes, rss_json: dict, access: AccessLevel):
         """将RSS源名称和RSS内容映射，如果是单例，还将类名和RSS内容映射"""
         rss_data = RSSData(rss.decode(), rss_json)
         if access == AccessLevel.ADMIN:
             self._admin[source_name] = rss_data
-            if cls_id_or_none:
-                self._admin[cls_id_or_none] = rss_data
             rss_filepath = self.rss_admin_dir / (source_name + ".xml")
         elif access == AccessLevel.USER:
             self._user[source_name] = rss_data
-            if cls_id_or_none:
-                self._user[cls_id_or_none] = rss_data
             rss_filepath = self.rss_user_dir / (source_name + ".xml")
         else:
             self._public[source_name] = rss_data
-            if cls_id_or_none:
-                self._public[cls_id_or_none] = rss_data
             rss_filepath = self.rss_dir / (source_name + ".xml")
         with open(rss_filepath, 'wb') as rss_file:   # todo 退出时保存一次
             rss_file.write(rss)

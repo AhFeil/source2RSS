@@ -54,8 +54,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
         result = data.db_intf.get_top_n_articles_by_key(source_name, 50, key4sort)
         rss_feed = generate_rss(source_info, result)
         rss_json = {"source_info": source_info, "articles": result}
-        cls_id_or_none = None if instance.__class__.is_variety else instance.__class__.__name__
-        data.rss_cache.set_rss(source_name, rss_feed, rss_json, cls_id_or_none, source_info["access"])
+        data.rss_cache.set_rss(source_name, rss_feed, rss_json, source_info["access"])
         logger.info(f"{source_name} updates")
     else:
         logger.info(f"{source_name} exists and doesn't update")
