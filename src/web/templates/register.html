@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block head_extend %}
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.2/dist/ext/json-enc.js"></script>
+{% endblock head_extend %}
+
+{% block content %}
+    <h1>Register Page</h1>
+
+    <form hx-post="/users/me/register"
+        hx-target="#result"
+        hx-ext="json-enc"
+        hx-headers='{"accept": "application/json"}'>
+        <input type="text" name="invite_code" placeholder="邀请码" required>
+        <input type="text" name="name" placeholder="用户名" required>
+        <input type="password" name="passwd" placeholder="密码" required>
+        <button type="submit">注册</button>
+    </form>
+
+    <div id="result"></div>
+{% endblock content %}
