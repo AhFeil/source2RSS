@@ -39,7 +39,7 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
             raise CrawlInitError(423, "Server is busy")
         except CreateByInvalidParam:
             raise CrawlInitError(422, "Invalid parameters")
-        except CreateButRequestFail | FailtoGet: # todo 多次连续出现，则 post2RSS
+        except (CreateButRequestFail, FailtoGet): # todo 多次连续出现，则 post2RSS
             raise CrawlInitError(503, "Failed when crawling")
         except Exception as e:
             msg = f"fail when query rss {cls.__name__}: {e}"
