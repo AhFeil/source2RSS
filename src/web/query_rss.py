@@ -6,7 +6,7 @@ from typing import Annotated
 
 from cachetools import TTLCache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, Response
 
 from preproc import Plugins, config, data
 from src.crawl import ClassNameAndParams, start_to_crawl
@@ -28,13 +28,13 @@ async def get_rss_list(request: Request):
     context = {"rss_list": data.rss_cache.get_admin_rss_list(), "is_admin": True, "ad_html": config.ad_html}
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
-@router.get("/{source_name}.xml/", response_class=PlainTextResponse, dependencies=[Depends(get_admin_user)])
+@router.get("/{source_name}.xml/", dependencies=[Depends(get_admin_user)])
 async def get_api_rss(source_name: str):
     """查看管理员通过 API 发布的 RSS"""
     rss = data.rss_cache.get_admin_rss_or_None(source_name) or data.rss_cache.get_user_rss_or_None(source_name)
     if rss is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
-    return rss.xml
+    return Response(content=rss.xml, media_type="application/xml")
 
 
 cache=TTLCache(maxsize=config.query_cache_maxsize, ttl=config.query_cache_ttl_s)
@@ -62,7 +62,7 @@ async def no_cache_flow(cls_id: str, q: tuple) -> str:
 async def cache_flow(cls_id: str, q: tuple) -> str:
     return await no_cache_flow(cls_id, q)
 
-@router.get("/{cls_id}/", response_class=PlainTextResponse)
+@router.get("/{cls_id}/")
 async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []):
     """主动请求，会触发更新，因此需要身份验证。对于普通用户，可以设置缓存防止滥用。获取结果和 get_rss 中的一样，复用即可。"""
     logger.info(f"{cls_id} get new request of {q}")

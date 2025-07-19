@@ -2,7 +2,7 @@
 import logging
 
 from fastapi import APIRouter, HTTPException, Request, status
-from fastapi.responses import HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from preproc import config, data
@@ -28,7 +28,7 @@ def select_rss(rss_data, suffix: str):
     if rss_data is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
     if suffix == "xml":
-        return PlainTextResponse(rss_data.xml)
+        return Response(content=rss_data.xml, media_type="application/xml")
     elif suffix == "json":
         return JSONResponse(rss_data.json)
     else:
