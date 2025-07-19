@@ -29,11 +29,12 @@
 
         {% for rss_file_name in rss_list %}
             <p class="list-item">
-                {% if is_admin %}
                 <a href="/query_rss/{{ rss_file_name | urlencode }}.xml/">{{ rss_file_name }}</a>
-                {% else %}
+            </p>
+        {% endfor %}
+        {% for rss_file_name in public_rss_list %}
+            <p class="list-item">
                 <a href="/source2rss/{{ rss_file_name | urlencode }}.xml/">{{ rss_file_name }}</a>
-                {% endif %}
             </p>
         {% endfor %}
     </div>

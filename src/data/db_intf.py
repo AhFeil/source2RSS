@@ -22,7 +22,7 @@ class DatabaseIntf(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_source_info(self, source_name: str) -> SrcMetaDict:
+    def get_source_info(self, source_name: str) -> SrcMetaDict | None:
         """根据源名称返回源的元信息"""
         raise NotImplementedError
 

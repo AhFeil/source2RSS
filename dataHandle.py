@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from configHandle import config
+from src.data import DatabaseIntf
 from src.scraper import AccessLevel
 
 
@@ -16,44 +17,50 @@ class RSSData:
 
 class RSSCache:
     """内存里缓存的RSS数据"""
-    def __init__(self, rss_dir: str, rss_user_dir: str, rss_admin_dir: str) -> None:
-        self.rss_dir, self.rss_user_dir, self.rss_admin_dir = Path(rss_dir), Path(rss_user_dir), Path(rss_admin_dir)
-        self._public: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_dir)
-        self._user: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_user_dir)
-        self._admin: dict[str, RSSData] = RSSCache._load_files_to_dict(self.rss_admin_dir)
+    def __init__(self, rss_dir: str, rss_user_dir: str, db_intf: DatabaseIntf) -> None:
+        self.rss_dir, self.rss_user_dir = Path(rss_dir), Path(rss_user_dir)
+        self._cached_sources = [{} for _ in range(AccessLevel.ADMIN + 1)]
+        self._cached_sources[AccessLevel.PUBLIC] = RSSCache._load_files_to_dict(self.rss_dir)
+        for source_name, rss_data in RSSCache._load_files_to_dict(self.rss_user_dir).items():
+            src_meta = db_intf.get_source_info(source_name)
+            if src_meta:
+                access = src_meta["access"]
+            else:
+                print(f"{source_name} is lack in db")
+                access = AccessLevel.ADMIN
+            self._cached_sources[access][source_name] = rss_data
 
-    def get_rss_or_None(self, source_name: str) -> RSSData | None:
-        return self._public.get(source_name)
+    def get_public_source_list(self) -> list[str]:
+        return sorted([rss for rss in self._cached_sources[AccessLevel.PUBLIC]])
 
-    def get_admin_rss_or_None(self, source_name: str) -> RSSData | None:
-        return self._admin.get(source_name)
+    def get_source_list(self, access: AccessLevel, low_access: AccessLevel = AccessLevel.NONE) -> list[str]:
+        """返回 access 及其下的所有源， 但不包含 low_access 及其以下的"""
+        source_list = []
+        for cached_sources in self._cached_sources[access:low_access:-1]:
+            source_list.extend(cached_sources.keys())
+        return source_list
 
-    def get_user_rss_or_None(self, source_name: str) -> RSSData | None:
-        return self._user.get(source_name)
-
-    def get_rss_list(self) -> list[str]:
-        return sorted([rss for rss in self._public])
-
-    def get_admin_rss_list(self) -> list[str]:
-        return sorted([rss for rss in self._admin] + [rss for rss in self._user])
+    def get_source_or_None(self, source_name: str, access: AccessLevel) -> RSSData | None:
+        """当源存在且有权限返回源"""
+        for cached_sources in self._cached_sources[access::-1]:
+            if rss_data := cached_sources.get(source_name):
+                return rss_data
 
     def set_rss(self, source_name: str, rss: bytes, rss_json: dict, access: AccessLevel):
         """将RSS源名称和RSS内容映射，如果是单例，还将类名和RSS内容映射"""
         rss_data = RSSData(rss.decode(), rss_json)
-        if access == AccessLevel.ADMIN:
-            self._admin[source_name] = rss_data
-            rss_filepath = self.rss_admin_dir / (source_name + ".xml")
-        elif access == AccessLevel.USER:
-            self._user[source_name] = rss_data
-            rss_filepath = self.rss_user_dir / (source_name + ".xml")
-        else:
-            self._public[source_name] = rss_data
-            rss_filepath = self.rss_dir / (source_name + ".xml")
+        match access:
+            case AccessLevel.PUBLIC:
+                self._cached_sources[AccessLevel.PUBLIC][source_name] = rss_data
+                rss_filepath = self.rss_dir / (source_name + ".xml")
+            case _:
+                self._cached_sources[access][source_name] = rss_data
+                rss_filepath = self.rss_user_dir / (source_name + ".xml")
         with open(rss_filepath, 'wb') as rss_file:   # todo 退出时保存一次
             rss_file.write(rss)
 
     def rss_is_absent(self, source_name: str) -> bool:
-        return not (source_name in self._public or source_name in self._user or source_name in self._admin)
+        return all(source_name not in self._cached_sources[access] for access in AccessLevel)
 
     @staticmethod
     def _load_files_to_dict(path: Path) -> dict[str, RSSData]:
@@ -71,7 +78,6 @@ class Data:
     def __init__(self, config) -> None:
         self.config = config
         self.logger = logging.getLogger("dataHandle")
-        self.rss_cache = RSSCache(config.rss_dir, config.rss_user_dir, config.rss_admin_dir)
 
         # 从文件里加载用户数据
         self._users = {"invite_code": None, "left_count": 0, "users": []}
@@ -83,7 +89,6 @@ class Data:
                 self._users = json.load(f)
 
         # DB
-        from src.data import DatabaseIntf
         if config.mongodb_uri is not None:
             from src.data import MongodbConnInfo, MongodbIntf
             info = MongodbConnInfo(config.mongodb_uri, config.mongo_dbname, config.source_meta)
@@ -92,6 +97,8 @@ class Data:
             from src.data import SQliteConnInfo, SQliteIntf
             info = SQliteConnInfo(config.sqlite_uri)
             self.db_intf: DatabaseIntf = SQliteIntf.connect(info)
+
+        self.rss_cache = RSSCache(config.rss_dir, config.rss_user_dir, self.db_intf)
 
     def get_users_and_etc(self) -> dict:
         return self._users

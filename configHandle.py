@@ -23,10 +23,8 @@ class Config:
         # 用户不应该考虑的配置，开发者可以改的
         self.rss_dir = "config_and_data_files/rss"
         self.rss_user_dir = "config_and_data_files/rss_user"
-        self.rss_admin_dir = "config_and_data_files/rss_admin"
         os.makedirs(self.rss_dir, exist_ok=True)
         os.makedirs(self.rss_user_dir, exist_ok=True)
-        os.makedirs(self.rss_admin_dir, exist_ok=True)
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
         self.wait_before_close_browser = 180
         self.bili_context = "config_and_data_files/bili_context.json"

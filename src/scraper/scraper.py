@@ -6,6 +6,7 @@ from typing import Any, AsyncGenerator, Generator, Self
 from api._v2 import Plugins
 
 from .model import (
+    AccessLevel,
     ArticleDict,
     ArticleInfo,
     LocateInfo,
@@ -137,7 +138,8 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             'link': self.__class__.home_url,
             'desc': "Linux，单片机，编程",
             'lang': "zh-CN",
-            'key4sort': SortKey.PUB_TIME
+            'key4sort': SortKey.PUB_TIME,
+            "access": AccessLevel.USER
         }
 
     def _custom_parameter_of_parse(self) -> tuple:

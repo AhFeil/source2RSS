@@ -6,14 +6,15 @@ from typing import Annotated
 
 from cachetools import TTLCache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import HTMLResponse, Response
+from fastapi.responses import HTMLResponse
 
 from preproc import Plugins, config, data
 from src.crawl import ClassNameAndParams, start_to_crawl
 from src.crawl.crawl_error import CrawlInitError
+from src.scraper import AccessLevel
 
 from .get_rss import select_rss, templates
-from .security import User, get_admin_user, get_valid_user
+from .security import User, UserRegistry, get_valid_user
 
 logger = logging.getLogger(__name__)
 
@@ -23,18 +24,41 @@ router = APIRouter(
 )
 
 
-@router.get("/", response_class=HTMLResponse, dependencies=[Depends(get_admin_user)])
-async def get_rss_list(request: Request):
-    context = {"rss_list": data.rss_cache.get_admin_rss_list(), "is_admin": True, "ad_html": config.ad_html}
+@router.get("/", response_class=HTMLResponse)
+async def get_your_rss_list(request: Request, user: Annotated[User, Depends(get_valid_user)]):
+    """已登录用户可以用此查看自己有权限查看的所有源"""
+    context = {"public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC),"ad_html": config.ad_html}
+    if user.is_administrator:
+        # todo 不能访问 PRIVATE_USER 的源
+        context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.ADMIN, AccessLevel.PUBLIC)
+    else:
+        context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.SHARED_USER, AccessLevel.PUBLIC)
+        # 登录用户对于 USER 级别能访问的
+        context["rss_list"] += list(UserRegistry.get_sources_by_name(user.name))
+
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
-@router.get("/{source_name}.xml/", dependencies=[Depends(get_admin_user)])
-async def get_api_rss(source_name: str):
-    """查看管理员通过 API 发布的 RSS"""
-    rss = data.rss_cache.get_admin_rss_or_None(source_name) or data.rss_cache.get_user_rss_or_None(source_name)
-    if rss is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="RSS content is missed in cache")
-    return Response(content=rss.xml, media_type="application/xml")
+@router.get("/{source_name}.xml/")
+async def get_user_or_upper_rss(source_name: str, user: Annotated[User, Depends(get_valid_user)]):
+    """已登录用户可以用此访问有权限查看的所有源"""
+    if user.is_administrator:
+        # todo 不能访问 PRIVATE_USER 的源
+        rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.ADMIN)
+        return select_rss(rss_data, "xml")
+
+    # 登录用户可以无条件访问的源
+    if rss_data := data.rss_cache.get_source_or_None(source_name, AccessLevel.SHARED_USER):
+        return select_rss(rss_data, "xml")
+    # 登录用户对于 USER 级别能访问的
+    accessed_src_names = UserRegistry.get_sources_by_name(user.name)
+    if source_name in accessed_src_names:
+        rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.ADMIN)
+        return select_rss(rss_data, "xml")
+
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND,
+        detail=f"the source '{source_name}' is not accessed by '{user.name}'"
+    )
 
 
 cache=TTLCache(maxsize=config.query_cache_maxsize, ttl=config.query_cache_ttl_s)
@@ -64,15 +88,17 @@ async def cache_flow(cls_id: str, q: tuple) -> str:
 
 @router.get("/{cls_id}/")
 async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []):
-    """主动请求，会触发更新，因此需要身份验证。对于普通用户，可以设置缓存防止滥用。获取结果和 get_rss 中的一样，复用即可。"""
-    logger.info(f"{cls_id} get new request of {q}")
+    """已登录用户可以用此主动请求更新，并获取更新后的源"""
     if Plugins.get_plugin_or_none(cls_id) is None or cls_id == "Representative":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
+    # todo 检查，用户只能请求用户级别的抓取器
     if user.is_administrator and not config.in_bedtime(cls_id, datetime.now().strftime("%H:%M")):
-        logger.info("go to no_cache_flow of " + cls_id)
+        logger.info(f"{cls_id} get new request of {q}, go to no_cache_flow")
         source_name = await no_cache_flow(cls_id, (q, ))
-    else:
+        rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.ADMIN)
+    else: # 对于普通用户，通过缓存防止滥用
+        logger.info(f"{cls_id} get new request of {q}, go to cache_flow")
         source_name = await cache_flow(cls_id, (q, ))
-
-    rss_data = data.rss_cache.get_user_rss_or_None(source_name) or data.rss_cache.get_rss_or_None(source_name)
+        # 能触发就能访问，因此这里直接找 source_name 对应的即可
+        rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.SYSTEM)
     return select_rss(rss_data, "xml")

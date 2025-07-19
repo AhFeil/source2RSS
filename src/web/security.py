@@ -7,6 +7,7 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from preproc import config, data
+from src.scraper import AccessLevel
 
 
 @dataclass
@@ -94,7 +95,7 @@ class UserRegistry():
                 raise RuntimeError("error that shouldn't exist")
             cls._user_registry[name] = User(name, passwd_hash, set(source_names))
             all_source_names.update(source_names)
-        all_source_names.update(data.rss_cache.get_admin_rss_list())
+        all_source_names.update(data.rss_cache.get_source_list(AccessLevel.ADMIN))
         user = User.create(config.query_username, config.query_password)
         user.is_administrator = True
         user.source_names = all_source_names

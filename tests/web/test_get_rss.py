@@ -24,7 +24,7 @@ def test_index_of_get(setup_and_tear_down):
     assert response.status_code == 200
 
 
-def test_get_saved_rss(setup_and_tear_down):
+def test_get_public_rss(setup_and_tear_down):
     # 访问的网址不符合格式
     response = client.get("/source2rss/BentoML Blog/")
     assert response.status_code == 400
@@ -49,7 +49,8 @@ def test_get_saved_rss(setup_and_tear_down):
 
 
 # todo 自动创建普通用户
-def test_get_user_rss(setup_and_tear_down):
+# todo 测试前先主动请求一次，保证已有
+def test_get_their_rss(setup_and_tear_down):
     # 访问的网址不符合格式
     response = client.get(f"/source2rss/{config.query_username}/我靠焚尸超凡入圣/")
     assert response.status_code == 400

@@ -47,7 +47,7 @@ async def delivery(source_name: str, articles: list[ArticleInfo]):
             "desc": "This RSS service is provided by source2RSS (https://github.com/AhFeil/source2RSS). if you like it, please give a star.",
             "lang": "zh-CN",
             "key4sort": SortKey.PUB_TIME,
-            "access": AccessLevel.ADMIN
+            "access": AccessLevel.ADMIN # todo 应该用 LIMITED_USER
         }
     source_name = await no_cache_flow("Representative", ((source, j_articles), ))
     url_without_suffix = "http://rss.vfly2.com/source2rss/" + quote(source_name)

@@ -36,6 +36,20 @@ def get_headers(name, passwd):
 def test_index_of_get(setup_and_tear_down):
     response = client.get("/query_rss/", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 200
+    # todo 普通用户
+
+def test_get_user_or_upper_rss(setup_and_tear_down):
+    """测试通过 query 接口获得 RSS"""
+    # 管理员访问
+    response = client.get("/query_rss/我靠焚尸超凡入圣.xml/", headers=get_headers(config.query_username, config.query_password))
+    assert response.status_code == 200
+    # 普通用户访问
+    response = client.get("/query_rss/我靠焚尸超凡入圣.xml/", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    assert response.status_code == 200
+
+    # 未登录访问
+    response = client.get("/query_rss/我靠焚尸超凡入圣.xml/")
+    assert response.status_code == 401
 
 
 def test_query_rss_success(setup_and_tear_down):
