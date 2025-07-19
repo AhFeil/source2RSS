@@ -1,7 +1,7 @@
 """
 对 Web 接口 get rss 测试
 
-.env/bin/python -m pytest -s tests/web/test_get_rss.py
+SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_get_rss.py
 """
 import pytest
 from fastapi.testclient import TestClient
@@ -64,9 +64,9 @@ def test_get_user_rss(setup_and_tear_down):
     response = client.get(f"/source2rss/{config.query_username}/不存在的源.json/")
     assert response.status_code == 404
     # todo 普通用户可以访问其下名单里的
-    response = client.get("/source2rss/yyy/我靠焚尸超凡入圣.xml/")
+    response = client.get("/source2rss/test_1/我靠焚尸超凡入圣.xml/")
     assert response.status_code == 200
-    response = client.get("/source2rss/yyy/我靠焚尸超凡入圣.json/")
+    response = client.get("/source2rss/test_1/我靠焚尸超凡入圣.json/")
     assert response.status_code == 200
 
     # 用户不存在

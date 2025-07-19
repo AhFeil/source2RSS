@@ -1,7 +1,7 @@
 """
 对提供的工具，如 AsyncBrowserManager 等测试
 
-.env/bin/python -m pytest -s tests/scraper/test_tools.py
+SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/scraper/test_tools.py
 """
 import pytest
 import pytest_asyncio

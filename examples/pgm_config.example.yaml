@@ -1,4 +1,4 @@
-screenshot_root: config_and_data_files
+data_dir: config_and_data_files
 
 logging:
   version: 1

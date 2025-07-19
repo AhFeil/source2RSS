@@ -1,7 +1,7 @@
 """
 对 Web 接口 user 测试
 
-.env/bin/python -m pytest -s tests/web/test_user.py
+SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_user.py
 """
 import pytest
 from fastapi.testclient import TestClient

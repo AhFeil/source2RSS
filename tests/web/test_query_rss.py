@@ -1,7 +1,7 @@
 """
 对 Web 接口 query rss 测试
 
-.env/bin/python -m pytest -s tests/web/test_query_rss.py -k "not test_query_rss_high_concurrency"
+SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_query_rss.py -k "not test_query_rss_high_concurrency"
 """
 import asyncio
 import base64

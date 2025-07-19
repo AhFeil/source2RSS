@@ -1,7 +1,7 @@
 """
 对 Web 接口 manage 测试
 
-.env/bin/python -m pytest -s tests/web/test_manage.py
+SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_manage.py
 """
 import base64
 

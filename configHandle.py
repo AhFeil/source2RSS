@@ -20,16 +20,13 @@ class Config:
     def __init__(self, config_path: str) -> None:
         self.config_path = config_path
         self.reload()
-
         # 用户不应该考虑的配置，开发者可以改的
-        self.sqlite_uri = "sqlite:///config_and_data_files/source2rss.db"
         self.rss_dir = "config_and_data_files/rss"
         self.rss_user_dir = "config_and_data_files/rss_user"
         self.rss_admin_dir = "config_and_data_files/rss_admin"
         os.makedirs(self.rss_dir, exist_ok=True)
         os.makedirs(self.rss_user_dir, exist_ok=True)
         os.makedirs(self.rss_admin_dir, exist_ok=True)
-        self.users_file = "config_and_data_files/users.json"
         self.source_meta = "source_meta"   # 每个来源的元信息放在这个 collection 中
         self.wait_before_close_browser = 180
         self.bili_context = "config_and_data_files/bili_context.json"
@@ -45,7 +42,10 @@ class Config:
         self.desktop_user_agent = []
         self.mobile_user_agent = []
         self.init_script_path = "" # todo
-        self.screenshot_root = configs["screenshot_root"]
+        data_dir = configs["data_dir"]
+        os.makedirs(data_dir, exist_ok=True)
+        self.sqlite_uri = f"sqlite:///{data_dir}/source2rss.db"
+        self.users_file = f"{data_dir}/users.json"
         # 用户配置
         self.is_production = configs['is_production']
         crawler_default_cfg = configs.get("crawler_default_cfg", {})
@@ -115,11 +115,12 @@ class Config:
 
     @staticmethod
     def _load_config(config_path: str) -> dict:
-        """加载第一个配置文件，从中取出其他配置文件的路径并加载（文件不存在不报错），最终合并得到一份配置"""
+        """加载一个配置文件，从中取出其他配置文件的路径（文件不存在不报错），最终合并得到一份配置，如果其他配置里也带有更多配置的路径，同样加载"""
         config = Config._load_config_file(config_path)
-        for f in config.get("other_configs_path", ()):
+        cfg_files = tuple(config.get("other_configs_path", ()))
+        for f in cfg_files:
             with suppress(FileNotFoundError):
-                other_config = Config._load_config_file(f)
+                other_config = Config._load_config(f)
                 Config._update(config, other_config)
         return config
 
