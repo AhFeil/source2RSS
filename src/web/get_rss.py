@@ -22,7 +22,7 @@ templates = Jinja2Templates(directory='src/web/templates')
 @router.get("", response_class=HTMLResponse)
 @router.get("/", response_class=HTMLResponse)
 async def get_rss_list(request: Request):
-    context = {"rss_list": data.rss_cache.get_public_source_list(), "ad_html": config.ad_html}
+    context = {"public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC), "ad_html": config.ad_html}
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
 
