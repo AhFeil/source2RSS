@@ -44,6 +44,8 @@ class RSSCache:
 
     def set_rss(self, source_name: str, rss: bytes, rss_json: dict, access: AccessLevel):
         """将RSS源名称和RSS内容映射，如果是单例，还将类名和RSS内容映射"""
+        if '/' in source_name: # todo 统一约束源名称
+            raise RuntimeError("source_name can not contain '/'")
         rss_data = RSSData(rss.decode(), rss_json)
         self._cached_sources[access][source_name] = rss_data
         rss_filepath = self.rss_dir / (source_name + ".xml")

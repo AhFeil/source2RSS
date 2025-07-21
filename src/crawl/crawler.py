@@ -50,7 +50,7 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
             try:
                 source_name = await goto_uniform_flow(data, instance, amount)
             except Exception as e:
-                msg = f"fail when goto_uniform_flow of {source_name}: {e}"
+                msg = f"fail when goto_uniform_flow of {source_name}: {e}" # todo source_name 还不存在
                 logger.exception(msg)
                 await post2RSS("error log of goto_uniform_flow", msg)
             else:
