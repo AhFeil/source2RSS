@@ -61,9 +61,9 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
 
 
 @dataclass
-class ClassNameAndParams:
+class ScraperNameAndParams:
     name: str
-    init_params: Iterable
+    init_params: Iterable # 多组的参数，每组都能实例化一个
     amount: int
 
     @classmethod
@@ -74,7 +74,7 @@ class ClassNameAndParams:
         return cls(cls_name, init_params, amount)
 
 
-async def start_to_crawl(clses: Iterable[ClassNameAndParams]):
+async def start_to_crawl(clses: Iterable[ScraperNameAndParams]):
     """根据类名获得相应的类，和它们的初始化参数，组装协程然后放入事件循环"""
     tasks = (_process_one_kind_of_class(data, cls, item.init_params, item.amount) for item in clses if (cls := Plugins.get_plugin_or_none(item.name)))
     res = await asyncio.gather(*tasks)
@@ -92,7 +92,7 @@ async def start_to_crawl_all():
     logger.info("***Start all scrapers***")
     async with running_lock:
         try:
-            await start_to_crawl(ClassNameAndParams.create(name) for name in Plugins.get_all_id())
+            await start_to_crawl(ScraperNameAndParams.create(name) for name in Plugins.get_all_id())
         except CrawlInitError as e:
             if e.code in (400, 422, 500):
                 raise # 已知的错误就抑制

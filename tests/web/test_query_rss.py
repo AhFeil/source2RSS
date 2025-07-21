@@ -57,7 +57,11 @@ def test_query_rss_success(setup_and_tear_down):
     # 管理员访问
     response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 200
-    # todo 普通用户访问
+    # 普通用户访问，第二次触发缓存
+    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    assert response.status_code == 200
+    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    assert response.status_code == 200
 
     # 未登录访问
     response = client.get("/query_rss/YoutubeChannel/?q=bulianglin")

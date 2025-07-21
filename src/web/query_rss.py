@@ -9,7 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse
 
 from preproc import Plugins, config, data
-from src.crawl import ClassNameAndParams, start_to_crawl
+from src.crawl import ScraperNameAndParams, start_to_crawl
 from src.crawl.crawl_error import CrawlInitError
 from src.scraper import AccessLevel
 
@@ -75,30 +75,31 @@ def async_cached(func):
         return result
     return wrapper
 
-async def no_cache_flow(cls_id: str, q: tuple) -> str:
+async def no_cache_flow(cls_id: str, one_group_params: tuple) -> str:
     try:
-        res = await start_to_crawl((ClassNameAndParams.create(cls_id, q), ))
+        scraper_with_one_group_params = ScraperNameAndParams.create(cls_id, (one_group_params, ))
+        res = await start_to_crawl((scraper_with_one_group_params, ))
         return res[0][0] if res else "error"
     except CrawlInitError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
 
 @async_cached
-async def cache_flow(cls_id: str, q: tuple) -> str:
-    return await no_cache_flow(cls_id, q)
+async def cache_flow(cls_id: str, one_group_params: tuple) -> str:
+    return await no_cache_flow(cls_id, one_group_params)
 
 @router.get("/{cls_id}/")
-async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []):
+async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[tuple[str], Query()] = tuple()):
     """已登录用户可以用此主动请求更新，并获取更新后的源"""
     if Plugins.get_plugin_or_none(cls_id) is None or cls_id == "Representative":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
     # todo 检查，用户只能请求用户级别的抓取器
     if user.is_administrator and not config.in_bedtime(cls_id, datetime.now().strftime("%H:%M")):
         logger.info(f"{cls_id} get new request of {q}, go to no_cache_flow")
-        source_name = await no_cache_flow(cls_id, (q, ))
+        source_name = await no_cache_flow(cls_id, q)
         rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.ADMIN)
     else: # 对于普通用户，通过缓存防止滥用
         logger.info(f"{cls_id} get new request of {q}, go to cache_flow")
-        source_name = await cache_flow(cls_id, (q, ))
+        source_name = await cache_flow(cls_id, q)
         # 能触发就能访问，因此这里直接找 source_name 对应的即可
-        rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.SYSTEM)
+        rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.PRIVATE_USER)
     return select_rss(rss_data, "xml")
