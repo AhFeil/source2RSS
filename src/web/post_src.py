@@ -49,7 +49,7 @@ async def delivery(source_name: str, articles: list[ArticleInfo]):
             "key4sort": SortKey.PUB_TIME,
             "access": AccessLevel.ADMIN # todo 应该用 LIMITED_USER
         }
-    source_name = await no_cache_flow("Representative", ((source, j_articles), ))
+    source_name = await no_cache_flow("Representative", (source, j_articles))
     url_without_suffix = "http://rss.vfly2.com/source2rss/" + quote(source_name)
     xml_url = url_without_suffix + ".xml"
     json_url = url_without_suffix + ".json"
