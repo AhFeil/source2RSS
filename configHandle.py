@@ -49,6 +49,7 @@ class Config:
         self.run_everyday_at = [run_everyday_at] if isinstance(run_everyday_at, str) else run_everyday_at
         self.WAIT = crawler_default_cfg.get("WAIT", 1800)
         self.amount_when_firstly_add = crawler_default_cfg.get("amount_when_firstly_add", 10)
+        self.max_of_rss_items = crawler_default_cfg.get("max_of_rss_items", 50)
         self.image_root = crawler_default_cfg.get("image_root", "config_and_data_files/images")
         os.makedirs(self.image_root, exist_ok=True)
         self.timezone = crawler_default_cfg.get("timezone", "Asia/Shanghai")
@@ -103,6 +104,12 @@ class Config:
             return self.webscraper_profile[class_name]["custom_cfg"]["amount_when_firstly_add"]
         except KeyError:
             return self.amount_when_firstly_add
+
+    def get_max_rss_items(self, class_name: str) -> int:
+        try:
+            return self.webscraper_profile[class_name]["custom_cfg"]["max_of_rss_items"]
+        except KeyError:
+            return self.max_of_rss_items
 
     def in_bedtime(self, class_name: str, hm: str) -> bool:
         """检查 hm 是否在 bedtime 期间，是的话返回真"""

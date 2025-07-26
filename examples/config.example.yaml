@@ -40,6 +40,8 @@ webscraper_profile:
     - [LearnEnglishWithTVSeries]
 
   MangaCopy:
+    custom_cfg:
+      max_of_rss_items: 10
     cls_init_params:
     - [花咲家的性福生活, huaxoajiedexinfushenghuo]
 
@@ -67,6 +69,7 @@ crawler_default_cfg:
   run_everyday_at: ["05:00", "11:00", "17:00", "23:00"]
   WAIT: 5
   amount_when_firstly_add: 10
+  max_of_rss_items: 50
   # 运行中获取的图片默认保存的位置
   image_root: config_and_data_files/images
   # 为了节省内存，限制只能打开一个浏览器，一个浏览器可以开多个 context

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 
+from configHandle import config
 from src.scraper import LocateInfo, Sequence, WebsiteScraper
 from src.scraper.scraper_error import FailtoGet
 
@@ -51,7 +52,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
 
     if got_new[0] or data.rss_cache.rss_is_absent(source_name):
         # 当有新内容或文件缺失的情况下，会生成 RSS 并保存
-        result = data.db_intf.get_top_n_articles_by_key(source_name, 50, key4sort)
+        result = data.db_intf.get_top_n_articles_by_key(source_name, config.get_max_rss_items(instance.__class__.__name__), key4sort)
         rss_feed = generate_rss(source_info, result)
         rss_json = {"source_info": source_info, "articles": result}
         data.rss_cache.set_rss(source_name, rss_feed, rss_json, source_info["access"])
