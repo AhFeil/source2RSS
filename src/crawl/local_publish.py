@@ -32,8 +32,8 @@ async def save_articles(data, source_name, article_source, store_a_new_one: list
 
 async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
     """让抓取器运行一次，把数据保存和转换"""
-    source_info, source_name, max_wait_time = instance.source_info, instance.table_name, instance.max_wait_time
-    key4sort = source_info["key4sort"]
+    source_info, max_wait_time = instance.source_info, instance.max_wait_time
+    source_name, key4sort = source_info["table_name"], source_info["key4sort"]
     # 确保 source 的元信息在数据库中
     data.db_intf.exist_source_meta(source_info)
     result = data.db_intf.get_top_n_articles_by_key(source_name, 1, key4sort)

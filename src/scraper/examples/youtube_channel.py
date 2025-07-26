@@ -39,9 +39,7 @@ class YoutubeChannel(WebsiteScraper):
 
     def __init__(self, channel_id, channel_name, feed) -> None:
         super().__init__()
-        self.channel_id = channel_id
-        self.channel_name = channel_name
-        self.feed = feed
+        self.channel_id, self.channel_name, self.feed = channel_id, channel_name, feed
 
     def _source_info(self):
         return {
@@ -76,6 +74,7 @@ class YoutubeChannel(WebsiteScraper):
     def _custom_parameter_of_parse(self) -> list:
         return [self.channel_name, self.feed]
 
+    # todo 缓存
     @classmethod
     async def get_feed_url(cls, channel_id) -> str:
         response = await get_response_or_none(f"{YoutubeChannel.home_url}/@{channel_id}", cls.headers)

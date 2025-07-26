@@ -1,9 +1,9 @@
 """抓取器返回字典定义和 FastAPI 的 Model 等"""
 from datetime import datetime
 from enum import Enum, IntEnum, StrEnum, auto
-from typing import Optional, Required, TypedDict, Union, get_type_hints
+from typing import Any, Optional, Required, TypedDict, Union, get_type_hints
 
-from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator
+from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator, model_validator
 
 
 def init_field_names(cls):
@@ -54,12 +54,13 @@ class LocateInfo(TypedDict, total=False):
 
 @init_field_names
 class SrcMetaDict(TypedDict):
-    name: str
+    name: str           # RSS 里源的名称
     link: str
     desc: str
     lang: str
     key4sort: SortKey
     access: AccessLevel
+    table_name: str     # 会用于表名和 RSS 文件的名称，默认和 name 一样
 
 
 class SourceMeta(BaseModel):
@@ -75,6 +76,15 @@ class SourceMeta(BaseModel):
     lang: str = "zh-CN"
     key4sort: SortKey = SortKey.PUB_TIME
     access: AccessLevel = AccessLevel.PUBLIC
+    table_name: str
+
+    @model_validator(mode='before')
+    @classmethod
+    def set_table_name(cls, data: dict[str, Any]) -> dict[str, Any]:
+        # 如果未提供 table_name，则用 name 的值填充
+        if "table_name" not in data:
+            data["table_name"] = data.get("name")
+        return data
 
 
 @init_field_names

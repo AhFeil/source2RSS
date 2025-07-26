@@ -78,11 +78,6 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         return WebsiteScraper._standardize_src_Info(self._source_info())
 
     @property
-    def table_name(self) -> str:
-        """返回表名，并会用于 RSS 文件的名称""" # todo 放入 source_info ？
-        return self.source_info["name"]
-
-    @property
     def max_wait_time(self) -> int:
         """返回在本次执行中，从执行开始到结束占用最长时间，单位秒"""
         return self.__class__.page_turning_duration * 20
@@ -134,12 +129,13 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     @abstractmethod
     def _source_info(self) -> dict:
         return {
-            'name': "技焉洲",
-            'link': self.__class__.home_url,
-            'desc': "Linux，单片机，编程",
-            'lang': "zh-CN",
-            'key4sort': SortKey.PUB_TIME,
-            "access": AccessLevel.USER
+            "name": "技焉洲",
+            "link": self.__class__.home_url,
+            "desc": "Linux，单片机，编程",
+            "lang": "zh-CN",
+            "key4sort": SortKey.PUB_TIME,
+            "access": AccessLevel.USER,
+            "table_name": "技焉洲",
         }
 
     def _custom_parameter_of_parse(self) -> tuple:

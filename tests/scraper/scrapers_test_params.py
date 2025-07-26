@@ -6,16 +6,16 @@ from src.scraper.examples.bentoml import BentoMLBlog
 class CaseParam4Meta(NamedTuple):
     cls_instance: type
     expect_source_info: dict[str, str]
-    table_name: str
 
 
 source_info_of_BentoMLBlog = {
-        'key4sort': 'pub_time',
+        'name': 'BentoML Blog',
         'link': 'https://www.bentoml.com/blog',
-        'name': 'BentoML Blog'
+        'key4sort': 'pub_time',
+        'table_name': 'BentoML Blog'
 }
 
 
 scrapers_params = [
-    CaseParam4Meta(BentoMLBlog, source_info_of_BentoMLBlog, "BentoML Blog"),
+    CaseParam4Meta(BentoMLBlog, source_info_of_BentoMLBlog),
 ]

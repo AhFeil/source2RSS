@@ -25,7 +25,6 @@ async def test_meta_info(setup_and_tear_down):
     ins, tc = setup_and_tear_down
     for key, val in tc.expect_source_info.items():
         assert ins.source_info[key] == val
-    assert ins.table_name == tc.table_name
     assert isinstance(ins.max_wait_time, int) and ins.max_wait_time > 0
 
 @pytest.mark.asyncio

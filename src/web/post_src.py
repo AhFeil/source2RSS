@@ -27,7 +27,7 @@ async def update_source(m: SourceMeta):
 
 @router.post("/", response_class=JSONResponse, dependencies=[Depends(get_admin_user)])
 async def add_source(m: SourceMeta):
-    if data.db_intf.get_source_info(m.name):
+    if data.db_intf.get_source_info(m.table_name):
         return {"message": "There is already a source with the same name, you can use put to update it"}
     meta = m.model_dump(mode="json")
     data.db_intf.exist_source_meta(meta) # type: ignore
