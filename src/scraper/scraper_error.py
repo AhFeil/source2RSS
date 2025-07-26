@@ -14,12 +14,11 @@ class CreateByInvalidParam(ScraperError):
     """
     pass
 
-# todo 应该由具体请求的方法引发
 class CreateButRequestFail(ScraperError):
     """
     输入的参数实际没问题，但创建过程中的请求发生错误
 
-    定期运行会忽略此异常
+    定期运行会忽略此异常，但多次出现会发出提醒
     """
     pass
 

@@ -10,7 +10,6 @@ from src.scraper.scraper import WebsiteScraper
 from src.scraper.scraper_error import (
     CreateButRequestFail,
     CreateByInvalidParam,
-    FailtoGet,
 )
 from src.scraper.tools import AsyncBrowserManager
 
@@ -38,7 +37,7 @@ class BilibiliUp(WebsiteScraper):
         if not BilibiliUp.is_valid_uid(uid):
             raise CreateByInvalidParam()
         space_url = f"{cls.home_url}/{uid}/dynamic"
-        j_res = await cls.get_response_json(uid, space_url) # todo 如果是因为超时，应该对外表现为没有更新
+        j_res = await cls.get_response_json(uid, space_url)
         if j_res and j_res.get("data"):
             up_name = j_res["data"]["items"][0]["modules"]["module_author"]["name"]
             return cls(up_name, space_url, j_res)
@@ -128,6 +127,7 @@ class BilibiliUp(WebsiteScraper):
         j_res = [{}]
         blocked = ["image", "font", "media"]
         def block_func(route): return route.abort() if route.request.resource_type in blocked else route.continue_()
+
         async with AsyncBrowserManager(id, user_agent) as context:
             await context.route("**/*", block_func)
             page = await context.new_page()
@@ -137,11 +137,12 @@ class BilibiliUp(WebsiteScraper):
                 await page.goto(space_url, timeout=60000, wait_until='networkidle')
             except TimeoutError:
                 AsyncBrowserManager._logger.warning(f"Page navigation of {id} timed out")
+                raise CreateButRequestFail()
             except Exception as e:
                 msg = f"Page navigation of {id} Exception occured: {e}"
                 AsyncBrowserManager._logger.warning(msg)
                 await post2RSS("error log of BilibiliUp when get_response_json", msg)
-                raise FailtoGet() from e
+                raise CreateButRequestFail() from e
             finally:
                 await page.close()
                 AsyncBrowserManager._logger.debug("destroy page of " + id)

@@ -2,7 +2,7 @@ import re
 from datetime import datetime
 from typing import AsyncGenerator, Self
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from src.scraper.model import SortKey
 from src.scraper.scraper import WebsiteScraper
@@ -62,7 +62,7 @@ class MangaCopy(WebsiteScraper):
 
         soup = BeautifulSoup(html_content, features="lxml")
         articles = soup.find('div', id='default全部')
-        if not articles:
+        if not articles or not isinstance(articles, Tag):
             return
         articles = articles.find_all('a', style=re.compile(r'display:\s*(block|none);'))
         articles_with_num = [(num, a) for num, a in enumerate(articles, start=1)]
@@ -75,8 +75,11 @@ class MangaCopy(WebsiteScraper):
 
         description = soup.find('p', class_='intro')
         description = description.text if description else ""
-        image_link = soup.find('img')
-        image_link = image_link["src"] if image_link else "http://example.com"
+        image_link_tag = soup.find('img')
+        if not image_link_tag or not isinstance(image_link_tag, Tag):
+            image_link = "http://example.com"
+        else:
+            image_link = image_link_tag["src"]
 
         for num, a in reversed(articles_with_num):
             title = a["title"]
@@ -97,7 +100,7 @@ class MangaCopy(WebsiteScraper):
     @classmethod
     async def book_exists(cls, book_url: str):
         response = await get_response_or_none(book_url, cls.headers)
-        return response is not None and response.status_code == 200
+        return response and response.status_code == 200
 
     @staticmethod
     def is_valid_book_id(s: str) -> bool:

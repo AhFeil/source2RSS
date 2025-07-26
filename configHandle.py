@@ -74,6 +74,9 @@ class Config:
         self.webscraper_profile = configs['webscraper_profile']
         self.ad_html = configs.get("ad_html", "")
 
+    def get_usage_cache(self) -> int:
+        return sum(len(scrapers) for _, scrapers in self.enabled_web_scraper.items())
+
     def get_schedule(self, class_name: str) -> list:
         try:
             sche = self.webscraper_profile[class_name]["custom_cfg"]["run_everyday_at"]

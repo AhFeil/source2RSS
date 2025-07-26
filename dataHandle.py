@@ -29,17 +29,17 @@ class RSSCache:
                 access = AccessLevel.SYSTEM
             self._cached_sources[access][source_name] = rss_data
 
-    def get_source_list(self, access: AccessLevel, low_access: AccessLevel = AccessLevel.NONE) -> list[str]:
+    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...]=tuple()) -> list[str]:
         """返回 access 及其下的所有源， 但不包含 low_access 及其以下的"""
         source_list = []
-        for cached_sources in self._cached_sources[access:low_access:-1]:
-            source_list.extend(cached_sources.keys())
+        for i in filter(lambda x : x not in except_access, range(access, low_access, -1)):
+            source_list.extend(self._cached_sources[i].keys())
         return source_list
 
-    def get_source_or_None(self, source_name: str, access: AccessLevel) -> RSSData | None:
+    def get_source_or_None(self, source_name: str, access: AccessLevel, except_access: tuple[AccessLevel, ...]=tuple()) -> RSSData | None:
         """当源存在且有权限返回源"""
-        for cached_sources in self._cached_sources[access::-1]:
-            if rss_data := cached_sources.get(source_name):
+        for i in filter(lambda x : x not in except_access, range(access, AccessLevel.NONE, -1)):
+            if rss_data := self._cached_sources[i].get(source_name):
                 return rss_data
 
     def set_rss(self, source_name: str, rss: bytes, rss_json: dict, access: AccessLevel):

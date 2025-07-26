@@ -27,10 +27,9 @@ router = APIRouter(
 @router.get("/", response_class=HTMLResponse)
 async def get_your_rss_list(request: Request, user: Annotated[User, Depends(get_valid_user)]):
     """已登录用户可以用此查看自己有权限查看的所有源"""
-    context = {"public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC),"ad_html": config.ad_html}
+    context = {"public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC), "ad_html": config.ad_html}
     if user.is_administrator:
-        # todo 不能访问 PRIVATE_USER 的源
-        context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.ADMIN, AccessLevel.PUBLIC)
+        context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.ADMIN, AccessLevel.PUBLIC, (AccessLevel.PRIVATE_USER, ))
     else:
         context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.SHARED_USER, AccessLevel.PUBLIC)
         # 登录用户对于 USER 级别能访问的
@@ -42,8 +41,7 @@ async def get_your_rss_list(request: Request, user: Annotated[User, Depends(get_
 async def get_user_or_upper_rss(source_name: str, user: Annotated[User, Depends(get_valid_user)]):
     """已登录用户可以用此访问有权限查看的所有源"""
     if user.is_administrator:
-        # todo 不能访问 PRIVATE_USER 的源
-        rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.ADMIN)
+        rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.ADMIN, (AccessLevel.PRIVATE_USER,))
         return select_rss(rss_data, "xml")
 
     # 登录用户可以无条件访问的源
