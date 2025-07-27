@@ -20,12 +20,13 @@ class SourceMeta4ORM(Base):
     link = Column(String)
     desc = Column(String)
     lang = Column(String)
+    tags = Column(String)
     key4sort = Column(String(30), nullable=False)
     access = Column(Integer)
     table_name = Column(String, unique=True, nullable=False, index=True)   # 作为文章表的名称
 
     def __repr__(self):
-        return f"<SourceMeta({self.id=}, {self.name=}, ={self.link=}, {self.desc=}, {self.lang=}, {self.key4sort=}, {self.access=}, {self.table_name=})>"
+        return f"<SourceMeta({self.id=}, {self.name=}, ={self.link=}, {self.desc=}, {self.lang=}, {self.tags=}, {self.key4sort=}, {self.access=}, {self.table_name=})>"
 
     def equal_to(self, other_source_meta: SrcMetaDict) -> bool:
         # 如果缺少键，运行时不会报错 KeyError ，而是会卡死

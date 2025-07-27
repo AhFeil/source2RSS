@@ -133,6 +133,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             "link": self.__class__.home_url,
             "desc": "Linux，单片机，编程",
             "lang": "zh-CN",
+            "tags": "blog\ntechnique\n博客\n技术",
             "key4sort": SortKey.PUB_TIME,
             "access": AccessLevel.USER,
             "table_name": "技焉洲",

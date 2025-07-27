@@ -27,6 +27,7 @@ def test_sqlite(setup_and_tear_down):
         'link': 'https://www.bentoml.com/blog',
         'desc': "description---------",
         'lang': "En",
+        'tags': "",
         'key4sort': SortKey.PUB_TIME,
         "access": AccessLevel.USER,
         "table_name": "BentoML Blog",

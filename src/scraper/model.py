@@ -59,6 +59,7 @@ class SrcMetaDict(TypedDict):
     link: str
     desc: str
     lang: str
+    tags: str           # 标签列表，标签之间用换行符 \n 分隔，用于分类搜索等
     key4sort: SortKey
     access: AccessLevel
     table_name: str     # 会用于表名和 RSS 文件的名称，默认和 name 一样
@@ -75,6 +76,7 @@ class SourceMeta(BaseModel):
     link: str # HttpUrl 不能和字符串进行比较，不能被数据库用时自动转换为字符串，太不好用
     desc: str
     lang: str = "zh-CN"
+    tags: str = ""
     key4sort: SortKey = SortKey.PUB_TIME
     access: AccessLevel = AccessLevel.PUBLIC
     table_name: str
