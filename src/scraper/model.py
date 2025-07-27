@@ -4,6 +4,7 @@ from enum import Enum, IntEnum, StrEnum, auto
 from typing import Any, Optional, Required, TypedDict, Union, get_type_hints
 
 from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator, model_validator
+from pydantic_core import PydanticCustomError
 
 
 def init_field_names(cls):
@@ -85,6 +86,17 @@ class SourceMeta(BaseModel):
         if "table_name" not in data:
             data["table_name"] = data.get("name")
         return data
+
+    @field_validator("table_name")
+    @classmethod
+    def check_table_name(cls, v: str) -> str:
+        if '/' in v:
+            raise PydanticCustomError(
+                "no_slash_allowed",
+                "Table name must not contain '/' character, got '{value}'",
+                {"value": v}
+            )
+        return v
 
 
 @init_field_names

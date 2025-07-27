@@ -4,6 +4,8 @@ import signal
 from dataclasses import dataclass
 from typing import Iterable, Self
 
+from pydantic_core import ValidationError
+
 from configHandle import post2RSS
 from preproc import Plugins, config, data
 from src.scraper import AsyncBrowserManager, WebsiteScraper
@@ -49,6 +51,8 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
         else:
             try:
                 source_name = await goto_uniform_flow(data, instance, amount)
+            except ValidationError:
+                raise CrawlInitError(422, "Invalid source meta")
             except Exception as e:
                 msg = f"fail when goto_uniform_flow of {cls.__name__}, {params=}: {e}"
                 logger.exception(msg)

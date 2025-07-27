@@ -95,7 +95,7 @@ def test_query_rss_all_success(setup_and_tear_down):
 def test_query_rss_with_bad_source_name(setup_and_tear_down):
     """源名称不合法"""
     response = client.get("/query_rss/MangaCopy/?q=花咲家的性福生活/&q=huaxoajiedexinfushenghuo", headers=get_headers(config.query_username, config.query_password))
-    assert response.status_code == 500
+    assert response.status_code == 422
 
 
 def test_query_rss_not_exist(setup_and_tear_down):
