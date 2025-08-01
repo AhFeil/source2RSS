@@ -76,3 +76,9 @@ def test_run_all_crawler(setup_and_tear_down):
 
     response = client.post("/manage/crawler/run_all", json={})
     assert response.status_code == 401
+
+"""
+更新抓取器配置
+
+todo 更新后，应该在网页上能找到相应的改变
+"""

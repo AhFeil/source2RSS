@@ -2,10 +2,11 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
+from preproc import config
 from src.crawl import start_to_crawl_all
 
 from .get_rss import templates
@@ -20,7 +21,11 @@ router = APIRouter(
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(get_admin_user)])
 async def manage_page(request: Request):
-    context = {"invite_code": UserRegistry._invite_code, "count": UserRegistry._left_count}
+    context = {
+        "invite_code": UserRegistry._invite_code,
+        "count": UserRegistry._left_count,
+        "scraper_profile_content": config.get_scraper_profile()
+    }
     return templates.TemplateResponse(request=request, name="manage.html", context=context)
 
 
@@ -40,3 +45,8 @@ async def update_invite_code(ic_data: InviteCodeCreate, user: Annotated[User, De
     if UserRegistry.update_ic(ic_data.code, ic_data.count, user):
         return {"message": "Invite Code updated"}
     return {"message": "Invite Code failed to be updated"}
+
+@router.post("/scraper_profile", response_class=JSONResponse, dependencies=[Depends(get_admin_user)])
+async def update_scraper_profile(profile: Annotated[str, Form()]):
+    config.set_scraper_profile(profile)
+    return {"message": "Scraper profile is updated"}

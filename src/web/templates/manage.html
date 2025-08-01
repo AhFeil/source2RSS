@@ -14,8 +14,7 @@
     <div id="run_all_result"></div>
 
     <br><br>
-    <p>当前邀请码：{{ invite_code }}</p>
-    <p>剩余有效次数：{{ count }}</p>
+    <p>当前邀请码：{{ invite_code }} ，剩余有效次数：{{ count }}</p>
     <form hx-post="invite_code"
         hx-target="#invite_code_result"
         hx-ext="json-enc"
@@ -25,4 +24,14 @@
         <button type="submit">更新邀请码</button>
     </form>
     <div id="invite_code_result"></div>
+
+    <br><br>
+    <div>
+        <form id="configForm" hx-post="scraper_profile" hx-target="#scraper_profile_result">
+            <textarea id="profile" name="profile" rows="30" cols="80">{{ scraper_profile_content }}</textarea>
+            <br><br>
+            <button type="submit">更新抓取器配置</button>
+        </form>
+    </div>
+    <div id="scraper_profile_result"></div>
 {% endblock content %}

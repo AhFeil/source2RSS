@@ -32,7 +32,7 @@ class Config:
 
     def reload(self) -> None:
         """将配置文件里的参数，赋予单独的变量，方便后面程序调用"""
-        configs = self._load_config(self.config_path)
+        configs = Config._load_config(self.config_path)
         # 默认无须用户改动的
         logging.config.dictConfig(configs["logging"])
         self.desktop_user_agent = []
@@ -72,8 +72,18 @@ class Config:
         self.query_password = configs.get('query_password', "123456")
         self.query_bedtime = configs.get('query_bedtime', [])
 
-        self.scraper_profile = self._load_config_file(configs.get("scraper_profile", "examples/scraper_profile.example.yaml"))
+        self.scraper_profile_file = configs.get("scraper_profile", "examples/scraper_profile.example.yaml")
+        self.scraper_profile = Config._load_config_file(self.scraper_profile_file)
         self.ad_html = configs.get("ad_html", "")
+
+    def get_scraper_profile(self) -> str:
+        with open(self.scraper_profile_file, 'r', encoding="utf-8") as f:
+            return f.read()
+
+    def set_scraper_profile(self, profile: str):
+        self.scraper_profile = Config.yaml.load(profile)
+        with open(self.scraper_profile_file, 'w', encoding="utf-8") as f:
+            f.write(profile)
 
     def get_usage_cache(self) -> int:
         return sum(len(scrapers) for _, scrapers in self.enabled_web_scraper.items())
