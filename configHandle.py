@@ -72,7 +72,7 @@ class Config:
         self.query_password = configs.get('query_password', "123456")
         self.query_bedtime = configs.get('query_bedtime', [])
 
-        self.webscraper_profile = configs['webscraper_profile']
+        self.scraper_profile = self._load_config_file(configs.get("scraper_profile", "examples/scraper_profile.example.yaml"))
         self.ad_html = configs.get("ad_html", "")
 
     def get_usage_cache(self) -> int:
@@ -80,7 +80,7 @@ class Config:
 
     def get_schedule(self, class_name: str) -> list:
         try:
-            sche = self.webscraper_profile[class_name]["custom_cfg"]["run_everyday_at"]
+            sche = self.scraper_profile[class_name]["custom_cfg"]["run_everyday_at"]
             return [sche] if isinstance(sche, str) else sche
         except KeyError:
             return self.run_everyday_at
@@ -95,26 +95,26 @@ class Config:
 
     def get_params(self, class_name: str) -> list:
         try:
-            return self.webscraper_profile[class_name]["cls_init_params"]
+            return self.scraper_profile[class_name]["cls_init_params"]
         except KeyError:
             return [None]
 
     def get_amount(self, class_name: str) -> int:
         try:
-            return self.webscraper_profile[class_name]["custom_cfg"]["amount_when_firstly_add"]
+            return self.scraper_profile[class_name]["custom_cfg"]["amount_when_firstly_add"]
         except KeyError:
             return self.amount_when_firstly_add
 
     def get_max_rss_items(self, class_name: str) -> int:
         try:
-            return self.webscraper_profile[class_name]["custom_cfg"]["max_of_rss_items"]
+            return self.scraper_profile[class_name]["custom_cfg"]["max_of_rss_items"]
         except KeyError:
             return self.max_of_rss_items
 
     def in_bedtime(self, class_name: str, hm: str) -> bool:
         """检查 hm 是否在 bedtime 期间，是的话返回真"""
         try:
-            bedtime = self.webscraper_profile[class_name]["custom_cfg"]["query_bedtime"]
+            bedtime = self.scraper_profile[class_name]["custom_cfg"]["query_bedtime"]
         except KeyError:
             bedtime = self.query_bedtime
         return any(t[0] <= hm <= t[1] for t in bedtime)

@@ -23,29 +23,6 @@ enabled_web_scraper:
 # - newsletter
 # - bili_follow_dynamic
 
-webscraper_profile:
-  # 这里的名称，使用类名，除非定义了类变量 name
-  BilibiliUp:
-    custom_cfg:
-      run_everyday_at: ["06:00", "12:00", "19:00", "22:00", "23:00", "23:37", "00:00"]
-    cls_init_params:
-    - "138624168"
-
-  HotJuejin:
-    custom_cfg:
-      amount_when_firstly_add: 3
-
-  YoutubeChannel:
-    cls_init_params:
-    - [LearnEnglishWithTVSeries]
-
-  MangaCopy:
-    custom_cfg:
-      max_of_rss_items: 10
-    cls_init_params:
-    - [花咲家的性福生活, huaxoajiedexinfushenghuo]
-
-
 # *****下面的配置都有默认值，删除也不影响运行，如果有需要可以自定义*****
 
 # 如果使用 MongoDB ，就填下面的值，默认使用 SQLite
@@ -63,7 +40,9 @@ query_password: "123456"
 query_bedtime:   # 睡眠时间里，管理员的请求走缓存路径，减少资源消耗
 - ["01:30", "06:30"]
 
-# 抓取器的默认配置，如果没有在 webscraper_profile 定义相关量，就会使用这里的
+scraper_profile: examples/scraper_profile.example.yaml
+
+# 抓取器的默认配置，如果没有在 scraper_profile 文件里定义相关量，就会使用这里的
 crawler_default_cfg:
   timezone: Asia/Shanghai
   run_everyday_at: ["05:00", "11:00", "17:00", "23:00"]

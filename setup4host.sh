@@ -20,11 +20,13 @@ playwright install
 # 如果显示缺乏依赖
 # python -m playwright install --with-deps
 
-# 配置文件。若不存在 config_and_data_files 就自动复制示例配置文件，否则不操作
+# 配置文件。若不存在目录 config_and_data_files 就自动复制示例配置文件，否则不操作
 if [ ! -d config_and_data_files ]
 then
     mkdir config_and_data_files && \
-    cp examples/config.example.yaml config_and_data_files/config.yaml
+    cp examples/config.example.yaml config_and_data_files/config.yaml && \
+    cp examples/scraper_profile.example.yaml config_and_data_files/scraper_profile.yaml && \
+    sed -i 's|examples/scraper_profile\.example\.yaml|config_and_data_files/scraper_profile.yaml|g' config_and_data_files/config.yaml
 fi
 
 # 创建 systemd 配置文件
