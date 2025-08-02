@@ -4,10 +4,8 @@ pymongo
 feedgen
 feedparser
 schedule
-pytz
 beautifulsoup4
 pytest-playwright
-Pillow
 fastapi[all]
 cachetools
 SQLAlchemy

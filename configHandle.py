@@ -1,4 +1,3 @@
-import json
 import logging.config
 import os
 from collections import defaultdict
@@ -24,10 +23,7 @@ class Config:
         os.makedirs(self.rss_dir, exist_ok=True)
         self.source_meta = "source_meta"   # 源的元信息的表名
         self.wait_before_close_browser = 180
-        self.bili_context = "config_and_data_files/bili_context.json"
-        if not os.path.exists(self.bili_context):
-            with open(self.bili_context, 'w', encoding="utf-8") as f:
-                json.dump({}, f)
+        self._crawl_schedules: tuple[tuple[str, tuple], ...] = tuple()
 
     def reload(self) -> None:
         """将配置文件里的参数，赋予单独的变量，方便后面程序调用"""
@@ -114,6 +110,14 @@ class Config:
             for p in self.get_schedule(cls_name):
                 points_cls[p].append(cls_name)
         return points_cls
+
+    def set_crawl_schedules(self, crawl_schedules: dict[str, list]):
+        m = [(k, tuple(v)) for k, v in crawl_schedules.items()]
+        m.sort(key=lambda x : x[0])
+        self._crawl_schedules = tuple(m)
+
+    def get_crawl_schedules(self) -> tuple[tuple[str, tuple], ...]:
+        return self._crawl_schedules
 
     def get_params(self, class_name: str) -> list:
         try:

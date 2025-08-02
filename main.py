@@ -41,7 +41,8 @@ for _path, module in Plugins.imported_modules.items():
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    return get_rss.templates.TemplateResponse(request=request, name="home.html", context={"ad_html": config.ad_html})
+    context = {"ad_html": config.ad_html, "crawl_schedules": config.get_crawl_schedules()}
+    return get_rss.templates.TemplateResponse(request=request, name="home.html", context=context)
 
 
 if __name__ == "__main__":

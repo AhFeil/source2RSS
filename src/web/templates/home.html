@@ -16,4 +16,14 @@
     <a href="manage/">管理员页面</a>
     <a href="docs">OpenAPI</a>
     <br><br>
+
+    <p>抓取时间表：</p>
+    <ul>
+        {% for point, class_names in crawl_schedules %}
+        <li>
+            <p>{{ point }}：{{ ', '.join(class_names) }}</p>
+        </li>
+        {% endfor %}
+    </ul>
+    <br><br>
 {% endblock content %}

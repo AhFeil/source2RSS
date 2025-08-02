@@ -41,9 +41,10 @@ def run_continuously(loop: asyncio.AbstractEventLoop):
     class ScheduleThread(threading.Thread):
         @classmethod
         def run(cls):
-            for point, cls_names in config.get_schedule_and_cls_names(Plugins.get_all_id()).items():
+            crawl_schedules = config.get_schedule_and_cls_names(Plugins.get_all_id())
+            config.set_crawl_schedules(crawl_schedules)
+            for point, cls_names in crawl_schedules.items():
                 schedule.every().day.at(point, config.timezone).do(job, cls_names, loop)
-                print(point, cls_names)
             for job_info in schedule.get_jobs():
                 print(job_info.next_run)
 
