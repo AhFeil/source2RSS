@@ -19,21 +19,23 @@ class RSSCache:
     """内存里缓存的RSS数据"""
     def __init__(self, rss_dir: str, db_intf: DatabaseIntf) -> None:
         self.rss_dir = Path(rss_dir)
-        self._cached_sources = [{} for _ in range(AccessLevel.ADMIN + 1)]
+        self._cached_sources: list[dict[str, RSSData]] = [{} for _ in range(AccessLevel.ADMIN + 1)]
         for source_name, rss_data in RSSCache._load_files_to_dict(self.rss_dir).items():
             src_meta = db_intf.get_source_info(source_name)
             if src_meta:
                 access = src_meta["access"]
+                rss_data.json["source_info"] = src_meta
             else:
                 print(f"{source_name} is lack in db")
                 access = AccessLevel.SYSTEM
             self._cached_sources[access][source_name] = rss_data
 
-    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...]=tuple()) -> list[str]:
-        """返回 access 及其下的所有源， 但不包含 low_access 及其以下的"""
+    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...]=tuple()) -> list[tuple[str, str]]:
+        """返回 access 到 low_access 之间的所有源的表名和展示名， 不包含 low_access"""
         source_list = []
         for i in filter(lambda x : x not in except_access, range(access, low_access, -1)):
-            source_list.extend(self._cached_sources[i].keys())
+            for k, v in self._cached_sources[i].items():
+                source_list.append((k, v.json["source_info"]["name"]))
         return source_list
 
     def get_source_or_None(self, source_name: str, access: AccessLevel, except_access: tuple[AccessLevel, ...]=tuple()) -> RSSData | None:
@@ -43,7 +45,7 @@ class RSSCache:
                 return rss_data
 
     def set_rss(self, source_name: str, rss: bytes, rss_json: dict, access: AccessLevel):
-        """将RSS源名称和RSS内容映射，如果是单例，还将类名和RSS内容映射"""
+        """将RSS源表名称和RSS内容映射，如果是单例，还将类名和RSS内容映射"""
         rss_data = RSSData(rss.decode(), rss_json)
         self._cached_sources[access][source_name] = rss_data
         rss_filepath = self.rss_dir / (source_name + ".xml")
@@ -59,7 +61,8 @@ class RSSCache:
         for file_path in path.iterdir():
             if file_path.is_file():
                 file_content = file_path.read_text(encoding='utf-8')
-                rss_data = RSSData(file_content, {"detail": "RSS json is missed in cache"})
+                rss_json = {"source_info": {"name": file_path.stem}, "detail": "RSS json is missed in cache"}
+                rss_data = RSSData(file_content, rss_json)
                 file_dict[file_path.stem] = rss_data
         return file_dict
 
