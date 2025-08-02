@@ -7,7 +7,6 @@ from asyncio import run_coroutine_threadsafe
 
 import schedule
 
-from configHandle import post2RSS
 from preproc import Plugins, config
 from src.crawl import ScraperNameAndParams, start_to_crawl
 from src.crawl.crawl_error import CrawlInitError
@@ -25,7 +24,7 @@ def sync_wrapper(cls_names, loop):
     except Exception as e:
         tb = traceback.format_exc()
         logger.error(f"Exception occurred: {e.__class__.__name__}\n{tb}")
-        run_coroutine_threadsafe(post2RSS("error log of run_as_scheduled", tb), loop)
+        run_coroutine_threadsafe(config.post2RSS("error log of run_as_scheduled", tb), loop)
 
 job = sync_wrapper
 

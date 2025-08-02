@@ -4,7 +4,7 @@ from typing import AsyncGenerator, Self
 
 from playwright.async_api import TimeoutError
 
-from configHandle import post2RSS
+from preproc import config
 from src.scraper.model import SortKey
 from src.scraper.scraper import WebsiteScraper
 from src.scraper.scraper_error import (
@@ -141,7 +141,7 @@ class BilibiliUp(WebsiteScraper):
             except Exception as e:
                 msg = f"Page navigation of {id} Exception occured: {e}"
                 AsyncBrowserManager._logger.warning(msg)
-                await post2RSS("error log of BilibiliUp when get_response_json", msg)
+                await config.post2RSS("error log of BilibiliUp when get_response_json", msg)
                 raise CreateButRequestFail() from e
             finally:
                 await page.close()

@@ -6,7 +6,6 @@ from typing import Iterable, Self
 
 from pydantic_core import ValidationError
 
-from configHandle import post2RSS
 from preproc import Plugins, config, data
 from src.scraper import AsyncBrowserManager, WebsiteScraper
 from src.scraper.scraper_error import (
@@ -46,7 +45,7 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
         except Exception as e:
             msg = f"fail when query rss {cls.__name__}: {e}"
             logger.exception(msg)
-            await post2RSS("error log of _process_one_kind_of_class", msg)
+            await config.post2RSS("error log of _process_one_kind_of_class", msg)
             raise CrawlInitError(500, "Unknown Error")
         else:
             try:
@@ -56,7 +55,7 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
             except Exception as e:
                 msg = f"fail when goto_uniform_flow of {cls.__name__}, {params=}: {e}"
                 logger.exception(msg)
-                await post2RSS("error log of goto_uniform_flow", msg)
+                await config.post2RSS("error log of goto_uniform_flow", msg)
             else:
                 res.append(source_name)
             finally:

@@ -1,14 +1,13 @@
-import base64
 import json
 import logging.config
 import os
 from collections import defaultdict
 from contextlib import suppress
-from datetime import datetime
 from typing import Iterable
 
-import httpx
 from ruamel.yaml import YAML, YAMLError
+
+from src.client import S2RProfile, Source2RSSClient
 
 configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default="config_and_data_files/config.yaml")
 
@@ -63,9 +62,6 @@ class Config:
         self.enabled_web_scraper = configs.get('enabled_web_scraper', {})
         self.remote_pub_scraper = configs.get('remote_pub_scraper', {})
 
-        self.ip_or_domain = configs.get('ip_or_domain', "127.0.0.1")
-        self.port = configs.get("port", 8536)
-
         self.query_cache_maxsize = configs.get('query_cache_maxsize', 100)
         self.query_cache_ttl_s = configs.get('query_cache_ttl_s', 3600)
         self.query_username = configs.get('query_username', "vfly2")
@@ -75,6 +71,22 @@ class Config:
         self.scraper_profile_file = configs.get("scraper_profile", "examples/scraper_profile.example.yaml")
         self.scraper_profile = Config._load_config_file(self.scraper_profile_file)
         self.ad_html = configs.get("ad_html", "")
+
+        self.enable_s2r_c = configs.get("enable_s2r_c")
+        self.port = configs.get("port", 8536)
+        if self.enable_s2r_c:
+            s2r_profile: S2RProfile = {
+                "ip_or_domain": "127.0.0.1",
+                "port": self.port,
+                "username": self.query_password,
+                "password": self.query_password,
+                "source_name": "source2rss_severe_log",
+            }
+            self.s2r_c = Source2RSSClient.create(s2r_profile)
+
+    async def post2RSS(self, title: str, summary: str):
+        if self.enable_s2r_c:
+            await self.s2r_c.post_article(title, summary)
 
     def get_scraper_profile(self) -> str:
         with open(self.scraper_profile_file, 'r', encoding="utf-8") as f:
@@ -172,31 +184,3 @@ class Config:
 
 
 config = Config(os.path.abspath(configfile))
-
-logger = logging.getLogger("post2RSS")
-
-async def post2RSS(title: str, summary: str) -> httpx.Response | None:
-    """不引发异常"""
-    url = f"http://127.0.0.1:{config.port}/post_src/source2rss_severe_log/"
-    timeout = httpx.Timeout(10.0, read=10.0)
-    credentials = f"{config.query_username}:{config.query_password}"
-    encoded_credentials = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
-    headers = {
-        "accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": f"Basic {encoded_credentials}"
-    }
-    data_raw = [{
-            "title": title,
-            "link": "http://rss.vfly2.com/query_rss/source2rss_severe_log.xml/#" + str(datetime.now().timestamp()),
-            "summary": summary,
-            "content": summary,
-            "pub_time": datetime.now().timestamp()
-        }]
-    async with httpx.AsyncClient() as client:
-        try:
-            response = await client.post(url=url, headers=headers, json=data_raw, timeout=timeout)
-        except Exception as e:
-            logger.warning(f"exception of post2RSS: {e}")
-        else:
-            return response

@@ -6,7 +6,7 @@ from urllib.robotparser import RobotFileParser
 import httpx
 from playwright.async_api import TimeoutError, async_playwright
 
-from configHandle import config, post2RSS
+from configHandle import config
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +28,7 @@ async def get_response_or_none(url: str, headers=None, params=None, verify=True,
             except Exception as e:
                 msg = f"exception occurred when call get_response_or_none, url is '{url}', e is '{e}'"
                 logger.error(msg)
-                await post2RSS("error log of get_response_or_none", msg)
+                await config.post2RSS("error log of get_response_or_none", msg)
                 return None
             else:
                 return response
