@@ -9,6 +9,7 @@ from configHandle import config
 from src.client import S2RProfile, Source2RSSClient
 
 
+@pytest.mark.skip(reason="需要启动服务端")
 @pytest.mark.asyncio
 async def test_client():
     s2r_profile: S2RProfile = {

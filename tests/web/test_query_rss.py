@@ -106,6 +106,7 @@ def test_query_rss_not_exist(setup_and_tear_down):
     assert response.status_code == 404
 
 
+@pytest.mark.slow
 @pytest.mark.asyncio
 async def test_query_rss_high_concurrency():
     """测试触发更新的并发表现"""

@@ -55,6 +55,10 @@ class YoutubeChannel(WebsiteScraper):
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         cls._logger.info(f"{channel_name} start to parse")
         for entry in feed.entries:
+            # 如果没有更新，提前返回，减少一次网络请求
+            if entry.title == flags.get("article_title"):
+                return
+
             res = await get_response_or_none(entry.link, cls.headers) # type: ignore
             if res is None or res.status_code != 200:
                 return
