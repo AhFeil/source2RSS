@@ -30,3 +30,11 @@ class CreateByLocked(ScraperError):
     定期运行会忽略此异常
     """
     pass
+
+class ParseUnexpected(ScraperError):
+    """
+    当解析请求的内容时，和预期不符，有可能是少考虑网页结构，或者网页改版
+
+    不会忽略此异常
+    """
+    pass
