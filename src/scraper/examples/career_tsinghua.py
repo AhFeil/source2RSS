@@ -41,7 +41,8 @@ class CareerTsinghua(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "清华大学学生职业发展指导中心的招聘信息，本源不会显示置顶文章",
             "lang": "zh-CN",
-            "key4sort": SortKey.TIME4SORT
+            "key4sort": SortKey.TIME4SORT,
+            "table_name": "career_tsinghua",
         }
         return source_info
 

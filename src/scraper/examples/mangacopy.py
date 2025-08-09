@@ -38,12 +38,12 @@ class MangaCopy(WebsiteScraper):
             raise CreateByInvalidParam()
         book_url = f"{cls.home_url}/comic/{book_id}"
         if await cls.book_exists(book_url):
-            return cls(book_title, book_id, book_url)
+            return cls(book_id, book_title, book_url)
         raise CreateButRequestFail()
 
-    def __init__(self, book_title, book_id, book_url) -> None:
+    def __init__(self, *args) -> None:
         super().__init__()
-        self.book_id, self.book_title, self.book_url = book_id, book_title, book_url
+        self.book_id, self.book_title, self.book_url = args
 
     def _source_info(self):
         return {
@@ -51,7 +51,9 @@ class MangaCopy(WebsiteScraper):
             "link": self.book_url,
             "desc": f"拷貝漫畫里的漫画 —— {self.book_title}",
             "lang": "zh-CN",
-            "key4sort": SortKey.CHAPTER_NUMBER}
+            "key4sort": SortKey.CHAPTER_NUMBER,
+            "table_name": f"mangacopy_book_{self.book_id}",
+        }
 
     @classmethod
     async def _parse(cls, flags, book_title: str, book_url: str) -> AsyncGenerator[dict, None]:

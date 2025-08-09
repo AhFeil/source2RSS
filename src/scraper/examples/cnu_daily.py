@@ -28,7 +28,9 @@ class CNUDaily(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "CNU 每日精选",
             "lang": "zh-CN",
-            "key4sort": SortKey.PUB_TIME}
+            "key4sort": SortKey.PUB_TIME,
+            "table_name": "cnu_daily",
+        }
 
     @classmethod
     async def _parse(cls, flags) -> AsyncGenerator[dict, None]:

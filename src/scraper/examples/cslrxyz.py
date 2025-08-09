@@ -25,7 +25,8 @@ class CSLRXYZ(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "分享英语学习方法、工具使用和影评",
             "lang": "zh-CN",
-            "key4sort": SortKey.PUB_TIME
+            "key4sort": SortKey.PUB_TIME,
+            "table_name": "cslrxyz",
         }
         return source_info
 

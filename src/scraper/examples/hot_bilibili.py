@@ -26,7 +26,9 @@ class HotBilibili(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "B站热榜",
             "lang": "zh-CN",
-            "key4sort": SortKey.PUB_TIME}
+            "key4sort": SortKey.PUB_TIME,
+            "table_name": "hot_bilibili",
+        }
 
     @property
     def max_wait_time(self):

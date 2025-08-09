@@ -35,7 +35,9 @@ class HotJuejin(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "掘金热榜",
             "lang": "zh-CN",
-            "key4sort": SortKey.PUB_TIME}
+            "key4sort": SortKey.PUB_TIME,
+            "table_name": "hot_juejin",
+        }
 
     @property
     def max_wait_time(self):

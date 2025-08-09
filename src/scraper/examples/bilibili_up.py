@@ -40,14 +40,12 @@ class BilibiliUp(WebsiteScraper):
         j_res = await cls.get_response_json(uid, space_url)
         if j_res and j_res.get("data"):
             up_name = j_res["data"]["items"][0]["modules"]["module_author"]["name"]
-            return cls(up_name, space_url, j_res)
+            return cls(uid, up_name, space_url, j_res)
         raise CreateButRequestFail()
 
-    def __init__(self, up_name, space_url, j_res) -> None:
+    def __init__(self, *args) -> None:
         super().__init__()
-        self.up_name = up_name
-        self.space_url = space_url
-        self.j_res = j_res
+        self.uid, self.up_name, self.space_url, self.j_res = args
 
     def _source_info(self):
         name_and_desc = f"B站UP{self.up_name}的动态"
@@ -56,7 +54,9 @@ class BilibiliUp(WebsiteScraper):
             "link": self.space_url,
             "desc": name_and_desc,
             "lang": "zh-CN",
-            "key4sort": SortKey.PUB_TIME}
+            "key4sort": SortKey.PUB_TIME,
+            "table_name": f"bilibili_up_{self.uid}",
+        }
 
     @property
     def max_wait_time(self):

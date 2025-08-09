@@ -47,7 +47,8 @@ class YoutubeChannel(WebsiteScraper):
             "link": f"{self.__class__.home_url}/@{self.channel_id}",
             "desc": "Youtube Channel" + self.channel_name,
             "lang": "en-US",
-            "key4sort": SortKey.PUB_TIME
+            "key4sort": SortKey.PUB_TIME,
+            "table_name": f"youtube_channel_{self.channel_id}",
         }
 
     @classmethod
