@@ -9,10 +9,10 @@ import pytest
 from fastapi.testclient import TestClient
 
 from configHandle import config
-from main import app
+from main import fast_app
 from tests.web.test_query_rss import get_headers
 
-client = TestClient(app)
+client = TestClient(fast_app)
 
 
 def get_headers_j(name, passwd):

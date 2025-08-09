@@ -9,3 +9,6 @@ pytest-playwright
 fastapi[all]
 cachetools
 SQLAlchemy
+python-socketio[asyncio_client]
+python-socketio[asgi]
+aiohttp

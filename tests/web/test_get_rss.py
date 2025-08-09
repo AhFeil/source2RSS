@@ -7,9 +7,9 @@ import pytest
 from fastapi.testclient import TestClient
 
 from configHandle import config
-from main import app
+from main import fast_app
 
-client = TestClient(app)
+client = TestClient(fast_app)
 
 
 @pytest.fixture()

@@ -38,7 +38,7 @@ async def make_desc(scraper_class) -> str:
     desc.append("<p>主动查询的网址例子：</p>")
     if scraper_class.is_variety:
         args_l = config.get_params(class_name)
-        if args_l[0] is None:
+        if not args_l[0]:
             desc.append("<p>缺失例子</p>")
         else:
             for args in args_l:

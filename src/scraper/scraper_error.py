@@ -31,6 +31,15 @@ class CreateByLocked(ScraperError):
     """
     pass
 
+class CreateByLackAgent(ScraperError):
+    """
+    专门为 Remote 抓取器使用，其创建找不到可用的委托人。
+    一般是委托人断线，或者没有委托人支持需要的抓取器
+
+    所有运行都会忽略此异常，但多次出现会发出提醒
+    """
+    pass
+
 class ParseUnexpected(ScraperError):
     """
     当解析请求的内容时，和预期不符，有可能是少考虑网页结构，或者网页改版

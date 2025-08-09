@@ -11,9 +11,9 @@ from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 from configHandle import config
-from main import app
+from main import fast_app
 
-client = TestClient(app)
+client = TestClient(fast_app)
 
 
 @pytest.fixture()
@@ -110,7 +110,7 @@ def test_query_rss_not_exist(setup_and_tear_down):
 @pytest.mark.asyncio
 async def test_query_rss_high_concurrency():
     """测试触发更新的并发表现"""
-    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://async_testserver") as ac: # type: ignore
+    async with AsyncClient(transport=ASGITransport(app=fast_app), base_url="http://async_testserver") as ac: # type: ignore
         urls = [
             "/query_rss/BilibiliUp/?q=246370149",
             "/query_rss/BilibiliUp/?q=110529160",

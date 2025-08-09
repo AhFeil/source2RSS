@@ -45,12 +45,11 @@ class Config:
         self.WAIT = crawler_default_cfg.get("WAIT", 1800)
         self.amount_when_firstly_add = crawler_default_cfg.get("amount_when_firstly_add", 10)
         self.max_of_rss_items = crawler_default_cfg.get("max_of_rss_items", 50)
-        self.image_root = crawler_default_cfg.get("image_root", "config_and_data_files/images")
-        os.makedirs(self.image_root, exist_ok=True)
         self.timezone = crawler_default_cfg.get("timezone", "Asia/Shanghai")
         self.max_opening_context = crawler_default_cfg.get("max_opening_context", 1)
         if self.max_opening_context <= 0:
             self.max_opening_context = 1
+        self.prefer_agent = crawler_default_cfg.get("prefer_agent", "self")
 
         self.mongodb_uri = configs.get("mongodb_uri")
         self.mongo_dbname = configs.get("mongo_dbname")
@@ -79,6 +78,8 @@ class Config:
                 "source_name": "source2rss_severe_log",
             }
             self.s2r_c = Source2RSSClient.create(s2r_profile)
+        self.enable_agent_server = configs.get("enable_agent_server", False)
+        self.as_agent = configs.get("as_agent", {}) # 默认不启用
 
     async def post2RSS(self, title: str, summary: str):
         if self.enable_s2r_c:
@@ -119,11 +120,17 @@ class Config:
     def get_crawl_schedules(self) -> tuple[tuple[str, tuple], ...]:
         return self._crawl_schedules
 
+    def get_prefer_agent(self, class_name: str) -> str:
+        try:
+            return self.scraper_profile[class_name]["custom_cfg"]["prefer_agent"]
+        except KeyError:
+            return self.prefer_agent
+
     def get_params(self, class_name: str) -> list:
         try:
             return self.scraper_profile[class_name]["cls_init_params"]
         except KeyError:
-            return [None]
+            return [[]]
 
     def get_amount(self, class_name: str) -> int:
         try:

@@ -11,6 +11,7 @@ from src.scraper import AsyncBrowserManager, WebsiteScraper
 from src.scraper.scraper_error import (
     CreateButRequestFail,
     CreateByInvalidParam,
+    CreateByLackAgent,
     CreateByLocked,
     FailtoGet,
 )
@@ -21,25 +22,64 @@ from .local_publish import goto_uniform_flow
 logger = logging.getLogger("crawler")
 
 
-async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Iterable, amount: int) -> list[str]:
+@dataclass
+class ScraperNameAndParams:
+    name: str
+    init_params: list | tuple | str # 如果参数只有一个，则可以为 str，多个用列表按顺序容纳，没有参数则使用空列表
+    amount: int
+
+    @classmethod
+    def create(cls, cls_name: str, init_params_es: Iterable | None = None, amount: int | None = None) -> tuple[Self, ...]:
+        """如果没有传入初始化参数等，就从配置中去取"""
+        if cls_name == "Remote":
+            return ()
+        amount = amount or config.get_amount(cls_name)
+        agent = config.get_prefer_agent(cls_name)
+        # 如果未提供参数，就从配置中取
+        init_params_es = init_params_es or config.get_params(cls_name)
+        # TODO
+        if agent == "self":
+            return tuple(cls(cls_name, init_params, amount) for init_params in init_params_es)
+        else:
+            scrapers = []
+            agents = data.agents.get(cls_name)
+            for init_params in init_params_es:
+                if not init_params:
+                    new_params = [agents, cls_name]
+                elif isinstance(init_params, tuple | list):
+                    new_params = [agents, cls_name, *init_params]
+                else:
+                    new_params = [agents, cls_name, init_params]
+                scrapers.append(cls("Remote", new_params, amount))
+            return tuple(scrapers)
+
+
+async def get_instance(cls: type[WebsiteScraper], init_params) -> WebsiteScraper:
+    if not init_params:
+        instance = await cls.create()
+    elif isinstance(init_params, tuple | list):
+        instance = await cls.create(*init_params)
+    else:
+        instance = await cls.create(init_params)
+    return instance
+
+async def _process_one_kind_of_class(data, scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:
     """创建实例然后走统一流程"""
     res = []
-    for params in init_params:
-        if params is None and cls.is_variety:
+    for scraper in scrapers:
+        cls: type[WebsiteScraper] | None = Plugins.get_plugin_or_none(scraper.name)
+        if cls is None or (not scraper.init_params and cls.is_variety):
             continue
         try:
-            if isinstance(params, dict) or isinstance(params, str):
-                instance = await cls.create(params)
-            elif isinstance(params, list) or isinstance(params, tuple):
-                instance = await cls.create(*params)
-            else:
-                instance = await cls.create()
+            instance = await get_instance(cls, scraper.init_params)
         except TypeError:
             raise CrawlInitError(400, "The amount of parameters is incorrect")
         except CreateByLocked:
             raise CrawlInitError(423, "Server is busy")
         except CreateByInvalidParam:
             raise CrawlInitError(422, "Invalid parameters")
+        except CreateByLackAgent:
+            raise CrawlInitError(423, "Lack agent")
         except (CreateButRequestFail, FailtoGet): # todo 多次连续出现，则 post2RSS
             raise CrawlInitError(503, "Failed when crawling")
         except Exception as e:
@@ -49,11 +89,11 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
             raise CrawlInitError(500, "Unknown Error")
         else:
             try:
-                source_name = await goto_uniform_flow(data, instance, amount)
+                source_name = await goto_uniform_flow(data, instance, scraper.amount)
             except ValidationError:
                 raise CrawlInitError(422, "Invalid source meta")
             except Exception as e:
-                msg = f"fail when goto_uniform_flow of {cls.__name__}, {params=}: {e}"
+                msg = f"fail when goto_uniform_flow of {cls.__name__}, {scraper.init_params=}: {e}"
                 logger.exception(msg)
                 await config.post2RSS("error log of goto_uniform_flow", msg)
             else:
@@ -63,23 +103,9 @@ async def _process_one_kind_of_class(data, cls: WebsiteScraper, init_params: Ite
     return res
 
 
-@dataclass
-class ScraperNameAndParams:
-    name: str
-    init_params: Iterable # 多组的参数，每组都能实例化一个
-    amount: int
-
-    @classmethod
-    def create(cls, cls_name: str, init_params: Iterable | None = None, amount: int | None = None) -> Self:
-        """如果没有传入初始化参数等，就从配置中去取"""
-        init_params = init_params or config.get_params(cls_name)
-        amount = amount or config.get_amount(cls_name)
-        return cls(cls_name, init_params, amount)
-
-
-async def start_to_crawl(clses: Iterable[ScraperNameAndParams]):
+async def start_to_crawl(clses: Iterable[tuple[ScraperNameAndParams, ...]]):
     """根据类名获得相应的类，和它们的初始化参数，组装协程然后放入事件循环"""
-    tasks = (_process_one_kind_of_class(data, cls, item.init_params, item.amount) for item in clses if (cls := Plugins.get_plugin_or_none(item.name)))
+    tasks = (_process_one_kind_of_class(data, scrapers) for scrapers in clses)
     res = await asyncio.gather(*tasks)
     asyncio.create_task(AsyncBrowserManager.delayed_clean("crawler", config.wait_before_close_browser)) # 兜底 playwright 打开的浏览器被关闭
     return res

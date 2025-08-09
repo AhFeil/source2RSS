@@ -3,7 +3,7 @@ other_configs_path:   # 靠后的配置文件会覆盖前面的配置
 - examples/pgm_config.example.yaml
 - plugins/source2RSS-scraper/config.example.yaml
 
-# 启用抓取器，这里启用了所有可用的，可以删除不需要的
+# 启用抓取器，这里启用了所有可用的，可以删除不需要的 TODO 默认应该少开一点
 enabled_web_scraper:
   src.scraper.examples:
   - bentoml
@@ -19,9 +19,22 @@ enabled_web_scraper:
   - youtube_channel
   - bilibili_up
   - representative   # 删除这个则无法通过 API 发布 RSS
+  - remote   # 删除这个则无法使用 Remote 模式
 # 暂时没有维护无法正常运行的抓取器
 # - newsletter
 # - bili_follow_dynamic
+
+# 不了解的话建议删除
+enable_agent_server: true
+
+# 不了解的话建议删除
+as_agent:
+  name: vfly2_agent
+  client_url: http://127.0.0.1:8536
+  reconnection_attempts: 1
+  enabled_scrapers:
+  - BentoMLBlog
+  - YoutubeChannel
 
 # *****下面的配置都有默认值，删除也不影响运行，如果有需要可以自定义*****
 
@@ -46,8 +59,7 @@ crawler_default_cfg:
   WAIT: 5
   amount_when_firstly_add: 10
   max_of_rss_items: 50
-  # 运行中获取的图片默认保存的位置
-  image_root: config_and_data_files/images
+  prefer_agent: self
   # 为了节省内存，限制只能打开一个浏览器，一个浏览器可以开多个 context
   # 每个抓取器实例需要一个 context 进而打开 page 访问网页，这里限制同时打开的 context 的个数，如果内存不够可以调小
   max_opening_context: 2

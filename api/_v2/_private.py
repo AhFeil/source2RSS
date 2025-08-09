@@ -24,10 +24,6 @@ class Plugins():
     def get_all_id(cls) -> Iterable[str]:
         return cls._registry.keys()
 
-    @classmethod
-    def get_all_cls(cls) -> Iterable[type]:
-        return cls._registry.values()
-
     @staticmethod
     def iter_namespace(ns_pkg):
         return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")

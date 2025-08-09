@@ -1,8 +1,13 @@
+import asyncio
 import json
 import logging
 import os
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Awaitable, Callable, Self
+
+from socketio import AsyncServer
 
 from configHandle import config
 from src.data import DatabaseIntf
@@ -67,6 +72,97 @@ class RSSCache:
         return file_dict
 
 
+@dataclass
+class Agent:
+    """一个 agent 同一时间只能处理一个任务"""
+    sid: str
+    name: str
+    scrapers: list[str]
+    sio: AsyncServer
+    pending_futures: dict[str, asyncio.Future]
+    busy: bool = False
+
+    async def __aenter__(self) -> tuple[Callable[[str, str, dict], Awaitable[None]], Callable[[str], Awaitable[dict | None]]] | tuple[None, None]:
+        if self.busy:
+            return None, None
+        self.busy = True
+
+        async def send(msg_id: str, event: str, data: dict):
+            if not data.get("over"):
+                fut = asyncio.get_running_loop().create_future()
+                self.pending_futures[msg_id] = fut
+            data["msg_id"] = msg_id
+            await self.sio.emit(event, data, to=self.sid)
+
+        async def recv(msg_id: str) -> dict | None:
+            fut = self.pending_futures.get(msg_id)
+            if not fut:
+                return
+
+            try:
+                reply = await asyncio.wait_for(fut, timeout=180)
+            except asyncio.TimeoutError:
+                self.pending_futures.pop(msg_id, None)
+                return
+            if reply.get("over"):
+                self.pending_futures.pop(msg_id, None)
+                return
+            return reply
+
+        return send, recv
+
+    async def __aexit__(self, exc_type, exc, tb):
+        self.busy = False
+
+
+@dataclass
+class Agents:
+    _agents: dict[str, Agent]
+    _agents_name: dict[str, str]
+    _supported_scrapers: defaultdict[str, set[str]] # 存储支持某抓取器的全部远端
+    _logger: logging.Logger
+
+    __slot__ = ("_agents", "_agents_name", "_supported_scrapers", "_logger")
+
+    @classmethod
+    def create(cls) -> Self:
+        return cls(
+            _agents={},
+            _agents_name={},
+            _supported_scrapers=defaultdict(set),
+            _logger=logging.getLogger("Agents"),
+        )
+
+    def register(self, sid: str, name: str, scrapers: list[str], sio: AsyncServer):
+        if self._agents.get(sid):
+            self._logger.info("replicate agent, both sid are %s, name is %s", sid, name)
+            return
+        self._agents[sid] = Agent(sid, name, scrapers, sio, {})
+        self._agents_name[sid] = name
+        # TODO 校验外部数据
+        for scraper in scrapers:
+            self._supported_scrapers[scraper].add(sid)
+        if self._agents_name.get(name):
+            self._logger.debug("replicate agent, sid is %s, both name are %s", sid, name)
+        self._logger.info("远端注册成功: %s", name)
+
+    def delete(self, sid: str):
+        if self._agents.get(sid):
+            agent = self._agents.pop(sid)
+            name = self._agents_name.pop(sid)
+            for scraper in agent.scrapers:
+                self._supported_scrapers[scraper].discard(sid)
+            self._logger.info("远端已删除: %s", name)
+            # TODO 中止其下所有 future
+
+    def get_agent(self, sid: str) -> Agent | None:
+        return self._agents.get(sid)
+
+    def get(self, cls_id: str) -> tuple[Agent, ...]:
+        if agents_sid := self._supported_scrapers.get(cls_id):
+            return tuple(self._agents[sid] for sid in agents_sid)
+        return ()
+
 # 非线程安全，但在单个事件循环下是协程安全的
 class Data:
     def __init__(self, config) -> None:
@@ -93,6 +189,7 @@ class Data:
             self.db_intf: DatabaseIntf = SQliteIntf.connect(info)
 
         self.rss_cache = RSSCache(config.rss_dir, self.db_intf)
+        self.agents = Agents.create()
 
     def get_users_and_etc(self) -> dict:
         return self._users
