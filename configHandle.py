@@ -63,8 +63,8 @@ class Config:
         self.query_password = configs.get('query_password', "123456")
         self.query_bedtime = configs.get('query_bedtime', [])
 
-        self.scraper_profile_file = configs.get("scraper_profile", "examples/scraper_profile.example.yaml")
-        self.scraper_profile = Config._load_config_file(self.scraper_profile_file)
+        self.scraper_profile_file = configs.get("scraper_profile")
+        self.scraper_profile = Config._load_config_file(self.scraper_profile_file) if self.scraper_profile_file else {}
         self.ad_html = configs.get("ad_html", "")
 
         self.enable_s2r_c = configs.get("enable_s2r_c")
@@ -73,7 +73,7 @@ class Config:
             s2r_profile: S2RProfile = {
                 "ip_or_domain": "127.0.0.1",
                 "port": self.port,
-                "username": self.query_password,
+                "username": self.query_username,
                 "password": self.query_password,
                 "source_name": "source2rss_severe_log",
             }
@@ -86,13 +86,16 @@ class Config:
             await self.s2r_c.post_article(title, summary)
 
     def get_scraper_profile(self) -> str:
-        with open(self.scraper_profile_file, 'r', encoding="utf-8") as f:
-            return f.read()
+        if self.scraper_profile_file:
+            with open(self.scraper_profile_file, 'r', encoding="utf-8") as f:
+                return f.read()
+        return "You doesn't set the scraper profile file"
 
     def set_scraper_profile(self, profile: str):
-        self.scraper_profile = Config.yaml.load(profile)
-        with open(self.scraper_profile_file, 'w', encoding="utf-8") as f:
-            f.write(profile)
+        if self.scraper_profile_file:
+            self.scraper_profile = Config.yaml.load(profile)
+            with open(self.scraper_profile_file, 'w', encoding="utf-8") as f:
+                f.write(profile)
 
     def get_usage_cache(self) -> int:
         return sum(len(scrapers) for _, scrapers in self.enabled_web_scraper.items())

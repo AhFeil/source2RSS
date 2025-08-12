@@ -113,7 +113,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             async_gen = cls._parse
 
         async for a in async_gen(flags, *self._custom_parameter_of_parse()):
-            if a[key4sort] > flags[key4sort]: # type: ignore
+            if a[key4sort.value] > flags[key4sort.value]:
                 yield WebsiteScraper._standardize_article(a)
             else:
                 if cls.support_old2new:

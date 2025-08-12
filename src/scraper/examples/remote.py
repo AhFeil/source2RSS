@@ -39,6 +39,7 @@ class Remote(WebsiteScraper):
 
     @classmethod
     async def _parse(cls, flags, agent: Agent, cls_id: str, params) -> AsyncGenerator[dict, None]:
+        flags = dict(flags)
         for key in flags:
             if isinstance(flags[key], datetime):
                 flags[key] = flags[key].timestamp()

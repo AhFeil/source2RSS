@@ -24,6 +24,8 @@ enabled_web_scraper:
 # - newsletter
 # - bili_follow_dynamic
 
+scraper_profile: examples/scraper_profile.example.yaml
+
 # 不了解的话建议删除
 enable_agent_server: true
 
@@ -50,7 +52,6 @@ query_password: "123456"
 query_bedtime:   # 睡眠时间里，管理员的请求走缓存路径，减少资源消耗
 - ["01:30", "06:30"]
 
-scraper_profile: examples/scraper_profile.example.yaml
 
 # 抓取器的默认配置，如果没有在 scraper_profile 文件里定义相关量，就会使用这里的
 crawler_default_cfg:
