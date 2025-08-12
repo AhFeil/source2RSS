@@ -29,7 +29,7 @@ class ScraperNameAndParams:
     amount: int
 
     @classmethod
-    def create(cls, cls_name: str, init_params_es: Iterable | None = None, amount: int | None = None) -> tuple[Self, ...]:
+    def create(cls, cls_name: str, init_params_es: Iterable | None=None, amount: int | None=None, i_am_remote: bool=False) -> tuple[Self, ...]:
         """如果没有传入初始化参数等，就从配置中去取"""
         if cls_name == "Remote":
             return ()
@@ -38,7 +38,7 @@ class ScraperNameAndParams:
         # 如果未提供参数，就从配置中取
         init_params_es = init_params_es or config.get_params(cls_name)
         # TODO
-        if agent == "self":
+        if agent == "self" or i_am_remote:
             return tuple(cls(cls_name, init_params, amount) for init_params in init_params_es)
         else:
             scrapers = []
@@ -54,24 +54,26 @@ class ScraperNameAndParams:
             return tuple(scrapers)
 
 
-async def get_instance(cls: type[WebsiteScraper], init_params) -> WebsiteScraper:
-    if not init_params:
+async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
+    cls: type[WebsiteScraper] | None = Plugins.get_plugin_or_none(scraper.name)
+    if cls is None or (not scraper.init_params and cls.is_variety):
+        return
+    if not scraper.init_params:
         instance = await cls.create()
-    elif isinstance(init_params, tuple | list):
-        instance = await cls.create(*init_params)
+    elif isinstance(scraper.init_params, tuple | list):
+        instance = await cls.create(*scraper.init_params)
     else:
-        instance = await cls.create(init_params)
+        instance = await cls.create(scraper.init_params)
     return instance
 
 async def _process_one_kind_of_class(data, scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:
     """创建实例然后走统一流程"""
     res = []
     for scraper in scrapers:
-        cls: type[WebsiteScraper] | None = Plugins.get_plugin_or_none(scraper.name)
-        if cls is None or (not scraper.init_params and cls.is_variety):
-            continue
         try:
-            instance = await get_instance(cls, scraper.init_params)
+            instance = await get_instance(scraper)
+            if instance is None:
+                continue
         except TypeError:
             raise CrawlInitError(400, "The amount of parameters is incorrect")
         except CreateByLocked:
@@ -83,7 +85,7 @@ async def _process_one_kind_of_class(data, scrapers: tuple[ScraperNameAndParams,
         except (CreateButRequestFail, FailtoGet): # todo 多次连续出现，则 post2RSS
             raise CrawlInitError(503, "Failed when crawling")
         except Exception as e:
-            msg = f"fail when query rss {cls.__name__}: {e}"
+            msg = f"fail when query rss {scraper.name}: {e}"
             logger.exception(msg)
             await config.post2RSS("error log of _process_one_kind_of_class", msg)
             raise CrawlInitError(500, "Unknown Error")
@@ -93,7 +95,7 @@ async def _process_one_kind_of_class(data, scrapers: tuple[ScraperNameAndParams,
             except ValidationError:
                 raise CrawlInitError(422, "Invalid source meta")
             except Exception as e:
-                msg = f"fail when goto_uniform_flow of {cls.__name__}, {scraper.init_params=}: {e}"
+                msg = f"fail when goto_uniform_flow of {scraper.name}, {scraper.init_params=}: {e}"
                 logger.exception(msg)
                 await config.post2RSS("error log of goto_uniform_flow", msg)
             else:

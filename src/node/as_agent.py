@@ -6,7 +6,7 @@ from datetime import datetime
 import socketio
 
 from preproc import Plugins, config
-from src.crawl.crawler import get_instance
+from src.crawl.crawler import ScraperNameAndParams, get_instance
 
 logger = logging.getLogger("as_agent")
 
@@ -68,12 +68,16 @@ async def remote_uniform_flow(request: dict):
     try:
         msg_id = request["msg_id"]
         as_agent_channel.prepare(msg_id)
-        cls = Plugins.get_plugin_or_none(request["cls_id"])
-        if not cls:
+        scrapers = ScraperNameAndParams.create(request["cls_id"], (request["params"], ), 10, True)
+        if not scrapers:
             payload = {"msg_id": msg_id, "over": True}
             await as_agent_channel.send(payload)
             return
-        instance = await get_instance(cls, request["params"])
+        instance = await get_instance(scrapers[0])
+        if not instance:
+            payload = {"msg_id": msg_id, "over": True}
+            await as_agent_channel.send(payload)
+            return
         payload = {"msg_id": msg_id} | instance.source_info
         await as_agent_channel.send(payload)
         # while True:
@@ -82,9 +86,9 @@ async def remote_uniform_flow(request: dict):
             return
         if res.get("continue"):
             flags = res["flags"]
-            if flags.get("pub_time"):
+            if flags.get("pub_time") and not isinstance(flags["pub_time"], datetime): # TODO 为什么浏览器触发的传来的 pub_time 是 datetime.datetime(2025, 8, 8, 6, 52, 8, 857000)
                 flags["pub_time"] = datetime.fromtimestamp(flags["pub_time"])
-            if flags.get("time4sort"):
+            if flags.get("time4sort") and not isinstance(flags["time4sort"], datetime):
                 flags["time4sort"] = datetime.fromtimestamp(flags["time4sort"])
 
             articles = []

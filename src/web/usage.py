@@ -6,7 +6,8 @@ from contextlib import suppress
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 
-from preproc import Plugins, config
+from preproc import Plugins
+from src.crawl.crawler import ScraperNameAndParams, get_instance
 
 from .get_rss import templates
 
@@ -17,6 +18,19 @@ router = APIRouter(
     tags=[__name__],
 )
 
+
+async def combine_link(desc, scraper, link):
+    try:
+        instance = await get_instance(scraper)
+    except:
+        desc.append('<p>创建抓取器出错</p>')
+        raise
+    else:
+        if instance:
+            desc.append(f'<p><span>{instance.source_info["name"]} 的 RSS 链接：</span> <a href="{link}" rel="noprerender">{link}</a></p>')
+            instance.destroy() # todo
+        else:
+            desc.append('<p>抓取器不存在或初始化参数有误</p>')
 
 async def make_desc(scraper_class) -> str:
     desc = []
@@ -37,23 +51,23 @@ async def make_desc(scraper_class) -> str:
     desc.append("<br>")
     desc.append("<p>主动查询的网址例子：</p>")
     if scraper_class.is_variety:
-        args_l = config.get_params(class_name)
-        if not args_l[0]:
+        scrapers = ScraperNameAndParams.create(class_name)
+        if not scrapers:
             desc.append("<p>缺失例子</p>")
         else:
-            for args in args_l:
-                if not isinstance(args, list):
-                    args = [args]
+            for scraper in scrapers:
+                if scraper.name == "Remote":
+                    args = scraper.init_params[2:]
+                else:
+                    if not isinstance(args, list | tuple):
+                        args = [args]
                 safe_args = [("xxxxx-secret-xxxxx" if secret_index[i] else str(arg)) for i, arg in enumerate(args)]
                 link = f"/query_rss/{class_name}/?q=" + "&q=".join(safe_args)
-                instance = await scraper_class.create(*args)
-                desc.append(f'<p><span>{instance.source_info["name"]} 的 RSS 链接：</span> <a href="{link}" rel="noprerender">{link}</a></p>')
-                instance.destroy() # todo
+                await combine_link(desc, scraper, link)
     else:
         link = f"/query_rss/{class_name}/"
-        instance = await scraper_class.create()
-        desc.append(f'<p><span>{instance.source_info["name"]} 的 RSS 链接：</span> <a href="{link}">{link}</a></p>')
-        instance.destroy() # todo
+        scraper = ScraperNameAndParams.create(class_name)[0]
+        await combine_link(desc, scraper, link)
     return "\n".join(desc)
 
 
