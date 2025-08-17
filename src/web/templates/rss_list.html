@@ -27,6 +27,11 @@
         <p class="subtitle">自建: <a href="https://yanh.tech/2024/07/deployment-process-for-source2rss">信息源转 RSS 框架 - source2RSS 的安装步骤</a></p>
         <div class="divider"></div>
 
+        {% for rss_file_name, source_readable_name in user_rss_list %}
+            <p class="list-item">
+                <a href="/source2rss/{{ user_name }}/{{ rss_file_name | urlencode }}.xml/">{{ source_readable_name }}</a>
+            </p>
+        {% endfor %}
         {% for rss_file_name, source_readable_name in rss_list %}
             <p class="list-item">
                 <a href="/query_rss/{{ rss_file_name | urlencode }}.xml/">{{ source_readable_name }}</a>

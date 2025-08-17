@@ -60,6 +60,14 @@ class RSSCache:
     def rss_is_absent(self, source_name: str) -> bool:
         return all(source_name not in self._cached_sources[access] for access in AccessLevel)
 
+
+    def get_source_readable_name(self, table_name: str, access: AccessLevel=AccessLevel.USER, low_access: AccessLevel=AccessLevel.NONE) -> str:
+        """根据 table name 返回可读的源名称，如果找不到就返回 table name"""
+        for i in range(access, low_access, -1):
+            if table_name in self._cached_sources[i]:
+                return self._cached_sources[i][table_name].json["source_info"]["name"]
+        return table_name
+
     @staticmethod
     def _load_files_to_dict(path: Path) -> dict[str, RSSData]:
         file_dict = {}

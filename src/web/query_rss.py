@@ -27,13 +27,16 @@ router = APIRouter(
 @router.get("/", response_class=HTMLResponse)
 async def get_your_rss_list(request: Request, user: Annotated[User, Depends(get_valid_user)]):
     """已登录用户可以用此查看自己有权限查看的所有源"""
-    context = {"public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC), "ad_html": config.ad_html}
+    context = {
+        "public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC),
+        "user_rss_list": ((table_name, data.rss_cache.get_source_readable_name(table_name)) for table_name in UserRegistry.get_sources_by_name(user.name)),
+        "user_name": user.name,
+        "ad_html": config.ad_html
+    }
     if user.is_administrator:
         context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.ADMIN, AccessLevel.PUBLIC, (AccessLevel.PRIVATE_USER, ))
     else:
         context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.SHARED_USER, AccessLevel.PUBLIC)
-        # 登录用户对于 USER 级别能访问的
-        context["rss_list"] += list(UserRegistry.get_sources_by_name(user.name))
 
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
