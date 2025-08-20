@@ -47,14 +47,14 @@ def test_index_of_get(setup_and_tear_down):
 def test_get_user_or_upper_rss(setup_and_tear_down):
     """测试通过 query 接口获得 RSS"""
     # 管理员访问
-    response = client.get("/query_rss/我靠焚尸超凡入圣.xml/", headers=get_headers(config.query_username, config.query_password))
+    response = client.get("/query_rss/fanqie_book_6999592647790693413.xml/", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 200
     # 普通用户访问
-    response = client.get("/query_rss/我靠焚尸超凡入圣.xml/", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    response = client.get("/query_rss/fanqie_book_6999592647790693413.xml/", headers=get_headers("pytest", "zfZZFgf56zsd56"))
     assert response.status_code == 200
 
     # 未登录访问
-    response = client.get("/query_rss/我靠焚尸超凡入圣.xml/")
+    response = client.get("/query_rss/fanqie_book_6999592647790693413.xml/")
     assert response.status_code == 401
 
 
@@ -94,7 +94,7 @@ def test_query_rss_all_success(setup_and_tear_down):
 
 def test_query_rss_with_bad_source_name(setup_and_tear_down):
     """源名称不合法"""
-    response = client.get("/query_rss/MangaCopy/?q=花咲家的性福生活/&q=huaxoajiedexinfushenghuo", headers=get_headers(config.query_username, config.query_password))
+    response = client.get("/query_rss/MangaCopy/?q=花咲家的性福生活&q=huaxoajiedexinfushenghuo/", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 422
 
 

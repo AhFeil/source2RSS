@@ -10,8 +10,8 @@ HotJuejin:
     amount_when_firstly_add: 3
 
 YoutubeChannel:
-  custom_cfg:
-    prefer_agent: vfly2_agent
+  # custom_cfg:
+  #   prefer_agent: vfly2_agent
   cls_init_params:
   - [LearnEnglishWithTVSeries]
 
@@ -21,6 +21,6 @@ MangaCopy:
   cls_init_params:
   - [花咲家的性福生活, huaxoajiedexinfushenghuo]
 
-BentoMLBlog:
-  custom_cfg:
-    prefer_agent: vfly2_agent
+# BentoMLBlog:
+#   custom_cfg:
+#     prefer_agent: vfly2_agent

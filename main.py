@@ -20,19 +20,10 @@ async def lifespan(app: FastAPI):
     loop = asyncio.get_running_loop()
     stop_run_continuously = run_continuously(loop)
 
-    if config.as_agent:
-        from src.node import sio_agent
-        async def start_agent():
-            await asyncio.sleep(3)
-            await sio_agent.connect(config.as_agent["client_url"])
-        loop.create_task(start_agent())
-
     # Do some other things...
     yield
     # Stop the background thread
     stop_run_continuously.set()
-    if config.as_agent:
-        await sio_agent.disconnect() # TODO sio_agent 阻止程序退出
 
 
 fast_app = FastAPI(lifespan=lifespan)
