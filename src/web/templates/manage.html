@@ -25,13 +25,16 @@
     </form>
     <div id="invite_code_result"></div>
 
+    {% for i, sp in scraper_profiles_content %}
     <br><br>
     <div>
-        <form id="configForm" hx-post="scraper_profile" hx-target="#scraper_profile_result">
-            <textarea id="profile" name="profile" rows="30" cols="80">{{ scraper_profile_content }}</textarea>
+        <form id="configForm_{{i}}" hx-post="scraper_profile" hx-target="#scraper_profile_result">
+            <input type="hidden" name="index" value="{{ i }}">
+            <textarea name="profile" rows="30" cols="80">{{ sp }}</textarea>
             <br><br>
             <button type="submit">更新抓取器配置</button>
         </form>
     </div>
+    {% endfor %}
     <div id="scraper_profile_result"></div>
 {% endblock content %}

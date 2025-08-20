@@ -63,8 +63,8 @@ class Config:
         self.query_password = configs.get('query_password', "123456")
         self.query_bedtime = configs.get('query_bedtime', [])
 
-        self.scraper_profile_file = configs.get("scraper_profile")
-        self.scraper_profile = Config._load_config_file(self.scraper_profile_file) if self.scraper_profile_file else {}
+        self.scraper_profile_file = configs.get("scraper_profile", [])
+        self.scraper_profile = self.load_scraper_profile(self.scraper_profile_file)
         self.ad_html = configs.get("ad_html", "")
 
         self.enable_s2r_c = configs.get("enable_s2r_c")
@@ -85,16 +85,16 @@ class Config:
         if self.enable_s2r_c:
             await self.s2r_c.post_article(title, summary)
 
-    def get_scraper_profile(self) -> str:
-        if self.scraper_profile_file:
-            with open(self.scraper_profile_file, 'r', encoding="utf-8") as f:
+    def get_scraper_profile(self, index: int) -> str:
+        if 0 <= index < len(self.scraper_profile_file):
+            with open(self.scraper_profile_file[index], 'r', encoding="utf-8") as f:
                 return f.read()
         return "You doesn't set the scraper profile file"
 
-    def set_scraper_profile(self, profile: str):
-        if self.scraper_profile_file:
-            self.scraper_profile = Config.yaml.load(profile)
-            with open(self.scraper_profile_file, 'w', encoding="utf-8") as f:
+    def set_scraper_profile(self, profile: str, index: int):
+        if 0 <= index < len(self.scraper_profile_file):
+            self.scraper_profile = self.load_scraper_profile(self.scraper_profile_file)
+            with open(self.scraper_profile_file[index], 'w', encoding="utf-8") as f:
                 f.write(profile)
 
     def get_usage_cache(self) -> int:
@@ -156,6 +156,13 @@ class Config:
         return any(t[0] <= hm <= t[1] for t in bedtime)
 
     @staticmethod
+    def load_scraper_profile(scraper_profile_file: list[str]):
+        scraper_profile = {}
+        for sp_file in scraper_profile_file:
+            scraper_profile |= Config._load_config_file(sp_file)
+        return scraper_profile
+
+    @staticmethod
     def _load_config(config_path: str) -> dict:
         """加载一个配置文件，从中取出其他配置文件的路径（文件不存在不报错），最终合并得到一份配置，如果其他配置里也带有更多配置的路径，同样加载"""
         config = Config._load_config_file(config_path)
@@ -187,7 +194,7 @@ class Config:
                 continue
 
     @staticmethod
-    def _load_config_file(f) -> dict:
+    def _load_config_file(f: str) -> dict:
         try:
             with open(f, 'r', encoding="utf-8") as fp:
                 return Config.yaml.load(fp)

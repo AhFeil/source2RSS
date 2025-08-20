@@ -21,10 +21,11 @@ router = APIRouter(
 
 @router.get("/", response_class=HTMLResponse, dependencies=[Depends(get_admin_user)])
 async def manage_page(request: Request):
+    scraper_profiles_content = ((i, config.get_scraper_profile(i)) for i in range(len(config.scraper_profile_file)))
     context = {
         "invite_code": UserRegistry._invite_code,
         "count": UserRegistry._left_count,
-        "scraper_profile_content": config.get_scraper_profile()
+        "scraper_profiles_content": scraper_profiles_content,
     }
     return templates.TemplateResponse(request=request, name="manage.html", context=context)
 
@@ -47,6 +48,6 @@ async def update_invite_code(ic_data: InviteCodeCreate, user: Annotated[User, De
     return {"message": "Invite Code failed to be updated"}
 
 @router.post("/scraper_profile", response_class=JSONResponse, dependencies=[Depends(get_admin_user)])
-async def update_scraper_profile(profile: Annotated[str, Form()]):
-    config.set_scraper_profile(profile)
+async def update_scraper_profile(index: Annotated[int, Form()], profile: Annotated[str, Form()]):
+    config.set_scraper_profile(profile, index)
     return {"message": "Scraper profile is updated"}
