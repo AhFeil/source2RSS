@@ -2,6 +2,7 @@ import logging
 
 import socketio
 
+from configHandle import config
 from dataHandle import data
 
 logger = logging.getLogger("as_client")
@@ -20,11 +21,19 @@ async def connect(sid: str, environ):
 async def register(sid: str, resume: dict):
     name = resume.get("name")
     scrapers = resume.get("scrapers")
-    if not all((name, scrapers)):
+    if name is None or scrapers is None:
         await sio.emit("register_ack", {"status": "fail", "msg": "lack name or scrapers"}, to=sid)
         return
-    data.agents.register(sid, name, scrapers, sio) # pyright: ignore[reportArgumentType]
-    await sio.emit("register_ack", {"status": "ok"}, to=sid)
+
+    if not config.is_a_known_agent(name):
+        await sio.emit("register_ack", {"status": "fail", "msg": "you are not known agent"}, to=sid)
+        return
+
+    res, msg = data.agents.register(sid, name, scrapers, sio)
+    if res:
+        await sio.emit("register_ack", {"status": "ok"}, to=sid)
+    else:
+        await sio.emit("register_ack", {"status": "fail", "msg": msg}, to=sid)
 
 @sio.event
 async def disconnect(sid: str):

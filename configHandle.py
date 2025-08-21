@@ -79,11 +79,15 @@ class Config:
             }
             self.s2r_c = Source2RSSClient.create(s2r_profile)
         self.enable_agent_server = configs.get("enable_agent_server", False)
+        self.known_agents = configs.get("known_agents", [])
         self.as_agent = configs.get("as_agent", {}) # 默认不启用
 
     async def post2RSS(self, title: str, summary: str):
         if self.enable_s2r_c:
             await self.s2r_c.post_article(title, summary)
+
+    def is_a_known_agent(self, name: str) -> bool:
+        return name in (agent["name"] for agent in self.known_agents)
 
     def get_scraper_profile(self, index: int) -> str:
         if 0 <= index < len(self.scraper_profile_file):

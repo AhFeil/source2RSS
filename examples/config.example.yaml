@@ -28,15 +28,21 @@ scraper_profile:
 
 # 不了解的话建议删除
 enable_agent_server: true
+known_agents:
+- name: vfly2_agent
+  connect_method: reverse_websocket
+- name: vfly2_direct_agent
+  connect_method: direct_websocket
+  agent_url: http://127.0.0.1:8537
 
 # 不了解的话建议删除
-# as_agent:
-#   name: vfly2_agent
-#   client_url: http://127.0.0.1:8536
-#   reconnection_attempts: 1
-#   enabled_scrapers:
-#   - BentoMLBlog
-#   - YoutubeChannel
+as_agent:
+  name: vfly2_agent
+  client_url: http://127.0.0.1:8536
+  reconnection_attempts: 1
+  enabled_scrapers:
+  - BentoMLBlog
+  - YoutubeChannel
 
 # *****下面的配置都有默认值，删除也不影响运行，如果有需要可以自定义*****
 

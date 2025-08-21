@@ -141,10 +141,10 @@ class Agents:
             _logger=logging.getLogger("Agents"),
         )
 
-    def register(self, sid: str, name: str, scrapers: list[str], sio: AsyncServer):
+    def register(self, sid: str, name: str, scrapers: list[str], sio: AsyncServer) -> tuple[bool, str]:
         if self._agents.get(sid):
             self._logger.info("replicate agent, both sid are %s, name is %s", sid, name)
-            return
+            return False, f"replicate agent, both sid are {sid}, name is {name}"
         self._agents[sid] = Agent(sid, name, scrapers, sio, {})
         self._agents_name[sid] = name
         # TODO 校验外部数据
@@ -153,6 +153,7 @@ class Agents:
         if self._agents_name.get(name):
             self._logger.debug("replicate agent, sid is %s, both name are %s", sid, name)
         self._logger.info("远端注册成功: %s", name)
+        return True, ""
 
     def delete(self, sid: str):
         if self._agents.get(sid):
