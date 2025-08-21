@@ -53,5 +53,35 @@ WantedBy=default.target
 EOF
 fi
 
+chmod 644 ${program_name}.service
+
+
+agent_pgm_name="source2RSS_agent"
+
+# 创建 systemd 配置文件
+if [ ! -d ${agent_pgm_name}.service ]
+then
+cat > ./${agent_pgm_name}.service <<EOF
+[Unit]
+Description=vfly2 client Service
+After=network.target
+
+[Service]
+WorkingDirectory=${current_dir}
+User=${current_uid}
+Group=${current_uid}
+Type=simple
+ExecStart=${current_dir}/.env/bin/python -m src.node.as_agent
+ExecStop=/bin/kill -s HUP $MAINPID
+Environment=PYTHONUNBUFFERED=1
+RestartSec=15
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+fi
+
+chmod 644 ${agent_pgm_name}.service
 
 # vim: expandtab shiftwidth=4 softtabstop=4

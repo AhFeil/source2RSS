@@ -4,9 +4,11 @@ from dataclasses import dataclass
 from datetime import datetime
 
 import socketio
+from fastapi import FastAPI, WebSocket
 
 from preproc import Plugins, config
 from src.crawl.crawler import ScraperNameAndParams, get_instance
+from src.crawl.remote_crawl import remote_uniform_flow
 
 logger = logging.getLogger("as_agent")
 
@@ -61,52 +63,13 @@ class Channel:
         self.channels.pop(msg_id, None)
 
 
-as_agent_channel = Channel({})
-
-
-async def remote_uniform_flow(request: dict):
-    try:
-        msg_id = request["msg_id"]
-        as_agent_channel.prepare(msg_id)
-        scrapers = ScraperNameAndParams.create(request["cls_id"], (request["params"], ), 10, True)
-        if not scrapers:
-            payload = {"msg_id": msg_id, "over": True}
-            await as_agent_channel.send(payload)
-            return
-        instance = await get_instance(scrapers[0])
-        if not instance:
-            payload = {"msg_id": msg_id, "over": True}
-            await as_agent_channel.send(payload)
-            return
-        payload = {"msg_id": msg_id} | instance.source_info
-        await as_agent_channel.send(payload)
-        # while True:
-        res = await as_agent_channel.recv(msg_id)
-        if not res or res.get("over"):
-            return
-        if res.get("continue"):
-            flags = res["flags"]
-            if flags.get("pub_time") and not isinstance(flags["pub_time"], datetime): # TODO 为什么浏览器触发的传来的 pub_time 是 datetime.datetime(2025, 8, 8, 6, 52, 8, 857000)
-                flags["pub_time"] = datetime.fromtimestamp(flags["pub_time"])
-            if flags.get("time4sort") and not isinstance(flags["time4sort"], datetime):
-                flags["time4sort"] = datetime.fromtimestamp(flags["time4sort"])
-
-            articles = []
-            async for a in instance.get(flags):
-                for key in a:
-                    if isinstance(a[key], datetime):
-                        a[key] = a[key].timestamp()
-                articles.append(a)
-            payload = {"msg_id": msg_id} | {"articles": articles}
-            await as_agent_channel.send(payload)
-    finally:
-        as_agent_channel.delete(msg_id)
+as_agent_channel = Channel(channels={})
 
 
 @sio_agent.event
 async def crawl(request: dict):
     logger.info(f"[AGENT] 收到任务: {request}")
-    asyncio.create_task(remote_uniform_flow(request))
+    asyncio.create_task(remote_uniform_flow(as_agent_channel, request))
 
 
 @sio_agent.event
@@ -124,6 +87,62 @@ async def start_agent():
     await sio_agent.wait()
 
 
+# 下面是直连用的
+
+app = FastAPI()
+
+@app.websocket("/ws_connect")
+async def connect_agent(websocket: WebSocket):
+    # TODO 合并相同代码
+    await websocket.accept()
+    try:
+        request = await websocket.receive_json()
+        msg_id = request["msg_id"]
+        scrapers = ScraperNameAndParams.create(request["cls_id"], (request["params"], ), 10, True)
+        if not scrapers:
+            payload = {"msg_id": msg_id, "over": True}
+            await websocket.send_json(payload)
+            return
+
+        instance = await get_instance(scrapers[0])
+        if not instance:
+            payload = {"msg_id": msg_id, "over": True}
+            await websocket.send_json(payload)
+            return
+
+        payload = {"msg_id": msg_id} | instance.source_info
+        await websocket.send_json(payload)
+
+        res = await websocket.receive_json()
+        if not res or res.get("over"):
+            return
+        if res.get("continue"):
+            flags = res["flags"]
+            if flags.get("pub_time") and not isinstance(flags["pub_time"], datetime):
+                flags["pub_time"] = datetime.fromtimestamp(flags["pub_time"])
+            if flags.get("time4sort") and not isinstance(flags["time4sort"], datetime):
+                flags["time4sort"] = datetime.fromtimestamp(flags["time4sort"])
+
+            async for a in instance.get(flags):
+                for key in a:
+                    if isinstance(a[key], datetime):
+                        a[key] = a[key].timestamp()
+                payload = {"msg_id": msg_id} | {"article": a}
+                await websocket.send_json(payload)
+
+        payload = {"msg_id": msg_id, "over": True}
+        await websocket.send_json(payload)
+    except Exception as e:
+        logger.error(f"[AGENT] Error: {e}")
+    finally:
+        await websocket.close()
+        logger.info("[AGENT] Client disconnected")
+
+
 if __name__ == "__main__":
-    asyncio.run(start_agent())
+    if port := config.as_agent.get("port"):
+        import uvicorn
+        uvicorn.run(app, host="0.0.0.0", port=port)
+    else:
+        asyncio.run(start_agent())
     # python -m src.node.as_agent

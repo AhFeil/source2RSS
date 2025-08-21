@@ -33,13 +33,19 @@ known_agents:
   connect_method: reverse_websocket
 - name: vfly2_direct_agent
   connect_method: direct_websocket
-  agent_url: http://127.0.0.1:8537
+  agent_uri: ws://127.0.0.1:8537/ws_connect
+  enabled_scrapers:
+  - YoutubeChannel
 
 # 不了解的话建议删除
 as_agent:
+  # 反向所需
   name: vfly2_agent
   client_url: http://127.0.0.1:8536
   reconnection_attempts: 1
+  # 直连所需
+  port: 8537
+  # 都需要的
   enabled_scrapers:
   - BentoMLBlog
   - YoutubeChannel

@@ -43,6 +43,8 @@ class ScraperNameAndParams:
         else:
             scrapers = []
             agents = data.agents.get(cls_name)
+            if not agents:
+                return ()
             for init_params in init_params_es:
                 if not init_params:
                     new_params = [agents, cls_name]
@@ -101,7 +103,7 @@ async def _process_one_kind_of_class(data, scrapers: tuple[ScraperNameAndParams,
             else:
                 res.append(source_name)
             finally:
-                instance.destroy()
+                await instance.destroy()
     return res
 
 

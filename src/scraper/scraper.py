@@ -68,7 +68,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
         """
         return cls(*args)
 
-    def destroy(self) -> None:
+    async def destroy(self):
         """用完实例后，进行某些资源的释放，比如锁"""
         pass
 

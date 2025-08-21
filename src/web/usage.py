@@ -28,7 +28,7 @@ async def combine_link(desc, scraper, link):
     else:
         if instance:
             desc.append(f'<p><span>{instance.source_info["name"]} 的 RSS 链接：</span> <a href="{link}" rel="noprerender">{link}</a></p>')
-            instance.destroy() # todo
+            await instance.destroy() # todo
         else:
             desc.append('<p>抓取器不存在或初始化参数有误</p>')
 
@@ -59,8 +59,7 @@ async def make_desc(scraper_class) -> str:
                 if scraper.name == "Remote":
                     args = scraper.init_params[2:]
                 else:
-                    if not isinstance(args, list | tuple):
-                        args = [args]
+                    args = [scraper.init_params] if not isinstance(scraper.init_params, list | tuple) else scraper.init_params
                 safe_args = [("xxxxx-secret-xxxxx" if secret_index[i] else str(arg)) for i, arg in enumerate(args)]
                 link = f"/query_rss/{class_name}/?q=" + "&q=".join(safe_args)
                 await combine_link(desc, scraper, link)

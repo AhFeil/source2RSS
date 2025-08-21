@@ -4,6 +4,7 @@ pymongo
 feedgen
 feedparser
 schedule
+pytz
 beautifulsoup4
 pytest-playwright
 fastapi[all]
