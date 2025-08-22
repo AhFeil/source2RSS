@@ -30,7 +30,7 @@ then
 fi
 
 # 创建 systemd 配置文件
-if [ ! -d ${program_name}.service ]
+if [ ! -f ${program_name}.service ]
 then
 cat > ./${program_name}.service <<EOF
 [Unit]
@@ -59,7 +59,7 @@ chmod 644 ${program_name}.service
 agent_pgm_name="source2RSS_agent"
 
 # 创建 systemd 配置文件
-if [ ! -d ${agent_pgm_name}.service ]
+if [ ! -f ${agent_pgm_name}.service ]
 then
 cat > ./${agent_pgm_name}.service <<EOF
 [Unit]
