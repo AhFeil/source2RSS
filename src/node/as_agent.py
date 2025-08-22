@@ -1,5 +1,6 @@
 import asyncio
 import logging
+import traceback
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -98,6 +99,7 @@ async def connect_agent(websocket: WebSocket):
     try:
         request = await websocket.receive_json()
         msg_id = request["msg_id"]
+        logger.info(f"[AGENT] Receive task of {request['cls_id']}, params is {request['params']}")
         scrapers = ScraperNameAndParams.create(request["cls_id"], (request["params"], ), 10, True)
         if not scrapers:
             payload = {"msg_id": msg_id, "over": True}
@@ -134,6 +136,7 @@ async def connect_agent(websocket: WebSocket):
         await websocket.send_json(payload)
     except Exception as e:
         logger.error(f"[AGENT] Error: {e}")
+        logger.error(f"[AGENT] Full traceback:\n{traceback.format_exc()}")
     finally:
         await websocket.close()
         logger.info("[AGENT] Client disconnected")
