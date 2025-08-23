@@ -6,7 +6,7 @@ from typing import Iterable
 
 from ruamel.yaml import YAML, YAMLError
 
-from src.client import S2RProfile, Source2RSSClient
+from client.src.source2RSS_client import S2RProfile, Source2RSSClient
 
 configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default="config_and_data_files/config.yaml")
 
