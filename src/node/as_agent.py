@@ -10,6 +10,7 @@ from fastapi import FastAPI, WebSocket
 from preproc import Plugins, config
 from src.crawl.crawler import ScraperNameAndParams, get_instance
 from src.crawl.remote_crawl import remote_uniform_flow
+from src.scraper.scraper_error import ScraperError
 
 logger = logging.getLogger("as_agent")
 
@@ -92,6 +93,12 @@ async def start_agent():
 
 app = FastAPI()
 
+def normalize_datetime_flags(flags: dict) -> dict:
+    for key in ("pub_time", "time4sort"):
+        if key in flags and not isinstance(flags[key], datetime):
+            flags[key] = datetime.fromtimestamp(flags[key])
+    return flags
+
 @app.websocket("/ws_connect")
 async def connect_agent(websocket: WebSocket):
     # TODO 合并相同代码
@@ -99,41 +106,38 @@ async def connect_agent(websocket: WebSocket):
     try:
         request = await websocket.receive_json()
         msg_id = request["msg_id"]
+        over_payload = {"msg_id": msg_id, "over": True}
         logger.info(f"[AGENT] Receive task of {request['cls_id']}, params is {request['params']}")
         scrapers = ScraperNameAndParams.create(request["cls_id"], (request["params"], ), 10, True)
         if not scrapers:
-            payload = {"msg_id": msg_id, "over": True}
-            await websocket.send_json(payload)
+            await websocket.send_json(over_payload)
             return
 
         instance = await get_instance(scrapers[0])
         if not instance:
-            payload = {"msg_id": msg_id, "over": True}
-            await websocket.send_json(payload)
+            await websocket.send_json(over_payload)
             return
 
         payload = {"msg_id": msg_id} | instance.source_info
         await websocket.send_json(payload)
 
-        res = await websocket.receive_json()
-        if not res or res.get("over"):
+        request = await websocket.receive_json()
+        if not request or request.get("over"):
             return
-        if res.get("continue"):
-            flags = res["flags"]
-            if flags.get("pub_time") and not isinstance(flags["pub_time"], datetime):
-                flags["pub_time"] = datetime.fromtimestamp(flags["pub_time"])
-            if flags.get("time4sort") and not isinstance(flags["time4sort"], datetime):
-                flags["time4sort"] = datetime.fromtimestamp(flags["time4sort"])
+        if not request.get("continue"):
+            return
+        flags = normalize_datetime_flags(request["flags"])
+        async for a in instance.get(flags): # type: ignore
+            for key in a:
+                if isinstance(a[key], datetime):
+                    a[key] = a[key].timestamp()
+            payload = {"msg_id": msg_id} | {"article": a}
+            await websocket.send_json(payload)
 
-            async for a in instance.get(flags):
-                for key in a:
-                    if isinstance(a[key], datetime):
-                        a[key] = a[key].timestamp()
-                payload = {"msg_id": msg_id} | {"article": a}
-                await websocket.send_json(payload)
-
-        payload = {"msg_id": msg_id, "over": True}
-        await websocket.send_json(payload)
+        await websocket.send_json(over_payload)
+    except ScraperError as e:
+        logger.error(f"[AGENT] Error: {e}")
+        await websocket.send_json(over_payload)
     except Exception as e:
         logger.error(f"[AGENT] Error: {e}")
         logger.error(f"[AGENT] Full traceback:\n{traceback.format_exc()}")
