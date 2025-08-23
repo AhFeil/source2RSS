@@ -77,12 +77,17 @@ def async_cached(func):
     return wrapper
 
 async def no_cache_flow(cls_id: str, one_group_params: tuple) -> str:
+    scraper_with_one_group_params = ScraperNameAndParams.create(cls_id, (one_group_params, ))
     try:
-        scraper_with_one_group_params = ScraperNameAndParams.create(cls_id, (one_group_params, ))
         res = await start_to_crawl((scraper_with_one_group_params, ))
-        return res[0][0] if res else "error"
     except CrawlInitError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
+
+    try:
+        return res[0][0]
+    except IndexError:
+        await config.post2RSS("error log of no_cache_flow", f"{res=}, {cls_id=}, {one_group_params=}")
+        raise HTTPException(status_code=500, detail="crawl result is not expected")
 
 @async_cached
 async def cache_flow(cls_id: str, one_group_params: tuple) -> str:

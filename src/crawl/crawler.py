@@ -68,7 +68,7 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
         instance = await cls.create(scraper.init_params)
     return instance
 
-async def _process_one_kind_of_class(data, scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:
+async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:
     """创建实例然后走统一流程"""
     res = []
     for scraper in scrapers:
@@ -107,9 +107,9 @@ async def _process_one_kind_of_class(data, scrapers: tuple[ScraperNameAndParams,
     return res
 
 
-async def start_to_crawl(clses: Iterable[tuple[ScraperNameAndParams, ...]]):
+async def start_to_crawl(clses: Iterable[tuple[ScraperNameAndParams, ...]]) -> list[list[str]]:
     """根据类名获得相应的类，和它们的初始化参数，组装协程然后放入事件循环"""
-    tasks = (_process_one_kind_of_class(data, scrapers) for scrapers in clses)
+    tasks = (_process_one_kind_of_class(scrapers) for scrapers in clses if scrapers)
     res = await asyncio.gather(*tasks)
     asyncio.create_task(AsyncBrowserManager.delayed_clean("crawler", config.wait_before_close_browser)) # 兜底 playwright 打开的浏览器被关闭
     return res
