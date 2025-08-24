@@ -26,7 +26,8 @@ then
     mkdir config_and_data_files && \
     cp examples/config.example.yaml config_and_data_files/config.yaml && \
     cp examples/scraper_profile.example.yaml config_and_data_files/scraper_profile.yaml && \
-    sed -i 's|examples/scraper_profile\.example\.yaml|config_and_data_files/scraper_profile.yaml|g' config_and_data_files/config.yaml
+    sed -i 's|examples/scraper_profile\.example\.yaml|config_and_data_files/scraper_profile.yaml|g' config_and_data_files/config.yaml && \
+    cp examples/agent_config.example.yaml config_and_data_files/agent_config.yaml
 fi
 
 # 创建 systemd 配置文件

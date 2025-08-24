@@ -73,7 +73,7 @@ class D_AgentConnect(AgentCon):
         try:
             if not self.ws.closed:
                 await self.ws.send(json.dumps({"msg_id": self.msg_id, "over": True}))
-        except (websockets.ConnectionClosed, OSError, asyncio.IncompleteReadError):
+        except (AttributeError, websockets.ConnectionClosed, OSError, asyncio.IncompleteReadError):
             pass  # 连接已断，无需处理
         finally:
             await self.ws.close()
