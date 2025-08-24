@@ -70,8 +70,13 @@ class D_AgentConnect(AgentCon):
             yield reply
 
     async def destroy(self):
-        await self.ws.close()
-
+        try:
+            if not self.ws.closed:
+                await self.ws.send(json.dumps({"msg_id": self.msg_id, "over": True}))
+        except (websockets.ConnectionClosed, OSError, asyncio.IncompleteReadError):
+            pass  # 连接已断，无需处理
+        finally:
+            await self.ws.close()
 
 @dataclass
 class R_AgentConnect(AgentCon):
