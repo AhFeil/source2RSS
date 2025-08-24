@@ -1,4 +1,3 @@
-is_production: true
 other_configs_path:   # 靠后的配置文件会覆盖前面的配置
 - examples/pgm_config.example.yaml
 - plugins/source2RSS-scraper/config.example.yaml
