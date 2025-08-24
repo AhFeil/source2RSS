@@ -48,7 +48,6 @@ class Config(BriefConfig):
 
     enable_agent_server: bool
     known_agents: list[dict[str, Any]]
-    # as_agent = configs.get("as_agent", {}) # 默认不启用
 
     # 用户不应该考虑的配置，开发者可以改的
     rss_dir: str = "config_and_data_files/rss"

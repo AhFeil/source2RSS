@@ -1,28 +1,63 @@
 import asyncio
 import logging
+import os
 import traceback
 from dataclasses import dataclass
 from datetime import datetime
+from typing import Self
 
 import socketio
+from briefconf import BriefConfig
 from fastapi import FastAPI, WebSocket
 
-from preproc import Plugins, config
+from preproc import Plugins
 from src.crawl.crawler import ScraperNameAndParams, get_instance
 from src.crawl.remote_crawl import remote_uniform_flow
 from src.scraper.scraper_error import ScraperError
 
+
+@dataclass(frozen=True)
+class AgentConfig(BriefConfig):
+    name: str
+    client_url: str
+    reconnection_attempts: int
+    port: int
+    enabled_scrapers: list[str]
+
+    __slots__ = ("name", "client_url", "reconnection_attempts", "port", "enabled_scrapers")
+
+    @classmethod
+    def load(cls, config_path: str) -> Self:
+        configs = cls._load_config(config_path)
+
+        return cls(
+            name=configs.get("name", "vfly2_agent"),
+            client_url=configs.get("client_url", "http://127.0.0.1:8536"),
+            reconnection_attempts=configs.get("reconnection_attempts", 0),
+            port=configs.get("port", 8537),
+            enabled_scrapers=configs.get("enabled_scrapers", []),
+        )
+
+
+configfile = os.getenv("SOURCE2RSS_AGENT_CONFIG_FILE", default="config_and_data_files/agent_config.yaml")
+agent_config = AgentConfig.load(os.path.abspath(configfile))
+
 logger = logging.getLogger("as_agent")
 
 # 异步 Socket.IO 客户端
-sio_agent = socketio.AsyncClient(reconnection=True, reconnection_attempts=config.as_agent.get("reconnection_attempts", 1), reconnection_delay=3, reconnection_delay_max=60)
+sio_agent = socketio.AsyncClient(
+    reconnection=True,
+    reconnection_attempts=agent_config.reconnection_attempts,
+    reconnection_delay=3,
+    reconnection_delay_max=60
+)
 
 @sio_agent.event
 async def connect():
     logger.info("[AGENT] 已连接到服务器")
-    supported_web_scrapers = tuple(set(config.as_agent["enabled_scrapers"]) & set(Plugins.get_all_id()))
+    supported_web_scrapers = tuple(set(agent_config.enabled_scrapers) & set(Plugins.get_all_id()))
     await sio_agent.emit("register", {
-        "name": config.as_agent["name"],
+        "name": agent_config.name,
         "scrapers": supported_web_scrapers
     })
 
@@ -85,7 +120,7 @@ async def disconnect():
 
 
 async def start_agent():
-    await sio_agent.connect(config.as_agent["client_url"])
+    await sio_agent.connect(agent_config.client_url)
     await sio_agent.wait()
 
 
@@ -147,9 +182,9 @@ async def connect_agent(websocket: WebSocket):
 
 
 if __name__ == "__main__":
-    if port := config.as_agent.get("port"):
+    if agent_config.port:
         import uvicorn
-        uvicorn.run(app, host="0.0.0.0", port=port)
+        uvicorn.run(app, host="0.0.0.0", port=agent_config.port)
     else:
         asyncio.run(start_agent())
     # python -m src.node.as_agent

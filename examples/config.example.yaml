@@ -36,19 +36,6 @@ known_agents:
   enabled_scrapers:
   - YoutubeChannel
 
-# 不了解的话建议删除
-as_agent:
-  # 反向所需
-  name: vfly2_agent
-  client_url: http://127.0.0.1:8536
-  reconnection_attempts: 1
-  # 直连所需
-  port: 8537
-  # 都需要的
-  enabled_scrapers:
-  - BentoMLBlog
-  - YoutubeChannel
-
 # *****下面的配置都有默认值，删除也不影响运行，如果有需要可以自定义*****
 
 # 如果使用 MongoDB ，就填下面的值，默认使用 SQLite
