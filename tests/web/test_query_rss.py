@@ -1,7 +1,7 @@
 """
 对 Web 接口 query rss 测试
 
-SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_query_rss.py -k "test_query_rss_same_scraper_in_one_time"
+SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_query_rss.py -k "not test_query_rss_high_concurrency"
 """
 import asyncio
 import base64
@@ -63,10 +63,13 @@ def test_query_rss_success(setup_and_tear_down):
     # 管理员访问
     response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 200
-    # 普通用户访问，第二次触发缓存
-    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    # 第二次由于在不应期，也会触发缓存
+    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 200
-    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    # 普通用户访问，第二次触发缓存
+    response = client.get("/query_rss/YoutubeChannel/?q=kurzgesagt", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    assert response.status_code == 200
+    response = client.get("/query_rss/YoutubeChannel/?q=kurzgesagt", headers=get_headers("pytest", "zfZZFgf56zsd56"))
     assert response.status_code == 200
 
     # 未登录访问

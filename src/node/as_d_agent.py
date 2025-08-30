@@ -10,6 +10,7 @@ from typing import Self
 from briefconf import BriefConfig
 from fastapi import FastAPI, WebSocket
 
+from src.crawl.crawl_error import CrawlRepeatError
 from src.crawl.crawler import ScraperNameAndParams, discard_scraper, get_instance
 from src.scraper.scraper_error import ScraperError
 
@@ -83,6 +84,9 @@ async def connect_agent(websocket: WebSocket):
         finally:
             asyncio.create_task(discard_scraper(scraper))
             await instance.destroy()
+    except CrawlRepeatError:
+        logger.info("[AGENT] Client disconnected")
+        await websocket.send_json(over_payload)
     except ScraperError as e:
         logger.error(f"[AGENT] Error: {e}")
         logger.error(f"[AGENT] Full traceback:\n{traceback.format_exc()}")

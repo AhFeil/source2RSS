@@ -8,7 +8,8 @@ class CrawlError(Exception):
 
 class CrawlRepeatError(CrawlError):
     """将要创建的实例，已经有一个相同的在运行"""
-    pass
+    def __init__(self, message: str):
+        super().__init__(466, message)
 
 
 class CrawlInitError(CrawlError):

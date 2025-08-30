@@ -56,24 +56,39 @@ class ScraperNameAndParams:
             return tuple(scrapers)
 
     def __hash__(self):
+        if self.name == "Remote":
+            return hash(tuple(self.init_params[1:]))
         params = self.init_params if isinstance(self.init_params, (str, tuple)) else tuple(self.init_params)
-        return hash(
-            (self.name, params)
-        )
+        return hash((self.name, params))
 
     def __eq__(self, other):
+        if self.name == "Remote" and other.name == "Remote":
+            return self.init_params[1:] == other.init_params[1:]
         return self.name == other.name and self.init_params == other.init_params
 
 running_scrapers = set()
 
+def has_scraper(scraper: ScraperNameAndParams) -> bool:
+    if scraper.name == "Representative":
+        return False
+    return scraper in running_scrapers
+
+def add_scraper(scraper: ScraperNameAndParams):
+    if scraper.name == "Representative":
+        return
+    running_scrapers.add(scraper)
+
 async def discard_scraper(scraper: ScraperNameAndParams):
+    if scraper.name == "Representative":
+        return
     await asyncio.sleep(config.refractory_period)
     running_scrapers.discard(scraper)
 
 """
 对于单例抓取器，同一时间只能有一个在运行，因此有运行时的实例时，新请求引发异常
 对于多实例抓取器，参数相同的情况同上，参数不同的可以有多个
-个别如 Representative、Remote ，暂时 TODO
+对于 Remote ，规则同上
+对于 Representative ，不限制
 """
 async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
     cls: type[WebsiteScraper] | None = Plugins.get_plugin_or_none(scraper.name)
@@ -81,12 +96,11 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
     if cls is None or (not scraper.init_params and cls.is_variety):
         return
     # 可以创建，但是重复：有另一个相同的在运行，引发异常
-    if scraper in running_scrapers:
-        msg = "repeat instance of " + str(scraper)
-        logger.info(msg)
-        raise CrawlRepeatError(423, msg)
+    if has_scraper(scraper):
+        logger.info("repeat instance of " + str(scraper))
+        raise CrawlRepeatError(f"repeat instance of {scraper.name}")
     # 最终创建实例
-    running_scrapers.add(scraper) # 需要保证每一处调用该函数的地方都能正常移除
+    add_scraper(scraper) # 需要保证每一处调用该函数的地方都能正常移除
     try:
         if not scraper.init_params:
             instance = await cls.create()
@@ -161,7 +175,7 @@ async def start_to_crawl_all():
     async with running_lock:
         try:
             await start_to_crawl(ScraperNameAndParams.create(name) for name in Plugins.get_all_id())
-        except CrawlInitError as e:
+        except CrawlError as e:
             if e.code in (400, 422, 500):
                 raise # 已知的错误就抑制
     logger.info("***Have finished all scrapers***")

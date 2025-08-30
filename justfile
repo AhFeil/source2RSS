@@ -12,15 +12,15 @@ machine_ip := `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}
   cd "{{root}}" && .env/bin/python -m src.node.as_agent
 
 
-@test: (_start_agent "d") && (_stop_agent "d")
+@test: (start_agent "d") && (stop_agent "d")
   SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest tests/ -m "not slow" || true
 
-@test_all: (_start_agent "d") && (_stop_agent "d")
+@test_all: (start_agent "d") && (stop_agent "d")
   echo "全量测试"
   SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest tests/ || true
 
 # 启动 agent 并后台运行，设置 PID 变量
-_start_agent type:
+start_agent type:
   #!/usr/bin/env bash
   set -eu pipefail
   echo "Starting {{type}}_agent in background..."
@@ -29,7 +29,7 @@ _start_agent type:
   sleep 2  # 等待启动
 
 # 停止 agent
-_stop_agent type:
+stop_agent type:
   #!/usr/bin/env bash
   set -eu pipefail
   if [[ -f .{{type}}_agent.pid ]]; then

@@ -57,14 +57,13 @@ fi
 chmod 644 ${program_name}.service
 
 
-agent_pgm_name="source2RSS_agent"
+d_agent_pgm_name="source2RSS_d_agent"
 
-# 创建 systemd 配置文件
-if [ ! -f ${agent_pgm_name}.service ]
+if [ ! -f ${d_agent_pgm_name}.service ]
 then
-cat > ./${agent_pgm_name}.service <<EOF
+cat > ./${d_agent_pgm_name}.service <<EOF
 [Unit]
-Description=vfly2 client Service
+Description=source2RSS direct agent Service
 After=network.target
 
 [Service]
@@ -72,7 +71,7 @@ WorkingDirectory=${current_dir}
 User=${current_uid}
 Group=${current_uid}
 Type=simple
-ExecStart=${current_dir}/.env/bin/python -m src.node.as_agent
+ExecStart=${current_dir}/.env/bin/python -m src.node.as_d_agent
 ExecStop=/bin/kill -s HUP $MAINPID
 Environment=PYTHONUNBUFFERED=1
 RestartSec=15
@@ -83,6 +82,35 @@ WantedBy=default.target
 EOF
 fi
 
-chmod 644 ${agent_pgm_name}.service
+chmod 644 ${d_agent_pgm_name}.service
+
+
+r_agent_pgm_name="source2RSS_r_agent"
+
+if [ ! -f ${r_agent_pgm_name}.service ]
+then
+cat > ./${r_agent_pgm_name}.service <<EOF
+[Unit]
+Description=source2RSS reverse agent Service
+After=network.target
+
+[Service]
+WorkingDirectory=${current_dir}
+User=${current_uid}
+Group=${current_uid}
+Type=simple
+ExecStart=${current_dir}/.env/bin/python -m src.node.as_r_agent
+ExecStop=/bin/kill -s HUP $MAINPID
+Environment=PYTHONUNBUFFERED=1
+RestartSec=15
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+fi
+
+chmod 644 ${r_agent_pgm_name}.service
+
 
 # vim: expandtab shiftwidth=4 softtabstop=4

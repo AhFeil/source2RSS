@@ -2,6 +2,7 @@
 import asyncio
 import inspect
 import logging
+import traceback
 from contextlib import suppress
 
 from fastapi import APIRouter, HTTPException, Request, status
@@ -23,9 +24,9 @@ router = APIRouter(
 async def combine_link(desc, scraper, link):
     try:
         instance = await get_instance(scraper)
-    except:
-        desc.append('<p>创建抓取器出错</p>')
-        raise
+    except Exception:
+        desc.append('<p>创建抓取器出错，请稍后重试</p>')
+        logger.error(f"usage create instance error, full traceback:\n{traceback.format_exc()}")
     else:
         if instance:
             desc.append(f'<p><span>{instance.source_info["name"]} 的 RSS 链接：</span> <a href="{link}" rel="noprerender">{link}</a></p>')
