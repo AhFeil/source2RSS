@@ -80,8 +80,16 @@ def async_cached(func):
             logger.debug("%s, %s, has cache", cls_id, str(one_group_params))
             return cache[cache_key]
         logger.debug("%s, %s, will crawl immediately", cls_id, str(one_group_params))
-        result = await func(cls_id, one_group_params, cache_type=cache_type)
-        cache[cache_key] = result
+        try:
+            result = await func(cls_id, one_group_params, cache_type=cache_type)
+            cache[cache_key] = result
+        except HTTPException as e:
+            if e.status_code != 466:
+                raise
+            # 对于不应期，尝试返回缓存中的值
+            result = cache.get(cache_key)
+            if not result:
+                raise
         return result
     return wrapper
 

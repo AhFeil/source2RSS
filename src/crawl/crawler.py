@@ -99,7 +99,7 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
     if has_scraper(scraper):
         msg = "repeat instance of " + str(scraper)
         logger.info(msg)
-        raise CrawlRepeatError(423, msg)
+        raise CrawlRepeatError(msg)
     # 最终创建实例
     add_scraper(scraper) # 需要保证每一处调用该函数的地方都能正常移除
     try:
