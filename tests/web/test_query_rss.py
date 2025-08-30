@@ -1,7 +1,7 @@
 """
 对 Web 接口 query rss 测试
 
-SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_query_rss.py -k "not test_query_rss_high_concurrency"
+SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_query_rss.py -k "test_query_rss_same_scraper_in_one_time"
 """
 import asyncio
 import base64
@@ -144,3 +144,21 @@ async def test_query_rss_high_concurrency():
 
         for response in responses:
             assert response.status_code == 200
+
+@pytest.mark.asyncio
+async def test_query_rss_same_scraper_in_one_time():
+    """同一时间，完全相同的实例只能有一个在运行，其他的直接放弃"""
+    async with AsyncClient(transport=ASGITransport(app=fast_app), base_url="http://async_testserver") as ac: # type: ignore
+        urls = [
+            "/query_rss/BilibiliUp/?q=246370149",
+            "/query_rss/BilibiliUp/?q=246370149",
+            "/query_rss/BilibiliUp/?q=246370149",
+        ]
+        headers = get_headers(config.query_username, config.query_password)
+
+        tasks = (ac.get(url, headers=headers) for url in urls)
+        responses = await asyncio.gather(*tasks)
+
+        status_code_list = [response.status_code for response in responses]
+        status_code_list.sort()
+        assert status_code_list == [200, 423, 423]

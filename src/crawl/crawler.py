@@ -16,7 +16,7 @@ from src.scraper.scraper_error import (
     FailtoGet,
 )
 
-from .crawl_error import CrawlInitError, CrawlRunError
+from .crawl_error import CrawlError, CrawlInitError, CrawlRepeatError, CrawlRunError
 from .local_publish import goto_uniform_flow
 
 logger = logging.getLogger("crawler")
@@ -24,7 +24,7 @@ logger = logging.getLogger("crawler")
 
 @dataclass
 class ScraperNameAndParams:
-    name: str
+    name: str       # TODO 不能是列表
     init_params: list | tuple | str # 如果参数只有一个，则可以为 str，多个用列表按顺序容纳，没有参数则使用空列表
     amount: int
 
@@ -55,17 +55,48 @@ class ScraperNameAndParams:
                 scrapers.append(cls("Remote", new_params, amount))
             return tuple(scrapers)
 
+    def __hash__(self):
+        params = self.init_params if isinstance(self.init_params, (str, tuple)) else tuple(self.init_params)
+        return hash(
+            (self.name, params)
+        )
 
+    def __eq__(self, other):
+        return self.name == other.name and self.init_params == other.init_params
+
+running_scrapers = set()
+
+async def discard_scraper(scraper: ScraperNameAndParams):
+    await asyncio.sleep(config.refractory_period)
+    running_scrapers.discard(scraper)
+
+"""
+对于单例抓取器，同一时间只能有一个在运行，因此有运行时的实例时，新请求引发异常
+对于多实例抓取器，参数相同的情况同上，参数不同的可以有多个
+个别如 Representative、Remote ，暂时 TODO
+"""
 async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
     cls: type[WebsiteScraper] | None = Plugins.get_plugin_or_none(scraper.name)
+    # 根本无法创建，返回 None
     if cls is None or (not scraper.init_params and cls.is_variety):
         return
-    if not scraper.init_params:
-        instance = await cls.create()
-    elif isinstance(scraper.init_params, tuple | list):
-        instance = await cls.create(*scraper.init_params)
-    else:
-        instance = await cls.create(scraper.init_params)
+    # 可以创建，但是重复：有另一个相同的在运行，引发异常
+    if scraper in running_scrapers:
+        msg = "repeat instance of " + str(scraper)
+        logger.info(msg)
+        raise CrawlRepeatError(423, msg)
+    # 最终创建实例
+    running_scrapers.add(scraper) # 需要保证每一处调用该函数的地方都能正常移除
+    try:
+        if not scraper.init_params:
+            instance = await cls.create()
+        elif isinstance(scraper.init_params, tuple | list):
+            instance = await cls.create(*scraper.init_params)
+        else:
+            instance = await cls.create(scraper.init_params)
+    finally:
+        # 如果创建失败，短时间内另一个也不一定能成功，因此依然等待
+        asyncio.create_task(discard_scraper(scraper))
     return instance
 
 async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:
@@ -86,6 +117,8 @@ async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...])
             raise CrawlInitError(423, "Lack agent")
         except (CreateButRequestFail, FailtoGet): # todo 多次连续出现，则 post2RSS
             raise CrawlInitError(503, "Failed when crawling")
+        except CrawlError:
+            raise
         except Exception as e:
             msg = f"fail when query rss {scraper.name}: {e}"
             logger.exception(msg)
@@ -104,6 +137,7 @@ async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...])
             else:
                 res.append(source_name)
             finally:
+                asyncio.create_task(discard_scraper(scraper))
                 await instance.destroy() # TODO 不能保证一定会清理资源
     return res
 

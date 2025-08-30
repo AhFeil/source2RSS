@@ -53,6 +53,7 @@ class Config(BriefConfig):
     rss_dir: str = "config_and_data_files/rss"
     source_meta: str = "source_meta"   # 存储源的元信息的表的名称
     wait_before_close_browser: int = 180
+    refractory_period: int = 60 # 当一个抓取器实例被创建后的一段时间，不接受同一种实例的创建，避免无效的重复
     init_script_path: str = "" # TODO
     _crawl_schedules: tuple[tuple[str, tuple], ...] = tuple() # 运行时可以改变
 

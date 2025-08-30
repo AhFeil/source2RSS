@@ -1,4 +1,5 @@
 """各个抓取器的用法和一些发起请求的快捷方式"""
+import asyncio
 import inspect
 import logging
 from contextlib import suppress
@@ -7,7 +8,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 
 from preproc import Plugins
-from src.crawl.crawler import ScraperNameAndParams, get_instance
+from src.crawl.crawler import ScraperNameAndParams, discard_scraper, get_instance
 
 from .get_rss import templates
 
@@ -28,6 +29,7 @@ async def combine_link(desc, scraper, link):
     else:
         if instance:
             desc.append(f'<p><span>{instance.source_info["name"]} 的 RSS 链接：</span> <a href="{link}" rel="noprerender">{link}</a></p>')
+            asyncio.create_task(discard_scraper(scraper))
             await instance.destroy() # todo
         else:
             desc.append('<p>抓取器不存在或初始化参数有误</p>')

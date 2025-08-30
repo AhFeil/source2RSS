@@ -1,4 +1,5 @@
 """由服务端直连的 agent"""
+import asyncio
 import logging
 import os
 import traceback
@@ -9,7 +10,7 @@ from typing import Self
 from briefconf import BriefConfig
 from fastapi import FastAPI, WebSocket
 
-from src.crawl.crawler import ScraperNameAndParams, get_instance
+from src.crawl.crawler import ScraperNameAndParams, discard_scraper, get_instance
 from src.scraper.scraper_error import ScraperError
 
 
@@ -41,6 +42,7 @@ def normalize_datetime_flags(flags: dict) -> dict:
             flags[key] = datetime.fromtimestamp(flags[key])
     return flags
 
+# TODO 重复代码
 @app.websocket("/ws_connect")
 async def connect_agent(websocket: WebSocket):
     # TODO 合并相同代码
@@ -54,29 +56,33 @@ async def connect_agent(websocket: WebSocket):
         if not scrapers:
             await websocket.send_json(over_payload)
             return
-
-        instance = await get_instance(scrapers[0])
+        scraper = scrapers[0]
+        instance = await get_instance(scraper)
         if not instance:
             await websocket.send_json(over_payload)
             return
 
-        payload = {"msg_id": msg_id} | instance.source_info
-        await websocket.send_json(payload)
-
-        request = await websocket.receive_json()
-        if not request or request.get("over"):
-            return
-        if not request.get("continue"):
-            return
-        flags = normalize_datetime_flags(request["flags"])
-        async for a in instance.get(flags): # type: ignore
-            for key in a:
-                if isinstance(a[key], datetime):
-                    a[key] = a[key].timestamp()
-            payload = {"msg_id": msg_id} | {"article": a}
+        try:
+            payload = {"msg_id": msg_id} | instance.source_info
             await websocket.send_json(payload)
 
-        await websocket.send_json(over_payload)
+            request = await websocket.receive_json()
+            if not request or request.get("over"):
+                return
+            if not request.get("continue"):
+                return
+            flags = normalize_datetime_flags(request["flags"])
+            async for a in instance.get(flags): # type: ignore
+                for key in a:
+                    if isinstance(a[key], datetime):
+                        a[key] = a[key].timestamp()
+                payload = {"msg_id": msg_id} | {"article": a}
+                await websocket.send_json(payload)
+
+            await websocket.send_json(over_payload)
+        finally:
+            asyncio.create_task(discard_scraper(scraper))
+            await instance.destroy()
     except ScraperError as e:
         logger.error(f"[AGENT] Error: {e}")
         logger.error(f"[AGENT] Full traceback:\n{traceback.format_exc()}")
