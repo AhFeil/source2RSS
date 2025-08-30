@@ -170,6 +170,7 @@ async def connect_agent(websocket: WebSocket):
         await websocket.send_json(over_payload)
     except ScraperError as e:
         logger.error(f"[AGENT] Error: {e}")
+        logger.error(f"[AGENT] Full traceback:\n{traceback.format_exc()}")
         await websocket.send_json(over_payload)
     except Exception as e:
         logger.error(f"[AGENT] Error: {e}")

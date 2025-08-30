@@ -16,7 +16,7 @@ from src.scraper.scraper_error import (
     FailtoGet,
 )
 
-from .crawl_error import CrawlInitError
+from .crawl_error import CrawlInitError, CrawlRunError
 from .local_publish import goto_uniform_flow
 
 logger = logging.getLogger("crawler")
@@ -95,15 +95,16 @@ async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...])
             try:
                 source_name = await goto_uniform_flow(data, instance, scraper.amount)
             except ValidationError:
-                raise CrawlInitError(422, "Invalid source meta")
+                raise CrawlRunError(422, "Invalid source meta")
             except Exception as e:
                 msg = f"fail when goto_uniform_flow of {scraper.name}, {scraper.init_params=}: {e}"
                 logger.exception(msg)
                 await config.post2RSS("error log of goto_uniform_flow", msg)
+                raise CrawlRunError(500, "Unknown Error")
             else:
                 res.append(source_name)
             finally:
-                await instance.destroy()
+                await instance.destroy() # TODO 不能保证一定会清理资源
     return res
 
 

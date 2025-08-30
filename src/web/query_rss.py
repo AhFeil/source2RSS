@@ -10,7 +10,7 @@ from fastapi.responses import HTMLResponse
 
 from preproc import Plugins, config, data
 from src.crawl import ScraperNameAndParams, start_to_crawl
-from src.crawl.crawl_error import CrawlInitError
+from src.crawl.crawl_error import CrawlError
 from src.scraper import AccessLevel
 
 from .get_rss import select_rss, templates
@@ -80,7 +80,7 @@ async def no_cache_flow(cls_id: str, one_group_params: tuple) -> str:
     scraper_with_one_group_params = ScraperNameAndParams.create(cls_id, (one_group_params, ))
     try:
         res = await start_to_crawl((scraper_with_one_group_params, ))
-    except CrawlInitError as e:
+    except CrawlError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
 
     try:

@@ -9,7 +9,7 @@ import schedule
 
 from preproc import Plugins, config
 from src.crawl import ScraperNameAndParams, start_to_crawl
-from src.crawl.crawl_error import CrawlInitError
+from src.crawl.crawl_error import CrawlError
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +18,7 @@ def sync_wrapper(cls_names, loop):
     try:
         future = run_coroutine_threadsafe(start_to_crawl(ScraperNameAndParams.create(name) for name in cls_names), loop)
         future.result()
-    except CrawlInitError as e:
+    except CrawlError as e:
         if e.code in (400, 422, 500):
             raise # 已知的错误就抑制
     except Exception as e:
