@@ -11,7 +11,7 @@ from client.src.source2RSS_client import S2RProfile, Source2RSSClient
 configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default="config_and_data_files/config.yaml")
 
 
-@dataclass()
+@dataclass(slots=True)
 class Config(BriefConfig):
     # 默认无须用户改动的
     data_dir: str
@@ -55,8 +55,6 @@ class Config(BriefConfig):
     wait_before_close_browser: int = 180
     init_script_path: str = "" # TODO
     _crawl_schedules: tuple[tuple[str, tuple], ...] = tuple() # 运行时可以改变
-
-    # __slots__ = ("is_production", )
 
     @classmethod
     def load(cls, config_path: str) -> Self:

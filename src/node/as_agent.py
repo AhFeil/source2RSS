@@ -16,15 +16,13 @@ from src.crawl.remote_crawl import remote_uniform_flow
 from src.scraper.scraper_error import ScraperError
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class AgentConfig(BriefConfig):
     name: str
     client_url: str
     reconnection_attempts: int
     port: int
     enabled_scrapers: list[str]
-
-    __slots__ = ("name", "client_url", "reconnection_attempts", "port", "enabled_scrapers")
 
     @classmethod
     def load(cls, config_path: str) -> Self:

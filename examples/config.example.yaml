@@ -1,6 +1,5 @@
-other_configs_path:   # 靠后的配置文件会覆盖前面的配置
+other_configs_path:   # 靠后的配置文件会覆盖前面的配置，当前文件会覆盖这个列表里的
 - examples/pgm_config.example.yaml
-- plugins/source2RSS-scraper/config.example.yaml
 
 # 启用抓取器，这里启用了所有可用的，可以删除不需要的 TODO 默认应该少开一点
 enabled_web_scraper:
@@ -17,8 +16,6 @@ enabled_web_scraper:
   - chiphell
   - youtube_channel
   - bilibili_up
-  - representative   # 删除这个则无法通过 API 发布 RSS
-  - remote           # 删除这个则无法使用 Remote 模式
 # 暂时没有维护无法正常运行的抓取器
 # - newsletter
 

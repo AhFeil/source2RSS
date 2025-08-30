@@ -1,5 +1,10 @@
 data_dir: config_and_data_files
 
+enabled_web_scraper:
+  src.scraper.examples:
+  - representative   # 删除这个则无法通过 API 发布 RSS
+  - remote           # 删除这个则无法使用 Remote 模式
+
 logging:
   version: 1
   disable_existing_loggers: False

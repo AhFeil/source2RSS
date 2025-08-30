@@ -1,3 +1,4 @@
 other_configs_path:
 - examples/config.example.yaml
-- tests/test_pgm_config.yaml
+
+data_dir: tests/config_and_data_files
