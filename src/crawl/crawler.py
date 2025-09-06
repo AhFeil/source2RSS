@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import signal
+import sys
 from dataclasses import dataclass
 from typing import Iterable, Self
 
@@ -68,6 +69,12 @@ class ScraperNameAndParams:
 
 running_scrapers = set()
 
+def print_running_scrapers(signum, frame):
+    print(f"\n[INFO] 当前 running_scrapers: {running_scrapers}", file=sys.stderr)
+
+# 绑定信号
+signal.signal(signal.SIGUSR1, print_running_scrapers)
+
 def has_scraper(scraper: ScraperNameAndParams) -> bool:
     if scraper.name == "Representative":
         return False
@@ -97,6 +104,7 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
         return
     # 可以创建，但是重复：有另一个相同的在运行，引发异常
     if has_scraper(scraper):
+
         logger.info("repeat instance of " + str(scraper))
         raise CrawlRepeatError(f"repeat instance of {scraper.name}")
     # 最终创建实例
@@ -108,9 +116,10 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
             instance = await cls.create(*scraper.init_params)
         else:
             instance = await cls.create(scraper.init_params)
-    finally:
+    except Exception:
         # 如果创建失败，短时间内另一个也不一定能成功，因此依然等待
         asyncio.create_task(discard_scraper(scraper))
+        raise
     return instance
 
 async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:
@@ -182,10 +191,5 @@ async def start_to_crawl_all():
 
 
 if __name__ == "__main__":
-    def handler(sig, frame):
-        # 退出前清理环境
-        exit(0)
-    signal.signal(signal.SIGINT, handler)
-
     asyncio.run(start_to_crawl_all())
     # .env/bin/python -m src.crawl.crawler
