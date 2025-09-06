@@ -2,6 +2,7 @@ import logging.config
 import os
 from collections import defaultdict
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any, Iterable, Self
 
 from briefconf import BriefConfig
@@ -9,6 +10,7 @@ from briefconf import BriefConfig
 from client.src.source2RSS_client import S2RProfile, Source2RSSClient
 
 configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default="config_and_data_files/config.yaml")
+merged_config = os.getenv("SOURCE2RSS_MERGED_CONFIG", default="")
 
 
 @dataclass(slots=True)
@@ -60,6 +62,8 @@ class Config(BriefConfig):
     @classmethod
     def load(cls, config_path: str) -> Self:
         configs = cls._load_config(config_path)
+        if merged_config:
+            Path(merged_config).write_text(BriefConfig._dump(configs))
         logging.config.dictConfig(configs["logging"])
 
         data_dir = configs.get("data_dir", "config_and_data_files")
