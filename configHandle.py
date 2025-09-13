@@ -91,7 +91,7 @@ class Config(BriefConfig):
         else:
             s2r_c = None
 
-        return cls(
+        config = cls(
             data_dir=data_dir,
             sqlite_uri=f"sqlite:///{data_dir}/source2rss.db",
             users_file=f"{data_dir}/users.json",
@@ -121,6 +121,8 @@ class Config(BriefConfig):
             enable_agent_server=configs.get("enable_agent_server", False),
             known_agents=configs.get("known_agents", []),
         )
+        config.prepare()
+        return config
 
     def prepare(self) -> None:
         os.makedirs(self.data_dir, exist_ok=True)
