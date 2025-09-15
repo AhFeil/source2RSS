@@ -11,6 +11,7 @@ source2RSS.service
 plugins
 .d_agent.pid
 .r_agent.pid
+ad.html
 
 # tool
 .ruff_cache

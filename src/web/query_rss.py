@@ -33,7 +33,6 @@ async def get_your_rss_list(request: Request, user: Annotated[User, Depends(get_
         "public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC),
         "user_rss_list": ((table_name, data.rss_cache.get_source_readable_name(table_name)) for table_name in UserRegistry.get_sources_by_name(user.name)),
         "user_name": user.name,
-        "ad_html": config.ad_html
     }
     if user.is_administrator:
         context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.ADMIN, AccessLevel.PUBLIC, (AccessLevel.PRIVATE_USER, ))

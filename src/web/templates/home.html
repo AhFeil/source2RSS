@@ -1,21 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>source2RSS 首页</h1>
-    <a href="source2rss/">公开订阅源</a>
-    <a href="usage/">用法</a>
-    <a href="users/me/register/">注册</a>
-    <br><br>
-
-    <p>注册用户可以访问的：</p>
-    <a href="query_rss/">用户可以访问的所有订阅源</a>
-    <a href="users/me/">用户后台</a>
-    <br><br>
-
-    <p>管理员可以访问的：</p>
-    <a href="manage/">管理员页面</a>
-    <a href="docs">OpenAPI</a>
-    <br><br>
+    <h2>首页</h2>
 
     <p>抓取时间表：</p>
     <ul>
@@ -25,5 +11,4 @@
         </li>
         {% endfor %}
     </ul>
-    <br><br>
 {% endblock content %}

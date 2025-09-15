@@ -42,7 +42,7 @@ for module in Plugins.imported_modules.values():
 
 @fast_app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    context = {"ad_html": config.ad_html, "crawl_schedules": config.get_crawl_schedules()}
+    context = {"crawl_schedules": config.get_crawl_schedules()}
     return get_rss.templates.TemplateResponse(request=request, name="home.html", context=context)
 
 

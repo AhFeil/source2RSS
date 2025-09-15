@@ -44,7 +44,6 @@ class Config(BriefConfig):
 
     scraper_profile_file: list[str]
     scraper_profile: dict # 运行时可以改变
-    ad_html: str
 
     port: int
     s2r_c: Source2RSSClient | None
@@ -116,7 +115,6 @@ class Config(BriefConfig):
             query_bedtime=configs.get('query_bedtime', []),
             scraper_profile_file=scraper_profile_file,
             scraper_profile=cls.load_scraper_profile(scraper_profile_file),
-            ad_html=configs.get("ad_html", ""),
             port=port,
             s2r_c=s2r_c,
             enable_agent_server=configs.get("enable_agent_server", False),

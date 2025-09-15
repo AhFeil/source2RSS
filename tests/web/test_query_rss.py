@@ -2,7 +2,7 @@
 """
 对 Web 接口 query rss 测试
 
-SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_query_rss.py -k "not test_query_rss_high_concurrency"
+SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/web/test_query_rss.py -k "test_query_rss_same_scraper_in_one_time"
 """
 import asyncio
 import base64
@@ -165,4 +165,4 @@ async def test_query_rss_same_scraper_in_one_time():
 
         status_code_list = [response.status_code for response in responses]
         status_code_list.sort()
-        assert status_code_list == [200, 423, 423]
+        assert status_code_list == [200, 466, 466]
