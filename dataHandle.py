@@ -31,11 +31,11 @@ class RSSCache:
                 access = src_meta["access"]
                 rss_data.json["source_info"] = src_meta
             else:
-                print(f"{source_name} is lack in db")
+                print(f"{source_name} is lack in db")  # noqa: T201
                 access = AccessLevel.SYSTEM
             self._cached_sources[access][source_name] = rss_data
 
-    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...]=tuple()) -> list[tuple[str, str]]:
+    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...] = ()) -> list[tuple[str, str]]:
         """返回 access 到 low_access 之间的所有源的表名和展示名， 不包含 low_access"""
         source_list = []
         for i in filter(lambda x : x not in except_access, range(access, low_access, -1)):
@@ -43,7 +43,7 @@ class RSSCache:
                 source_list.append((k, v.json["source_info"]["name"]))
         return source_list
 
-    def get_source_or_None(self, source_name: str, access: AccessLevel, except_access: tuple[AccessLevel, ...]=tuple()) -> RSSData | None:
+    def get_source_or_None(self, source_name: str, access: AccessLevel, except_access: tuple[AccessLevel, ...] = ()) -> RSSData | None:
         """当源存在且有权限返回源"""
         for i in filter(lambda x : x not in except_access, range(access, AccessLevel.NONE, -1)):
             if rss_data := self._cached_sources[i].get(source_name):
@@ -167,7 +167,7 @@ class Data:
             with open(config.users_file, 'w', encoding="utf-8") as f:
                 json.dump(self._users, f)
         else:
-            with open(config.users_file, 'r', encoding="utf-8") as f:
+            with open(config.users_file, encoding="utf-8") as f:
                 self._users = json.load(f)
 
         # DB

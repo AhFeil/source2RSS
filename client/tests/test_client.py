@@ -21,7 +21,8 @@ s2r_profile: S2RProfile = {
 async def test_client():
     s2r_c = Source2RSSClient.create(s2r_profile)
     response = await s2r_c.post_article("test_client", "test_client summary")
-    assert response and response.status_code == 200
+    assert response
+    assert response.status_code == 200
 
 @pytest.mark.skip(reason="需要启动服务端")
 def test_client_send_test():

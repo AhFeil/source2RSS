@@ -1,3 +1,4 @@
+# ruff: noqa: B904
 """各个抓取器的用法和一些发起请求的快捷方式"""
 import asyncio
 import inspect

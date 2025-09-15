@@ -1,3 +1,4 @@
+# ruff: noqa: B904
 """能公开访问的 RSS ，无须用户验证"""
 import logging
 

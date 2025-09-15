@@ -1,6 +1,6 @@
 import asyncio
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import AsyncGenerator
 from urllib.parse import quote
 
 from src.scraper.model import SortKey
@@ -40,14 +40,15 @@ class BentoMLBlog(WebsiteScraper):
         info = {
             'name': "BentoML Blog",
             'link': self.__class__.home_url,
-            'desc': "Dive into the transformative world of AI application development with us! From expert insights to innovative use cases, we bring you the latest in efficiently deploying AI at scale.",
+            'desc': "Dive into the transformative world of AI application development with us!"
+            "From expert insights to innovative use cases, we bring you the latest in efficiently deploying AI at scale.",
             'lang': "En",
             'key4sort': SortKey.PUB_TIME
         }
         return info
 
     @classmethod
-    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:  # noqa: ARG003
         start_page = 1
         while True:
             varied_query_dict = {"pagination[page]": start_page}
@@ -63,7 +64,7 @@ class BentoMLBlog(WebsiteScraper):
                 return
 
             for a in articles["data"]:
-                id = a["id"]
+                id_ = a["id"]
                 attributes = a["attributes"]
                 name = attributes["name"]
                 description = attributes["description"]
@@ -75,7 +76,7 @@ class BentoMLBlog(WebsiteScraper):
                 time_obj = datetime.strptime(create_time, "%Y-%m-%dT%H:%M:%S.%fZ")
 
                 article = {
-                    "id": id,
+                    "id": id_,
                     "title": name,
                     "summary": description,
                     "link": article_url,

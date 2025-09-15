@@ -2,8 +2,9 @@ import asyncio
 import logging
 import signal
 import sys
+from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Iterable, Self
+from typing import Self
 
 from pydantic_core import ValidationError
 
@@ -70,7 +71,7 @@ class ScraperNameAndParams:
 running_scrapers = set()
 
 def print_running_scrapers(signum, frame):
-    print(f"\n[INFO] 当前 running_scrapers: {running_scrapers}", file=sys.stderr)
+    print(f"\n[INFO] 当前 running_scrapers: {running_scrapers}", file=sys.stderr)  # noqa: T201
 
 # 绑定信号
 signal.signal(signal.SIGUSR1, print_running_scrapers)
@@ -146,7 +147,7 @@ async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...])
             msg = f"fail when query rss {scraper.name}: {e}"
             logger.exception(msg)
             await config.post2RSS("error log of _process_one_kind_of_class", msg)
-            raise CrawlInitError(500, "Unknown Error")
+            raise CrawlInitError(500, "Unknown Error") from e
         else:
             try:
                 source_name = await goto_uniform_flow(data, instance, scraper.amount)
@@ -156,7 +157,7 @@ async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...])
                 msg = f"fail when goto_uniform_flow of {scraper.name}, {scraper.init_params=}: {e}"
                 logger.exception(msg)
                 await config.post2RSS("error log of goto_uniform_flow", msg)
-                raise CrawlRunError(500, "Unknown Error")
+                raise CrawlRunError(500, "Unknown Error") from e
             else:
                 res.append(source_name)
             finally:

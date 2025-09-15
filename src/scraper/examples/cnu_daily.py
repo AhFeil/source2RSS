@@ -1,6 +1,6 @@
 import asyncio
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import AsyncGenerator
 
 from src.scraper.model import SortKey
 from src.scraper.scraper import WebsiteScraper
@@ -33,7 +33,7 @@ class CNUDaily(WebsiteScraper):
         }
 
     @classmethod
-    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:  # noqa: ARG003
         """按照从新到旧的顺序返回"""
         start_page = 1
         while True:
@@ -54,17 +54,17 @@ class CNUDaily(WebsiteScraper):
                 create_time = day["date"]
                 time_obj = datetime.strptime(create_time, "%Y-%m-%d")
                 for w in day["works"]:
-                    id = w["id"]
+                    id_ = w["id"]
                     name = w["title"]
                     author_display_name = w["author_display_name"]
                     author_id = w["author_id"]
                     category = w["category"]
                     description = w["body"]
-                    article_url = cls.home_url + f'works/{id}'
+                    article_url = cls.home_url + f'works/{id_}'
                     image_link = "http://imgoss.cnu.cc/" + w["cover"] + "&x-oss-process=style/cover280"
 
                     article = {
-                        "id": id,
+                        "id": id_,
                         "title": name,
                         "author_display_name": author_display_name,
                         "author_id": author_id,

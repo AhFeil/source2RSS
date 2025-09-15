@@ -1,3 +1,4 @@
+# ruff: noqa: B904
 """通过 API 向 source2RSS 发送消息，以 RSS 发布"""
 import logging
 from urllib.parse import quote

@@ -7,7 +7,7 @@ from typing import Self
 
 import socketio
 from briefconf import BriefConfig
-from socketio.exceptions import ConnectionError
+from socketio.exceptions import ConnectionError as ConnectionError_
 
 from preproc import Plugins
 from src.crawl.remote_crawl import remote_uniform_flow
@@ -119,7 +119,7 @@ async def start_agent():
             await sio_agent.connect(agent_config.client_url)
             retry_delay = 5  # 成功后重置重试时间
             await sio_agent.wait()
-        except ConnectionError as e:
+        except ConnectionError_ as e:
             logger.warning(f"连接失败: {e}")
             wait_time = retry_delay + random.uniform(0, 2)
             logger.info(f"等待 {wait_time:.2f} 秒后重试...")

@@ -1,7 +1,8 @@
 import logging
 from abc import ABC, ABCMeta, abstractmethod
+from collections.abc import AsyncGenerator, Generator
 from datetime import datetime, timedelta
-from typing import Any, AsyncGenerator, Generator, Self
+from typing import Any, Self
 
 from api._v2 import Plugins
 
@@ -141,7 +142,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     def _custom_parameter_of_parse(self) -> tuple:
         """调用 _parse 时，额外需要提供的参数"""
-        return tuple()
+        return ()
 
     @classmethod
     @abstractmethod
@@ -152,7 +153,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     # 网站结构一般是链式的，不支持随机索引，而从新到旧的顺序一般都能满足，但是这种顺序一旦中断就无法自发恢复遗漏的
     # 如果支持从旧到新的索引，可以重写 _parse_old2new ，会优先选择；
     @classmethod
-    async def _parse_old2new(cls, flags: LocateInfo, *args) -> AsyncGenerator[dict, None]:
+    async def _parse_old2new(cls, flags: LocateInfo, *args) -> AsyncGenerator[dict, None]: # noqa: ARG003
         """按从旧到新，从和标记一样的下一条开始返回，每次一条，直到最新，框架保证传入的 flags 中指定字段不为None"""
         yield {}
         raise NotImplementedError
@@ -189,7 +190,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     @staticmethod
     def _range_by_desc_of(elems, flag, compare_func) -> Generator[Any, None, None]:
         """传入列表和标志，默认从列表中匹配标志的元素开始返回，直到列表首元素。当标志与新元素对比，比较函数返回真（大于0的数），否则返回假（0）"""
-        for i, elem in enumerate(elems):
+        for i, elem in enumerate(elems):  # noqa: B007
             if compare_func(elem, flag):
                 continue
             break
@@ -203,7 +204,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     @staticmethod
     def _range_by_asc_of(elems, flag, compare_func) -> Generator[Any, None, None]:
         """类似 _range_by_desc_of ，适用于列表的顺序是从旧到新的"""
-        for i, elem in enumerate(reversed(elems), start=1):
+        for i, elem in enumerate(reversed(elems), start=1):  # noqa: B007
             if compare_func(elem, flag):
                 continue
             break

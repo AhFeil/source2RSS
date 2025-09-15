@@ -1,3 +1,4 @@
+# ruff: noqa: B904
 """用户注册等接口"""
 import logging
 

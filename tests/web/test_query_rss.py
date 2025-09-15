@@ -1,3 +1,4 @@
+# ruff: noqa: E501, T201
 """
 对 Web 接口 query rss 测试
 
@@ -16,7 +17,7 @@ from main import fast_app
 client = TestClient(fast_app)
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_and_tear_down():
     print("This is run before each web test")
     yield

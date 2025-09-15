@@ -43,7 +43,6 @@ class Source2RSSClient:
         }
 
         client = cls(post_url, src_url, headers)
-        print(os.getenv("SOURCE2RSS_CLIENT_SEND_TEST"))
         if send_test or bool(os.getenv("SOURCE2RSS_CLIENT_SEND_TEST")):
             import asyncio
             title = f"This is a test article from {cfg['source_name']}"

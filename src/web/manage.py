@@ -1,3 +1,4 @@
+# ruff: noqa: B904
 """供管理员使用的管理类接口"""
 import logging
 from typing import Annotated
@@ -23,8 +24,8 @@ router = APIRouter(
 async def manage_page(request: Request):
     scraper_profiles_content = ((i, config.get_scraper_profile(i)) for i in range(len(config.scraper_profile_file)))
     context = {
-        "invite_code": UserRegistry._invite_code,
-        "count": UserRegistry._left_count,
+        "invite_code": UserRegistry._invite_code, # noqa: SLF001
+        "count": UserRegistry._left_count, # noqa: SLF001
         "scraper_profiles_content": scraper_profiles_content,
     }
     return templates.TemplateResponse(request=request, name="manage.html", context=context)

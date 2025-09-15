@@ -2,9 +2,10 @@ import asyncio
 import hashlib
 import json
 from abc import ABC, abstractmethod
+from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import AsyncGenerator, Self
+from typing import Self
 
 import websockets
 
@@ -33,7 +34,7 @@ class AgentCon(ABC):
             for a in res["articles"]:
                 yield {"article": a}
 
-    async def destroy(self):
+    async def destroy(self):# noqa: B027
         pass
 
 @dataclass
@@ -45,8 +46,8 @@ class D_AgentConnect(AgentCon):
     async def create(cls, agent: D_Agent, msg_id: str) -> Self:
         try:
             ws = await websockets.connect(agent.uri)
-        except Exception:
-            raise CreateButRequestFail()
+        except Exception as e:
+            raise CreateButRequestFail() from e
         return cls(ws, msg_id)
 
     async def send(self, data: dict, event=""):

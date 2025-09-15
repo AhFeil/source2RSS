@@ -1,9 +1,10 @@
 import logging.config
 import os
 from collections import defaultdict
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Self
+from typing import Any, Self
 
 from briefconf import BriefConfig
 
@@ -57,13 +58,13 @@ class Config(BriefConfig):
     wait_before_close_browser: int = 180
     refractory_period: int = 60 # 当一个抓取器实例被创建后的一段时间，不接受同一种实例的创建，避免无效的重复
     init_script_path: str = "" # TODO
-    _crawl_schedules: tuple[tuple[str, tuple], ...] = tuple() # 运行时可以改变
+    _crawl_schedules: tuple[tuple[str, tuple], ...] = () # 运行时可以改变
 
     @classmethod
     def load(cls, config_path: str) -> Self:
         configs = cls._load_config(config_path)
         if merged_config:
-            Path(merged_config).write_text(BriefConfig._dump(configs))
+            Path(merged_config).write_text(BriefConfig._dump(configs))  # noqa: SLF001
         logging.config.dictConfig(configs["logging"])
 
         data_dir = configs.get("data_dir", "config_and_data_files")
@@ -137,7 +138,7 @@ class Config(BriefConfig):
 
     def get_scraper_profile(self, index: int) -> str:
         if 0 <= index < len(self.scraper_profile_file):
-            with open(self.scraper_profile_file[index], 'r', encoding="utf-8") as f:
+            with open(self.scraper_profile_file[index], encoding="utf-8") as f:
                 return f.read()
         return "You doesn't set the scraper profile file"
 

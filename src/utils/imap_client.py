@@ -1,3 +1,4 @@
+# ruff: noqa
 import email
 import email.utils
 import imaplib

@@ -4,7 +4,8 @@ import logging
 from urllib.robotparser import RobotFileParser
 
 import httpx
-from playwright.async_api import TimeoutError, async_playwright
+from playwright.async_api import TimeoutError as PwTimeoutError
+from playwright.async_api import async_playwright
 
 from configHandle import config
 
@@ -43,8 +44,8 @@ class AsyncBrowserManager:
     _lock = asyncio.Lock()
     _logger = logging.getLogger("AsyncBrowserManager")
 
-    def __init__(self, id: str, user_agent=None):
-        self.id = id
+    def __init__(self, id_: str, user_agent=None):
+        self.id_ = id_
         self.user_agent = user_agent
         self.context = None
 
@@ -55,22 +56,24 @@ class AsyncBrowserManager:
             if AsyncBrowserManager._browser is None:
                 AsyncBrowserManager._playwright = await async_playwright().start()
                 AsyncBrowserManager._browser = await AsyncBrowserManager._playwright.chromium.launch(headless=True)
-                AsyncBrowserManager._logger.info("create browser for " + self.id)
-        await AsyncBrowserManager.waiting_operation(self.id, config.max_opening_context)
-        self.context = await AsyncBrowserManager._browser.new_context(viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent)
-        AsyncBrowserManager._logger.debug("create context for " + self.id)
+                AsyncBrowserManager._logger.info("create browser for " + self.id_)
+        await AsyncBrowserManager.waiting_operation(self.id_, config.max_opening_context)
+        self.context = await AsyncBrowserManager._browser.new_context(
+            viewport={"width": 1920, "height": 1080}, accept_downloads=True, user_agent=self.user_agent
+        )
+        AsyncBrowserManager._logger.debug("create context for " + self.id_)
         return self.context
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         async with AsyncBrowserManager._lock:
             await self.context.close() # type: ignore
-            AsyncBrowserManager._logger.debug("destroy context of " + self.id)
+            AsyncBrowserManager._logger.debug("destroy context of " + self.id_)
             AsyncBrowserManager._users -= 1
             # 所有用户都退出后清理资源
-        asyncio.create_task(AsyncBrowserManager.delayed_clean(self.id, config.wait_before_close_browser))
+        asyncio.create_task(AsyncBrowserManager.delayed_clean(self.id_, config.wait_before_close_browser))
 
     @classmethod
-    async def delayed_clean(cls, id, delay: int):
+    async def delayed_clean(cls, id_, delay: int):
         async with AsyncBrowserManager._lock:
             if cls._users > 0:
                 return
@@ -82,22 +85,22 @@ class AsyncBrowserManager:
                 await cls._playwright.stop() # type: ignore
                 cls._browser = None
                 cls._playwright = None
-                cls._logger.info("destroy browser by " + id)
+                cls._logger.info("destroy browser by " + id_)
             elif all_users > 0:
-                cls._logger.info("leave browser alone, said by " + id)
+                cls._logger.info("leave browser alone, said by " + id_)
             elif all_users == 0 and cls._browser is None:
                 pass
             else:
-                cls._logger.warning(f"unexpected situcation {id}, {cls._users=}, {cls._users_that_is_waiting=}, {cls._browser=}")
+                cls._logger.warning(f"unexpected situcation {id_}, {cls._users=}, {cls._users_that_is_waiting=}, {cls._browser=}")
 
     @classmethod
-    async def waiting_operation(cls, id, max: int):
+    async def waiting_operation(cls, id_, max_: int):
         need_wait = True
         cls._users_that_is_waiting += 1
         while(need_wait):
             async with cls._lock:
-                if cls._users >= max:
-                    cls._logger.info(id + " need to wait for context")
+                if cls._users >= max_:
+                    cls._logger.info(id_ + " need to wait for context")
                     need_wait = True
                 else:
                     cls._users += 1
@@ -108,22 +111,22 @@ class AsyncBrowserManager:
 
 
     @staticmethod
-    async def get_html_or_none(id: str, url: str, user_agent, block_func=None):
+    async def get_html_or_none(id_: str, url: str, user_agent, block_func=None):
         html_content = None
-        async with AsyncBrowserManager(id, user_agent) as context:
+        async with AsyncBrowserManager(id_, user_agent) as context:
             if block_func:
                 await context.route("**/*", block_func)
             page = await context.new_page()
-            AsyncBrowserManager._logger.debug("create page for " + id)
+            AsyncBrowserManager._logger.debug("create page for " + id_)
             try:
                 await page.goto(url, timeout=180000, wait_until='networkidle')   # 单位是毫秒，共 3 分钟
-            except TimeoutError as e:
-                AsyncBrowserManager._logger.warning(f"Page navigation of {id} timed out: {e}")
+            except PwTimeoutError as e:
+                AsyncBrowserManager._logger.warning(f"Page navigation of {id_} timed out: {e}")
             else:
                 html_content = await page.content()
             finally:
                 await page.close()
-                AsyncBrowserManager._logger.debug("destroy page of " + id)
+                AsyncBrowserManager._logger.debug("destroy page of " + id_)
         return html_content
 
 

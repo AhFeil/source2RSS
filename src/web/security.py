@@ -1,3 +1,4 @@
+# ruff: noqa: B904
 import hashlib
 import os
 from dataclasses import dataclass
@@ -41,7 +42,7 @@ class User:
 
 
 # 非线程安全，但在单个事件循环下是协程安全的
-class UserRegistry():
+class UserRegistry:
     _invite_code = None
     _left_count = 0
     _user_registry: dict[str, User] = {}
@@ -109,7 +110,7 @@ class UserRegistry():
         data.save_users_and_etc(cls._invite_code, cls._left_count, users)
 
 
-UserRegistry._load_users_and_etc(data.get_users_and_etc())
+UserRegistry._load_users_and_etc(data.get_users_and_etc())  # noqa: SLF001
 
 
 security = HTTPBasic()

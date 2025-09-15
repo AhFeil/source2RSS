@@ -27,7 +27,7 @@ class DatabaseIntf(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reversed: bool=False) -> list[ArticleDict]:
+    def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reverse: bool=False) -> list[ArticleDict]:
         """根据 key 排序，默认按照从新到旧，从大到小，返回最前面的若干条"""
         raise NotImplementedError
 

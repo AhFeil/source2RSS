@@ -1,6 +1,7 @@
 import re
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import AsyncGenerator, Self
+from typing import Self
 
 import feedparser
 from bs4 import BeautifulSoup
@@ -101,4 +102,4 @@ class YoutubeChannel(WebsiteScraper):
 
     @staticmethod
     def is_valid_channel_id(s: str) -> bool:
-        return isinstance(s, str) and 0 < len(s) and all(c.isalnum() or c in "-_" for c in s)
+        return isinstance(s, str) and len(s) > 0 and all(c.isalnum() or c in "-_" for c in s)

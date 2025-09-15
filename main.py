@@ -35,7 +35,7 @@ fast_app.include_router(usage.router)
 fast_app.include_router(user.router)
 fast_app.include_router(manage.router)
 
-for _path, module in Plugins.imported_modules.items():
+for module in Plugins.imported_modules.values():
     if "router" in getattr(module, "__all__", []):
         fast_app.include_router(module.router)
 

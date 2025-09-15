@@ -1,3 +1,4 @@
+# ruff: noqa: B904
 """主动请求某个源的 RSS ，会触发抓取过程并返回结果"""
 import logging
 from datetime import datetime
@@ -108,7 +109,7 @@ async def go_to_crawl(cls_id: str, one_group_params: tuple, *, cache_type: Cache
         raise HTTPException(status_code=500, detail="crawl result is not expected")
 
 @router.get("/{cls_id}/")
-async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []):
+async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []): # noqa: B006
     """已登录用户可以用此主动请求更新，并获取更新后的源"""
     if Plugins.get_plugin_or_none(cls_id) is None or cls_id == "Representative":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")

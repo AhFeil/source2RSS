@@ -1,6 +1,7 @@
+from collections.abc import AsyncGenerator
 from datetime import datetime, timedelta
 from itertools import islice
-from typing import Any, AsyncGenerator
+from typing import Any
 
 from bs4 import BeautifulSoup
 
