@@ -145,6 +145,9 @@ class BilibiliUp(WebsiteScraper):
                 await config.post2RSS("error log of BilibiliUp when get_response_json", msg)
                 raise CreateButRequestFail() from e
             finally:
+                if not (j_res[0] and j_res[0].get("data")):
+                    html_content = await page.content()
+                    cls._logger.error("BilibiliUp does not find url, the page content is " + html_content[-1000:])
                 await page.close()
                 AsyncBrowserManager._logger.debug("destroy page of " + id_)
         return j_res[0]
