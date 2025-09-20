@@ -6,9 +6,10 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from preproc import config, data
+from preproc import data
 from src.scraper import AccessLevel
 
+from . import sort_rss_list
 from .security import UserRegistry
 
 logger = logging.getLogger(__name__)
@@ -20,10 +21,11 @@ router = APIRouter(
 
 templates = Jinja2Templates(directory='src/web/templates')
 
+
 @router.get("", response_class=HTMLResponse)
 @router.get("/", response_class=HTMLResponse)
 async def get_rss_list(request: Request):
-    context = {"public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC)}
+    context = {"public_rss_groups": sort_rss_list(data.rss_cache.get_source_list(AccessLevel.PUBLIC))}
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
 

@@ -2,7 +2,7 @@ import logging
 from abc import ABC, ABCMeta, abstractmethod
 from collections.abc import AsyncGenerator, Generator
 from datetime import datetime, timedelta
-from typing import Any, Self
+from typing import Any, ClassVar, Self
 
 from api._v2 import Plugins
 
@@ -22,12 +22,15 @@ class ScraperMeta(ABCMeta):
     """元类，用于自动注册插件类"""
     def __init__(cls, name, bases, attrs):
         super().__init__(name, bases, attrs)
-        if name == "WebsiteScraper" or issubclass(cls, WebsiteScraper):
-            plugin_name = getattr(cls, 'name', name)
-            cls._logger = logging.getLogger(plugin_name)
-        # 排除基类自身，并确保是PluginBase的子类
-        if name != "WebsiteScraper" and issubclass(cls, WebsiteScraper):
-            # 获取插件名称（优先使用类属性name，否则使用类名）
+        if name == "WebsiteScraper":  # 此时 WebsiteScraper 还未定义，下面的不能执行
+            return
+        if not issubclass(cls, WebsiteScraper):
+            return
+        if not getattr(cls, 'readable_name', None):
+            cls.readable_name = name
+        cls._logger = logging.getLogger(name)
+        # 排除基类自身
+        if name != "WebsiteScraper":
             if ScraperMeta._is_init_overridden(cls):
                 cls.is_variety = True
             else:
@@ -36,7 +39,7 @@ class ScraperMeta(ABCMeta):
                 cls.support_old2new = True
             else:
                 cls.support_old2new = False
-            Plugins.register(plugin_name, cls)
+            Plugins.register(name, cls)
 
     @staticmethod
     def _is_init_overridden(cls_instance):
@@ -126,6 +129,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     home_url = "https://yanh.tech/"
     # 请求每页之间的间隔，秒
     page_turning_duration = 5
+    _logger: ClassVar[logging.Logger]
 
     @abstractmethod
     def _source_info(self) -> dict:

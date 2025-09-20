@@ -3,8 +3,8 @@
 {% block content %}
     <h2>首页</h2>
 
-    <p>抓取时间表：</p>
-    <ul>
+    <h3>抓取时间表</h3>
+    <ul style="max-height: 50vh; overflow-y: auto;">
         {% for point, class_names in crawl_schedules %}
         <li>
             <p>{{ point }}：{{ ', '.join(class_names) }}</p>

@@ -25,6 +25,14 @@
     </form>
     <div id="invite_code_result"></div>
 
+    <br><br>
+    <p>当前正在运行，以及运行完、运行中失败退出、创建失败这三种情况发生后处于不应期的抓取器：</p>
+    <ul>
+        {% for scraper_name_and_params in running_scrapers %}
+        <li>{{ scraper_name_and_params }}</li>
+        {% endfor %}
+    </ul>
+
     {% for i, sp in scraper_profiles_content %}
     <br><br>
     <div>

@@ -76,7 +76,7 @@ async def make_desc(scraper_class) -> str:
 
 @router.get("/", response_class=HTMLResponse)
 async def usage_page(request: Request):
-    context = {"all_scrapers": tuple(Plugins.get_all_id())}
+    context = {"all_scrapers": sorted(Plugins.get_all_id_with_name(), key=lambda x: x[0])}
     return templates.TemplateResponse(request=request, name="usage.html", context=context)
 
 

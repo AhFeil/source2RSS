@@ -4,6 +4,7 @@ import logging
 from datetime import datetime
 from enum import Enum, auto
 from functools import wraps
+from itertools import chain
 from typing import Annotated
 
 from cachetools import TTLCache
@@ -15,6 +16,7 @@ from src.crawl import ScraperNameAndParams, start_to_crawl
 from src.crawl.crawl_error import CrawlError
 from src.scraper import AccessLevel
 
+from . import sort_rss_list
 from .get_rss import select_rss, templates
 from .security import User, UserRegistry, get_valid_user
 
@@ -29,16 +31,19 @@ router = APIRouter(
 @router.get("/", response_class=HTMLResponse)
 async def get_your_rss_list(request: Request, user: Annotated[User, Depends(get_valid_user)]):
     """已登录用户可以用此查看自己有权限查看的所有源"""
+    if user.is_administrator:
+        user_rss = data.rss_cache.get_source_list(AccessLevel.ADMIN, AccessLevel.PUBLIC, (AccessLevel.PRIVATE_USER, ))
+    else:
+        user_rss = data.rss_cache.get_source_list(AccessLevel.SHARED_USER, AccessLevel.PUBLIC)
+    auth_rss_groups = sort_rss_list([
+        (table_name, data.rss_cache.get_source_readable_name(table_name))
+        for table_name in UserRegistry.get_sources_by_name(user.name)
+    ])
     context = {
-        "public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC),
-        "user_rss_list": ((table_name, data.rss_cache.get_source_readable_name(table_name)) for table_name in UserRegistry.get_sources_by_name(user.name)),
+        "user_rss_groups": sort_rss_list(user_rss),
+        "auth_rss_groups": auth_rss_groups,
         "user_name": user.name,
     }
-    if user.is_administrator:
-        context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.ADMIN, AccessLevel.PUBLIC, (AccessLevel.PRIVATE_USER, ))
-    else:
-        context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.SHARED_USER, AccessLevel.PUBLIC)
-
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
 @router.get("/{source_name}.xml/")

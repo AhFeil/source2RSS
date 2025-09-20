@@ -16,6 +16,7 @@ from src.scraper.tools import AsyncBrowserManager
 
 
 class BilibiliUp(WebsiteScraper):
+    readable_name = "B站UP主动态"
     home_url = "https://space.bilibili.com"
     page_turning_duration = 60
     support_old2new = True

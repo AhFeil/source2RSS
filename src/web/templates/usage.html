@@ -8,9 +8,12 @@
     <h2>Usage Page</h2>
 
     <ol>
-        {% for scraper_name in all_scrapers %}
+        {% for scraper_id, scraper_name in all_scrapers %}
         <li>
-            <a href="/usage/{{ scraper_name | urlencode }}/">{{ scraper_name }}</a>
+            <p>
+                {{ scraper_name }}:
+                <a href="/usage/{{ scraper_id | urlencode }}/">{{ scraper_id }}</a>
+            </p>
         </li>
         {% endfor %}
     </ol>

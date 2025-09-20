@@ -17,15 +17,10 @@
 
         <nav>
             <a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>首页</a>
-            <a href="/source2rss/" {% if request.url.path == '/source2rss/' %}aria-current="page"{% endif %} >公开订阅源</a>
-            <a href="/usage/" {% if request.url.path == '/usage/' %}aria-current="page"{% endif %} >用法</a>
-            <a href="/users/me/register/" {% if request.url.path == '/users/me/register/' %}aria-current="page"{% endif %} >注册</a>
-            <!-- 登录用户可以访问的： -->
-            <a href="/query_rss/" >你的订阅源</a>
-            <a href="/users/me/" >后台</a>
-            <!-- 管理员可以访问的： -->
-            <a href="/manage/" >管理员页面</a>
-            <a href="/docs" >OpenAPI</a>
+            <a href="/source2rss/" {% if request.url.path == '/source2rss/' %}aria-current="page"{% endif %}>公开订阅源</a>
+            <a href="/usage/" {% if request.url.path == '/usage/' %}aria-current="page"{% endif %}>用法</a>
+            <a href="/users/me/" {% if request.url.path == '/users/me/' %}aria-current="page"{% endif %}>后台</a>
+            <a href="/users/me/register/" {% if request.url.path == '/users/me/register/' %}aria-current="page"{% endif %}>注册</a>
         </nav>
     </header>
 

@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from preproc import config
 from src.crawl import start_to_crawl_all
+from src.crawl.crawler import running_scrapers
 
 from .get_rss import templates
 from .security import User, UserRegistry, get_admin_user
@@ -26,6 +27,7 @@ async def manage_page(request: Request):
     context = {
         "invite_code": UserRegistry._invite_code, # noqa: SLF001
         "count": UserRegistry._left_count, # noqa: SLF001
+        "running_scrapers": running_scrapers,
         "scraper_profiles_content": scraper_profiles_content,
     }
     return templates.TemplateResponse(request=request, name="manage.html", context=context)

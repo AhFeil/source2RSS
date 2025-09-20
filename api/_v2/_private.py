@@ -25,6 +25,10 @@ class Plugins:
     def get_all_id(cls) -> Iterable[str]:
         return cls._registry.keys()
 
+    @classmethod
+    def get_all_id_with_name(cls) -> Iterable[tuple[str, str]]:
+        return ((id_, class_.readable_name) for id_, class_ in cls._registry.items())
+
     @staticmethod
     def iter_namespace(ns_pkg):
         return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
