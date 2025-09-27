@@ -128,7 +128,7 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
 async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:  # noqa: C901
     """创建实例然后走统一流程"""
     res = []
-    for scraper in scrapers:
+    for scraper in scrapers: # TODO 将单个的抽出
         try:
             instance = await get_instance(scraper)
             if instance is None:

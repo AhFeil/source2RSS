@@ -43,14 +43,14 @@ stop_agent type:
 
 
 # 将所有文件 amend
-amend:
+amend argument="":
   cd "{{root}}" && git add .
-  git commit --amend
+  git commit --amend {{argument}}
 
 # 将所有文件 commit
-commit msg:
+commit msg argument="":
   cd "{{root}}" && git add .
-  git commit -m "{{msg}}"
+  git commit -m "{{msg}}" {{argument}}
 
 
 # === just 管理命令 ===
