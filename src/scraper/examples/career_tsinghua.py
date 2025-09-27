@@ -67,7 +67,7 @@ class CareerTsinghua(WebsiteScraper):
 
         while True:
             data_raw['pgno'] = str(start_page)
-            cls._logger.info(f"清华大学学生职业发展指导中心-招聘信息 start to parse page {start_page}")
+            cls._logger.info("清华大学学生职业发展指导中心-招聘信息 start to parse page %d", start_page)
             response = await cls._request(cls.home_url, data_raw)
             if response is None:
                 return

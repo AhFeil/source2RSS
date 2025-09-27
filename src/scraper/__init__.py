@@ -13,4 +13,7 @@ from .model import (
 from .scraper import WebsiteScraper
 from .tools import AsyncBrowserManager
 
-__all__ = ["SourceMeta", "ArticleInfo", "PublishMethod", "SrcMetaDict", "ArticleDict", "WebsiteScraper", "LocateInfo", "Sequence", "SortKey", "AccessLevel", "AsyncBrowserManager"]
+__all__ = [
+    "SourceMeta", "ArticleInfo", "PublishMethod", "SrcMetaDict", "ArticleDict", "WebsiteScraper",
+    "LocateInfo", "Sequence", "SortKey", "AccessLevel", "AsyncBrowserManager"
+]

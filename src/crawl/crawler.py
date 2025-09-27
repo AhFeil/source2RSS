@@ -108,7 +108,7 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
     # 可以创建，但是重复：有另一个相同的在运行，引发异常
     if has_scraper(scraper):
 
-        logger.info("repeat instance of " + str(scraper))
+        logger.info("repeat instance of %s", str(scraper))
         raise CrawlRepeatError(f"repeat instance of {scraper.name}")
     # 最终创建实例
     add_scraper(scraper) # 需要保证每一处调用该函数的地方都能正常移除

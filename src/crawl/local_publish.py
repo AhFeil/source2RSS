@@ -24,11 +24,11 @@ async def save_articles(data, source_name, article_source, store_a_new_one: list
             # 每篇文章整合成一个文档，存入相应集合
             data.db_intf.store2database(source_name, a)
             store_a_new_one[0] = True
-            logger.info(f"{source_name} have new article: {a['title']}")
+            logger.info("%s have new article: %s", source_name, a['title'])
     except asyncio.TimeoutError:
-        logger.info(f"Processing {source_name} articles took too long.")
+        logger.info("Processing %s articles took too long.", source_name)
     except FailtoGet:
-        logger.info(f"FailtoGet: Processing {source_name} 网络出错")
+        logger.info("FailtoGet: Processing %s 网络出错", source_name)
 
 async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
     """让抓取器运行一次，把数据保存和转换"""
@@ -48,7 +48,7 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
     try:
         await asyncio.wait_for(save_articles(data, source_name, instance.get(flags, sequence), got_new), max_wait_time)
     except asyncio.TimeoutError:
-        logger.info(f"Processing {source_name} articles took too long when save_articles")
+        logger.info("Processing %s articles took too long when save_articles", source_name)
 
     if got_new[0] or data.rss_cache.rss_is_absent(source_name):
         # 当有新内容或文件缺失的情况下，会生成 RSS 并保存
@@ -56,8 +56,8 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
         rss_feed = generate_rss(source_info, result)
         rss_json = {"source_info": source_info, "articles": result}
         data.rss_cache.set_rss(source_name, rss_feed, rss_json, source_info["access"])
-        logger.info(f"{source_name} updates")
+        logger.info("%s updates", source_name)
     else:
-        logger.info(f"{source_name} exists and doesn't update")
+        logger.info("%s exists and doesn't update", source_name)
 
     return source_name

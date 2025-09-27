@@ -34,7 +34,7 @@ class OldStone(WebsiteScraper):
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         start_page = 1
         while True:
-            cls._logger.info(f"Old Stone start to parse page {start_page}")
+            cls._logger.info("Old Stone start to parse page %d", start_page)
             page = "" if start_page == 1 else f"page/{start_page}/"
             response = await get_response_or_none(f"{OldStone.home_url}/{page}", cls.headers)
             if response is None:

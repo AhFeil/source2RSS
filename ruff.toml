@@ -2,5 +2,5 @@ line-length = 160
 
 [lint]
 select = ["A", "B", "C", "E", "F", "G", "I", "ASYNC", "INT", "SLF", "ARG", "T20"]
-ignore = ["ARG001", "ARG002", "F401", "UP045", "SIM910", "B008", "G004", "G003"]
+ignore = ["ARG001", "ARG002", "F401", "UP045", "SIM910", "B008"]
 extend-select = ["SIM", "PERF", "UP", "PT", "FAST"]

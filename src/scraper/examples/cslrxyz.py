@@ -36,7 +36,7 @@ class CSLRXYZ(WebsiteScraper):
         start_page = 1
         while True:
             url = f"http://cslrxyz.xyz/index.php/page/{start_page}/"
-            cls._logger.info(f"二语习得英语学习中文网 start to parse page {start_page}")
+            cls._logger.info("二语习得英语学习中文网 start to parse page %d", start_page)
             response = await get_response_or_none(url, cls.headers)
             if response is None:
                 return

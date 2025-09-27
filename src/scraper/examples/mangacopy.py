@@ -34,7 +34,7 @@ class MangaCopy(WebsiteScraper):
         Args:
             book_title: 漫画名称。约束：不为空。
             book_id: 漫画在该网站下的 id ，可以在漫画主页的网址中拿到，如 https://www.mangacopy.com/comic/huaxoajiedexinfushenghuo 中最后一串。约束：不为空且由数字或字母组成。
-        """
+        """  # noqa: E501
         if not (book_title and MangaCopy.is_valid_book_id(book_id)):
             raise CreateByInvalidParam()
         book_url = f"{cls.home_url}/comic/{book_id}"

@@ -38,7 +38,7 @@ class CNUDaily(WebsiteScraper):
         start_page = 1
         while True:
             url = f"http://www.cnu.cc/selectedsFlow/{start_page}"
-            cls._logger.info(f"CNU 每日精选 start to parse page {start_page}")
+            cls._logger.info("CNU 每日精选 start to parse page %d", start_page)
             response = await get_response_or_none(url, cls.headers)
             if response is None:
                 return

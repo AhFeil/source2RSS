@@ -46,7 +46,8 @@ class Source2RSSClient:
         if send_test or bool(os.getenv("SOURCE2RSS_CLIENT_SEND_TEST")):
             import asyncio
             title = f"This is a test article from {cfg['source_name']}"
-            summary = "This article was posted because you set the environment variable 'SOURCE2RSS_CLIENT_SEND_TEST' or pass True for 'send_test', so when the source2RSS client was being creating, it will send a test article."
+            summary = """This article was posted because you set the environment variable 'SOURCE2RSS_CLIENT_SEND_TEST'
+or pass True for 'send_test', so when the source2RSS client was being creating, it will send a test article."""
             try:
                 loop = asyncio.get_running_loop()
             except RuntimeError:
@@ -63,7 +64,7 @@ class Source2RSSClient:
             try:
                 response = await client.post(url=self.post_url, json=data_raw)
             except Exception as e:
-                logger.warning(f"exception of Source2RSSClient - post_article: {e}")
+                logger.warning("exception of Source2RSSClient - post_article: %s", str(e))
             else:
                 return response
 
@@ -74,7 +75,7 @@ class Source2RSSClient:
             try:
                 response = client.post(url=self.post_url, json=data_raw)
             except Exception as e:
-                logger.warning(f"exception of Source2RSSClient - post_article: {e}")
+                logger.warning("exception of Source2RSSClient - post_article: %s", str(e))
             else:
                 return response
 

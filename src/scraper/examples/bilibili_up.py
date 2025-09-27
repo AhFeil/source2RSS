@@ -66,13 +66,13 @@ class BilibiliUp(WebsiteScraper):
 
     @classmethod
     async def _parse(cls, flags, up_name, j_res) -> AsyncGenerator[dict, None]:
-        cls._logger.info(f"B站UP{up_name}的动态 start to parse")
+        cls._logger.info("B站UP%s的动态 start to parse", up_name)
         async for a in cls._parse_inner(j_res, flags.get("pub_time")):
             yield a
 
     @classmethod
     async def _parse_old2new(cls, flags, up_name, j_res) -> AsyncGenerator[dict, None]:
-        cls._logger.info(f"B站UP{up_name}的动态 start to parse from old to new")
+        cls._logger.info("B站UP%s的动态 start to parse from old to new", up_name)
         async for a in cls._parse_inner(j_res, flags[SortKey.PUB_TIME], True):
             yield a
 
@@ -133,12 +133,12 @@ class BilibiliUp(WebsiteScraper):
         async with AsyncBrowserManager(id_, user_agent) as context:
             await context.route("**/*", block_func)
             page = await context.new_page()
-            AsyncBrowserManager._logger.debug("create page for " + id_)
+            AsyncBrowserManager._logger.debug("create page for %s", id_)
             page.on("response", lambda response: cls.handle_response(response, j_res))
             try:
                 await page.goto(space_url, timeout=60000, wait_until='networkidle')
             except PwTimeoutError:
-                AsyncBrowserManager._logger.warning(f"Page navigation of {id_} timed out")
+                AsyncBrowserManager._logger.warning("Page navigation of %s timed out", id_)
                 raise CreateButRequestFail()
             except Exception as e:
                 msg = f"Page navigation of {id_} Exception occured: {e}"
@@ -148,9 +148,9 @@ class BilibiliUp(WebsiteScraper):
             finally:
                 if not (j_res[0] and j_res[0].get("data")):
                     html_content = await page.content()
-                    cls._logger.error("BilibiliUp does not find url, the page content is " + html_content[-1000:])
+                    cls._logger.error("BilibiliUp does not find url, the page content is %s", html_content[-1000:])
                 await page.close()
-                AsyncBrowserManager._logger.debug("destroy page of " + id_)
+                AsyncBrowserManager._logger.debug("destroy page of %s", id_)
         return j_res[0]
 
     @classmethod

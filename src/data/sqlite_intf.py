@@ -41,12 +41,12 @@ class SQliteIntf(DatabaseIntf):
                 meta = SourceMeta4ORM(**source_info)
                 session.add(meta)
                 session.commit()
-                self.logger.info(f"{source_name} Add into source_meta")
+                self.logger.info("%s Add into source_meta", source_name)
             elif not res.equal_to(source_info):
                 # 元信息不一致就更新
                 res.update_from(source_info)
                 session.commit()
-                self.logger.info(f"{source_name} Update its source_meta")
+                self.logger.info("%s Update its source_meta", source_name)
             else:
                 # 元信息保持不变就跳过
                 pass
