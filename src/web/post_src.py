@@ -1,3 +1,4 @@
+# ruff: noqa: B904
 """通过 API 向 source2RSS 发送消息，以 RSS 发布"""
 import logging
 from urllib.parse import quote
@@ -8,7 +9,7 @@ from fastapi.responses import JSONResponse
 from preproc import data
 from src.scraper import AccessLevel, ArticleInfo, SortKey, SourceMeta
 
-from .query_rss import no_cache_flow
+from .query_rss import CacheType, go_to_crawl
 from .security import get_admin_user
 
 logger = logging.getLogger(__name__)
@@ -49,7 +50,7 @@ async def delivery(source_name: str, articles: list[ArticleInfo]):
             "key4sort": SortKey.PUB_TIME,
             "access": AccessLevel.ADMIN # todo 应该用 LIMITED_USER
         }
-    source_name = await no_cache_flow("Representative", (source, j_articles))
+    source_name = await go_to_crawl("Representative", (source, j_articles), cache_type=CacheType.JUST_SKIP_CACHE)
     url_without_suffix = "http://rss.vfly2.com/source2rss/" + quote(source_name)
     xml_url = url_without_suffix + ".xml"
     json_url = url_without_suffix + ".json"

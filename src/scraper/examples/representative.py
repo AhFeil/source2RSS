@@ -1,4 +1,5 @@
-from typing import AsyncGenerator, Self
+from collections.abc import AsyncGenerator
+from typing import Self
 
 from src.scraper.scraper import WebsiteScraper
 from src.scraper.scraper_error import CreateByInvalidParam
@@ -26,7 +27,7 @@ class Representative(WebsiteScraper):
         return self.source
 
     @classmethod
-    async def _parse(cls, flags, articles) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags, articles) -> AsyncGenerator[dict, None]: # noqa: ARG003
         for a in articles:
             yield a
 

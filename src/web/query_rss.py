@@ -1,7 +1,10 @@
+# ruff: noqa: B904
 """主动请求某个源的 RSS ，会触发抓取过程并返回结果"""
 import logging
 from datetime import datetime
+from enum import Enum, auto
 from functools import wraps
+from itertools import chain
 from typing import Annotated
 
 from cachetools import TTLCache
@@ -10,9 +13,10 @@ from fastapi.responses import HTMLResponse
 
 from preproc import Plugins, config, data
 from src.crawl import ScraperNameAndParams, start_to_crawl
-from src.crawl.crawl_error import CrawlInitError
+from src.crawl.crawl_error import CrawlError
 from src.scraper import AccessLevel
 
+from . import sort_rss_list
 from .get_rss import select_rss, templates
 from .security import User, UserRegistry, get_valid_user
 
@@ -27,17 +31,19 @@ router = APIRouter(
 @router.get("/", response_class=HTMLResponse)
 async def get_your_rss_list(request: Request, user: Annotated[User, Depends(get_valid_user)]):
     """已登录用户可以用此查看自己有权限查看的所有源"""
-    context = {
-        "public_rss_list": data.rss_cache.get_source_list(AccessLevel.PUBLIC),
-        "user_rss_list": ((table_name, data.rss_cache.get_source_readable_name(table_name)) for table_name in UserRegistry.get_sources_by_name(user.name)),
-        "user_name": user.name,
-        "ad_html": config.ad_html
-    }
     if user.is_administrator:
-        context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.ADMIN, AccessLevel.PUBLIC, (AccessLevel.PRIVATE_USER, ))
+        user_rss = data.rss_cache.get_source_list(AccessLevel.ADMIN, AccessLevel.PUBLIC, (AccessLevel.PRIVATE_USER, ))
     else:
-        context["rss_list"] = data.rss_cache.get_source_list(AccessLevel.SHARED_USER, AccessLevel.PUBLIC)
-
+        user_rss = data.rss_cache.get_source_list(AccessLevel.SHARED_USER, AccessLevel.PUBLIC)
+    auth_rss_groups = sort_rss_list([
+        (table_name, data.rss_cache.get_source_readable_name(table_name))
+        for table_name in UserRegistry.get_sources_by_name(user.name)
+    ])
+    context = {
+        "user_rss_groups": sort_rss_list(user_rss),
+        "auth_rss_groups": auth_rss_groups,
+        "user_name": user.name,
+    }
     return templates.TemplateResponse(request=request, name="rss_list.html", context=context)
 
 @router.get("/{source_name}.xml/")
@@ -61,46 +67,63 @@ async def get_user_or_upper_rss(source_name: str, user: Annotated[User, Depends(
         detail=f"the source '{source_name}' is not accessed by '{user.name}'"
     )
 
+class CacheType(Enum):
+    NORMAL = auto()
+    JUST_REFRESH = auto()    # 不管缓存里的，总是执行，并把结果放到缓存中
+    JUST_SKIP_CACHE = auto() # 总是执行，不把结果放缓存中
 
 cache=TTLCache(maxsize=config.query_cache_maxsize, ttl=config.query_cache_ttl_s)
 
 def async_cached(func):
     @wraps(func)
-    async def wrapper(*args, **kwargs):
+    async def wrapper(cls_id: str, one_group_params: tuple, cache_type: CacheType):
+        if cache_type is CacheType.JUST_SKIP_CACHE:
+            return await func(cls_id, one_group_params, cache_type=cache_type)
         # 根据传入的参数生成唯一的 key
-        cache_key = (args, frozenset(kwargs.items()))
-        if cache_key in cache:
+        cache_key = (cls_id, one_group_params)
+        if cache_type is CacheType.NORMAL and cache_key in cache:
+            logger.debug("%s, %s, has cache", cls_id, str(one_group_params))
             return cache[cache_key]
-        result = await func(*args, **kwargs)
-        cache[cache_key] = result
+        logger.debug("%s, %s, will crawl immediately", cls_id, str(one_group_params))
+        try:
+            result = await func(cls_id, one_group_params, cache_type=cache_type)
+            cache[cache_key] = result
+        except HTTPException as e:
+            if e.status_code != 466:
+                raise
+            # 对于不应期，尝试返回缓存中的值
+            result = cache.get(cache_key)
+            if not result:
+                raise
         return result
     return wrapper
 
-async def no_cache_flow(cls_id: str, one_group_params: tuple) -> str:
+@async_cached
+async def go_to_crawl(cls_id: str, one_group_params: tuple, *, cache_type: CacheType=CacheType.NORMAL) -> str:
+    scraper_with_one_group_params = ScraperNameAndParams.create(cls_id, (one_group_params, ))
     try:
-        scraper_with_one_group_params = ScraperNameAndParams.create(cls_id, (one_group_params, ))
         res = await start_to_crawl((scraper_with_one_group_params, ))
-        return res[0][0] if res else "error"
-    except CrawlInitError as e:
+    except CrawlError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
 
-@async_cached
-async def cache_flow(cls_id: str, one_group_params: tuple) -> str:
-    return await no_cache_flow(cls_id, one_group_params)
+    try:
+        return res[0][0]
+    except IndexError:
+        await config.post2RSS("error log of no_cache_flow", f"{res=}, {cls_id=}, {one_group_params=}")
+        raise HTTPException(status_code=500, detail="crawl result is not expected")
 
 @router.get("/{cls_id}/")
-async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []):
+async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []): # noqa: B006
     """已登录用户可以用此主动请求更新，并获取更新后的源"""
     if Plugins.get_plugin_or_none(cls_id) is None or cls_id == "Representative":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
+    logger.info(f"{cls_id} get new request of {q}")
     # todo 检查，用户只能请求用户级别的抓取器
     if user.is_administrator and not config.in_bedtime(cls_id, datetime.now().strftime("%H:%M")):
-        logger.info(f"{cls_id} get new request of {q}, go to no_cache_flow")
-        source_name = await no_cache_flow(cls_id, tuple(q))
+        source_name = await go_to_crawl(cls_id, tuple(q), cache_type=CacheType.JUST_REFRESH)
         rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.ADMIN)
     else: # 对于普通用户，通过缓存防止滥用
-        logger.info(f"{cls_id} get new request of {q}, go to cache_flow")
-        source_name = await cache_flow(cls_id, tuple(q))
+        source_name = await go_to_crawl(cls_id, tuple(q), cache_type=CacheType.NORMAL)
         # 能触发就能访问，因此这里直接找 source_name 对应的即可
         rss_data = data.rss_cache.get_source_or_None(source_name, AccessLevel.PRIVATE_USER)
     return select_rss(rss_data, "xml")

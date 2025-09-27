@@ -1,5 +1,5 @@
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import AsyncGenerator
 
 from src.scraper.model import SortKey
 from src.scraper.scraper import WebsiteScraper

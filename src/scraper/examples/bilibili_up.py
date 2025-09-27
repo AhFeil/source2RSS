@@ -1,8 +1,9 @@
+from collections.abc import AsyncGenerator
 from contextlib import suppress
 from datetime import datetime
-from typing import AsyncGenerator, Self
+from typing import Self
 
-from playwright.async_api import TimeoutError
+from playwright.async_api import TimeoutError as PwTimeoutError
 
 from preproc import config
 from src.scraper.model import SortKey
@@ -15,6 +16,7 @@ from src.scraper.tools import AsyncBrowserManager
 
 
 class BilibiliUp(WebsiteScraper):
+    readable_name = "B站UP主动态"
     home_url = "https://space.bilibili.com"
     page_turning_duration = 60
     support_old2new = True
@@ -123,29 +125,32 @@ class BilibiliUp(WebsiteScraper):
     @classmethod
     async def get_response_json(cls, uid, space_url) -> dict:
         user_agent = cls.headers["User-Agent"]
-        id = str(uid)
+        id_ = str(uid)
         j_res = [{}]
         blocked = ["image", "font", "media"]
         def block_func(route): return route.abort() if route.request.resource_type in blocked else route.continue_()
 
-        async with AsyncBrowserManager(id, user_agent) as context:
+        async with AsyncBrowserManager(id_, user_agent) as context:
             await context.route("**/*", block_func)
             page = await context.new_page()
-            AsyncBrowserManager._logger.debug("create page for " + id)
+            AsyncBrowserManager._logger.debug("create page for " + id_)
             page.on("response", lambda response: cls.handle_response(response, j_res))
             try:
                 await page.goto(space_url, timeout=60000, wait_until='networkidle')
-            except TimeoutError:
-                AsyncBrowserManager._logger.warning(f"Page navigation of {id} timed out")
+            except PwTimeoutError:
+                AsyncBrowserManager._logger.warning(f"Page navigation of {id_} timed out")
                 raise CreateButRequestFail()
             except Exception as e:
-                msg = f"Page navigation of {id} Exception occured: {e}"
+                msg = f"Page navigation of {id_} Exception occured: {e}"
                 AsyncBrowserManager._logger.warning(msg)
                 await config.post2RSS("error log of BilibiliUp when get_response_json", msg)
                 raise CreateButRequestFail() from e
             finally:
+                if not (j_res[0] and j_res[0].get("data")):
+                    html_content = await page.content()
+                    cls._logger.error("BilibiliUp does not find url, the page content is " + html_content[-1000:])
                 await page.close()
-                AsyncBrowserManager._logger.debug("destroy page of " + id)
+                AsyncBrowserManager._logger.debug("destroy page of " + id_)
         return j_res[0]
 
     @classmethod

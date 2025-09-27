@@ -1,3 +1,4 @@
+# ruff: noqa: E501, T201
 """
 对 Web 接口 query rss 测试
 
@@ -16,7 +17,7 @@ from main import fast_app
 client = TestClient(fast_app)
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_and_tear_down():
     print("This is run before each web test")
     yield
@@ -47,14 +48,14 @@ def test_index_of_get(setup_and_tear_down):
 def test_get_user_or_upper_rss(setup_and_tear_down):
     """测试通过 query 接口获得 RSS"""
     # 管理员访问
-    response = client.get("/query_rss/我靠焚尸超凡入圣.xml/", headers=get_headers(config.query_username, config.query_password))
+    response = client.get("/query_rss/fanqie_book_6999592647790693413.xml/", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 200
     # 普通用户访问
-    response = client.get("/query_rss/我靠焚尸超凡入圣.xml/", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    response = client.get("/query_rss/fanqie_book_6999592647790693413.xml/", headers=get_headers("pytest", "zfZZFgf56zsd56"))
     assert response.status_code == 200
 
     # 未登录访问
-    response = client.get("/query_rss/我靠焚尸超凡入圣.xml/")
+    response = client.get("/query_rss/fanqie_book_6999592647790693413.xml/")
     assert response.status_code == 401
 
 
@@ -63,10 +64,13 @@ def test_query_rss_success(setup_and_tear_down):
     # 管理员访问
     response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 200
-    # 普通用户访问，第二次触发缓存
-    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    # 第二次由于在不应期，也会触发缓存
+    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 200
-    response = client.get("/query_rss/YoutubeChannel/?q=bulianglin", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    # 普通用户访问，第二次触发缓存
+    response = client.get("/query_rss/YoutubeChannel/?q=kurzgesagt", headers=get_headers("pytest", "zfZZFgf56zsd56"))
+    assert response.status_code == 200
+    response = client.get("/query_rss/YoutubeChannel/?q=kurzgesagt", headers=get_headers("pytest", "zfZZFgf56zsd56"))
     assert response.status_code == 200
 
     # 未登录访问
@@ -94,7 +98,7 @@ def test_query_rss_all_success(setup_and_tear_down):
 
 def test_query_rss_with_bad_source_name(setup_and_tear_down):
     """源名称不合法"""
-    response = client.get("/query_rss/MangaCopy/?q=花咲家的性福生活/&q=huaxoajiedexinfushenghuo", headers=get_headers(config.query_username, config.query_password))
+    response = client.get("/query_rss/MangaCopy/?q=花咲家的性福生活&q=huaxoajiedexinfushenghuo/", headers=get_headers(config.query_username, config.query_password))
     assert response.status_code == 422
 
 
@@ -144,3 +148,21 @@ async def test_query_rss_high_concurrency():
 
         for response in responses:
             assert response.status_code == 200
+
+@pytest.mark.asyncio
+async def test_query_rss_same_scraper_in_one_time():
+    """同一时间，完全相同的实例只能有一个在运行，其他的直接放弃"""
+    async with AsyncClient(transport=ASGITransport(app=fast_app), base_url="http://async_testserver") as ac: # type: ignore
+        urls = [
+            "/query_rss/BilibiliUp/?q=246370149",
+            "/query_rss/BilibiliUp/?q=246370149",
+            "/query_rss/BilibiliUp/?q=246370149",
+        ]
+        headers = get_headers(config.query_username, config.query_password)
+
+        tasks = (ac.get(url, headers=headers) for url in urls)
+        responses = await asyncio.gather(*tasks)
+
+        status_code_list = [response.status_code for response in responses]
+        status_code_list.sort()
+        assert status_code_list == [200, 466, 466]

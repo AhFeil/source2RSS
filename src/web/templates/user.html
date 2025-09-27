@@ -5,6 +5,11 @@
 {% endblock head_extend %}
 
 {% block content %}
-    <h1>User Page</h1>
-
+    <h2>User Page</h2>
+    <a href="/query_rss/" >你的订阅源</a>
+    {% if user.is_administrator %}
+        {# 管理员可以访问的 #}
+        <a href="/manage/" >管理员页面</a>
+        <a href="/docs" >OpenAPI</a>
+    {% endif %}
 {% endblock content %}

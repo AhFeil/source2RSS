@@ -66,13 +66,13 @@ class SQliteIntf(DatabaseIntf):
             res = session.query(SourceMeta4ORM).filter_by(table_name=source_name).first()
             return res.export_to_dict() if res else None
 
-    def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reversed: bool=False) -> list[ArticleDict]:
+    def get_top_n_articles_by_key(self, source_name: str, n: int, key: str, reverse: bool=False) -> list[ArticleDict]:
         ArticleModel = ArticleBase.get_article_model(source_name)
         if not self._check_table_exists(source_name):
             ArticleModel.__table__.create(self.engine)
         column_to_sort = getattr(ArticleModel, key)
         with self.Session() as session:
-            results = session.query(ArticleModel).order_by(asc(column_to_sort)).limit(n).all() if reversed else \
+            results = session.query(ArticleModel).order_by(asc(column_to_sort)).limit(n).all() if reverse else \
                       session.query(ArticleModel).order_by(desc(column_to_sort)).limit(n).all()
             if results is None:
                 return []

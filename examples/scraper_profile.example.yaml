@@ -11,7 +11,7 @@ HotJuejin:
 
 YoutubeChannel:
   custom_cfg:
-    prefer_agent: vfly2_agent
+    prefer_agent: vfly2_direct_agent
   cls_init_params:
   - [LearnEnglishWithTVSeries]
 

@@ -1,6 +1,6 @@
 import asyncio
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
 
@@ -44,7 +44,7 @@ class HotJuejin(WebsiteScraper):
         return HotJuejin.page_turning_duration * 60
 
     @classmethod
-    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:  # noqa: ARG003
         url = f"{cls.admin_url}/article_rank?{cls.steady_query}"
         cls._logger.info("掘金热榜 start to parse")
         response = await get_response_or_none(url, cls.headers)

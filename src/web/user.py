@@ -1,12 +1,14 @@
+# ruff: noqa: B904
 """用户注册等接口"""
 import logging
+from typing import Annotated
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, constr
 
 from .get_rss import templates
-from .security import UserRegistry
+from .security import User, UserRegistry, get_valid_user
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +27,8 @@ class UserCreate(BaseModel):
 
 
 @router.get("/me/", response_class=HTMLResponse)
-async def user_page(request: Request):
-    return templates.TemplateResponse(request=request, name="user.html")
+async def user_page(request: Request, user: Annotated[User, Depends(get_valid_user)]):
+    return templates.TemplateResponse(request=request, name="user.html", context={"user": user})
 
 @router.get("/me/register/", response_class=HTMLResponse)
 async def register_page(request: Request):

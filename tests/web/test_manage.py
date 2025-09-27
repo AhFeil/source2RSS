@@ -1,3 +1,4 @@
+# ruff: noqa: E501, T201
 """
 对 Web 接口 manage 测试
 
@@ -26,7 +27,7 @@ def get_headers_j(name, passwd):
     return headers
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_and_tear_down():
     print("This is run before each web test")
     yield

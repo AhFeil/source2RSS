@@ -1,10 +1,12 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from enum import StrEnum
+from pathlib import Path
 
 import socketio
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 
 from preproc import Plugins, config
 from src.node import sio
@@ -20,19 +22,10 @@ async def lifespan(app: FastAPI):
     loop = asyncio.get_running_loop()
     stop_run_continuously = run_continuously(loop)
 
-    if config.as_agent:
-        from src.node import sio_agent
-        async def start_agent():
-            await asyncio.sleep(3)
-            await sio_agent.connect(config.as_agent["client_url"])
-        loop.create_task(start_agent())
-
     # Do some other things...
     yield
     # Stop the background thread
     stop_run_continuously.set()
-    if config.as_agent:
-        await sio_agent.disconnect() # TODO sio_agent 阻止程序退出
 
 
 fast_app = FastAPI(lifespan=lifespan)
@@ -44,16 +37,34 @@ fast_app.include_router(usage.router)
 fast_app.include_router(user.router)
 fast_app.include_router(manage.router)
 
-for _path, module in Plugins.imported_modules.items():
+for module in Plugins.imported_modules.values():
     if "router" in getattr(module, "__all__", []):
         fast_app.include_router(module.router)
 
 
 @fast_app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
-    context = {"ad_html": config.ad_html, "crawl_schedules": config.get_crawl_schedules()}
+    context = {"crawl_schedules": config.get_crawl_schedules()}
     return get_rss.templates.TemplateResponse(request=request, name="home.html", context=context)
 
+
+@fast_app.get("/favicon.ico")
+async def favicon():
+    return FileResponse(path="src/web/static/favicon.ico", filename="favicon.ico")
+
+
+class AdditionalPage(StrEnum):
+    robots = "robots.txt"
+    sitemap = "sitemap.xml"
+
+additional_pages = {
+    item.value: Path(f"src/web/templates/{item.value}").read_text(encoding="utf-8")
+    for item in AdditionalPage
+}
+
+@fast_app.get("/{file}", response_class=PlainTextResponse)
+async def static_from_root(file: AdditionalPage):
+    return additional_pages[file.value]
 
 app = socketio.ASGIApp(sio, other_asgi_app=fast_app) if config.enable_agent_server else fast_app
 

@@ -3,8 +3,8 @@
 
 SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests/scraper/test_scraper.py
 """
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import AsyncGenerator
 
 import pytest
 import pytest_asyncio
@@ -25,7 +25,8 @@ async def test_meta_info(setup_and_tear_down):
     ins, tc = setup_and_tear_down
     for key, val in tc.expect_source_info.items():
         assert ins.source_info[key] == val
-    assert isinstance(ins.max_wait_time, int) and ins.max_wait_time > 0
+    assert isinstance(ins.max_wait_time, int)
+    assert ins.max_wait_time > 0
 
 @pytest.mark.asyncio
 async def test_first_add(setup_and_tear_down):

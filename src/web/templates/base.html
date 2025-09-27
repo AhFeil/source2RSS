@@ -4,13 +4,35 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>source2RSS</title>
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.css">
     {% block head_extend %}
     {% endblock head_extend %}
 </head>
 <body>
-    {% block content %}
-    {% endblock content %}
+    <header>
+        <h1>source2RSS</h1>
+        <p style="font-size: 14px">by AhFei</p>
+        <p style="font-size: 14px">GitHub: <a href="https://github.com/ahfeil/source2RSS">https://github.com/ahfeil/source2RSS</a></p>
+        <p style="font-size: 14px">自建: <a href="https://yanh.tech/2024/07/deployment-process-for-source2rss/">信息源转 RSS 框架 - source2RSS 的安装步骤 - 技焉洲 (yanh.tech)</a></p>
 
-    <div>{{ ad_html | safe }}</div>
+        <nav>
+            <a href="/" {% if request.url.path == '/' %}aria-current="page"{% endif %}>首页</a>
+            <a href="/source2rss/" {% if request.url.path == '/source2rss/' %}aria-current="page"{% endif %}>公开订阅源</a>
+            <a href="/usage/" {% if request.url.path == '/usage/' %}aria-current="page"{% endif %}>用法</a>
+            <a href="/users/me/" {% if request.url.path == '/users/me/' %}aria-current="page"{% endif %}>后台</a>
+            <a href="/users/me/register/" {% if request.url.path == '/users/me/register/' %}aria-current="page"{% endif %}>注册</a>
+        </nav>
+    </header>
+
+    <main>
+        {% block content %}
+        {% endblock content %}
+    </main>
+
+    <footer>
+        {% include "ad.html" ignore missing %}
+    </footer>
 </body>
 </html>

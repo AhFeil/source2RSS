@@ -9,6 +9,9 @@ config_and_data_files
 dev_cheatsheet.md
 source2RSS.service
 plugins
+.d_agent.pid
+.r_agent.pid
+ad.html
 
 # tool
 .ruff_cache

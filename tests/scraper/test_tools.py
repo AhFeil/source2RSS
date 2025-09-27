@@ -1,3 +1,4 @@
+# ruff: noqa: T201, SLF001
 """
 对提供的工具，如 AsyncBrowserManager 等测试
 
@@ -10,7 +11,7 @@ from src.scraper.scraper import WebsiteScraper
 from src.scraper.tools import create_rp
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_and_tear_down():
     print("This is run before each tools test")
     yield

@@ -1,5 +1,5 @@
+from collections.abc import AsyncGenerator
 from datetime import datetime, timedelta
-from typing import AsyncGenerator
 
 from bs4 import BeautifulSoup
 
@@ -32,7 +32,7 @@ class Chiphell(WebsiteScraper):
         return source_info
 
     @classmethod
-    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags) -> AsyncGenerator[dict, None]:  # noqa: ARG003
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         start_page = 1
         cls._logger.info("Chiphell start to parse")

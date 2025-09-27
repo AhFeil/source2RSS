@@ -26,11 +26,12 @@ then
     mkdir config_and_data_files && \
     cp examples/config.example.yaml config_and_data_files/config.yaml && \
     cp examples/scraper_profile.example.yaml config_and_data_files/scraper_profile.yaml && \
-    sed -i 's|examples/scraper_profile\.example\.yaml|config_and_data_files/scraper_profile.yaml|g' config_and_data_files/config.yaml
+    sed -i 's|examples/scraper_profile\.example\.yaml|config_and_data_files/scraper_profile.yaml|g' config_and_data_files/config.yaml && \
+    cp examples/agent_config.example.yaml config_and_data_files/agent_config.yaml
 fi
 
 # 创建 systemd 配置文件
-if [ ! -d ${program_name}.service ]
+if [ ! -f ${program_name}.service ]
 then
 cat > ./${program_name}.service <<EOF
 [Unit]
@@ -52,6 +53,64 @@ Restart=on-failure
 WantedBy=default.target
 EOF
 fi
+
+chmod 644 ${program_name}.service
+
+
+d_agent_pgm_name="source2RSS_d_agent"
+
+if [ ! -f ${d_agent_pgm_name}.service ]
+then
+cat > ./${d_agent_pgm_name}.service <<EOF
+[Unit]
+Description=source2RSS direct agent Service
+After=network.target
+
+[Service]
+WorkingDirectory=${current_dir}
+User=${current_uid}
+Group=${current_uid}
+Type=simple
+ExecStart=${current_dir}/.env/bin/python -m src.node.as_d_agent
+ExecStop=/bin/kill -s HUP $MAINPID
+Environment=PYTHONUNBUFFERED=1
+RestartSec=15
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+fi
+
+chmod 644 ${d_agent_pgm_name}.service
+
+
+r_agent_pgm_name="source2RSS_r_agent"
+
+if [ ! -f ${r_agent_pgm_name}.service ]
+then
+cat > ./${r_agent_pgm_name}.service <<EOF
+[Unit]
+Description=source2RSS reverse agent Service
+After=network.target
+
+[Service]
+WorkingDirectory=${current_dir}
+User=${current_uid}
+Group=${current_uid}
+Type=simple
+ExecStart=${current_dir}/.env/bin/python -m src.node.as_r_agent
+ExecStop=/bin/kill -s HUP $MAINPID
+Environment=PYTHONUNBUFFERED=1
+RestartSec=15
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
+EOF
+fi
+
+chmod 644 ${r_agent_pgm_name}.service
 
 
 # vim: expandtab shiftwidth=4 softtabstop=4

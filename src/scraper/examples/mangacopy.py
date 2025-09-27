@@ -1,6 +1,7 @@
 import re
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import AsyncGenerator, Self
+from typing import Self
 
 from bs4 import BeautifulSoup, Tag
 
@@ -56,7 +57,7 @@ class MangaCopy(WebsiteScraper):
         }
 
     @classmethod
-    async def _parse(cls, flags, book_title: str, book_url: str) -> AsyncGenerator[dict, None]:
+    async def _parse(cls, flags, book_title: str, book_url: str) -> AsyncGenerator[dict, None]:  # noqa: ARG003
         cls._logger.info("拷貝漫畫 start to parse")
         html_content = await AsyncBrowserManager.get_html_or_none(book_title, book_url, cls.headers["User-Agent"])
         if html_content is None:
@@ -106,4 +107,4 @@ class MangaCopy(WebsiteScraper):
 
     @staticmethod
     def is_valid_book_id(s: str) -> bool:
-        return isinstance(s, str) and 0 < len(s) and all(c.isalnum() for c in s)
+        return isinstance(s, str) and len(s) > 0 and all(c.isalnum() for c in s)

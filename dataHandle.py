@@ -5,7 +5,7 @@ import os
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Awaitable, Callable, Self
+from typing import Self
 
 from socketio import AsyncServer
 
@@ -31,11 +31,11 @@ class RSSCache:
                 access = src_meta["access"]
                 rss_data.json["source_info"] = src_meta
             else:
-                print(f"{source_name} is lack in db")
+                print(f"{source_name} is lack in db")  # noqa: T201
                 access = AccessLevel.SYSTEM
             self._cached_sources[access][source_name] = rss_data
 
-    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...]=tuple()) -> list[tuple[str, str]]:
+    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...] = ()) -> list[tuple[str, str]]:
         """返回 access 到 low_access 之间的所有源的表名和展示名， 不包含 low_access"""
         source_list = []
         for i in filter(lambda x : x not in except_access, range(access, low_access, -1)):
@@ -43,7 +43,7 @@ class RSSCache:
                 source_list.append((k, v.json["source_info"]["name"]))
         return source_list
 
-    def get_source_or_None(self, source_name: str, access: AccessLevel, except_access: tuple[AccessLevel, ...]=tuple()) -> RSSData | None:
+    def get_source_or_None(self, source_name: str, access: AccessLevel, except_access: tuple[AccessLevel, ...] = ()) -> RSSData | None:
         """当源存在且有权限返回源"""
         for i in filter(lambda x : x not in except_access, range(access, AccessLevel.NONE, -1)):
             if rss_data := self._cached_sources[i].get(source_name):
@@ -82,69 +82,52 @@ class RSSCache:
 
 @dataclass
 class Agent:
-    """一个 agent 同一时间只能处理一个任务"""
     sid: str
     name: str
     scrapers: list[str]
     sio: AsyncServer
     pending_futures: dict[str, asyncio.Future]
-    busy: bool = False
 
-    async def __aenter__(self) -> tuple[Callable[[str, str, dict], Awaitable[None]], Callable[[str], Awaitable[dict | None]]] | tuple[None, None]:
-        if self.busy:
-            return None, None
-        self.busy = True
 
-        async def send(msg_id: str, event: str, data: dict):
-            if not data.get("over"):
-                fut = asyncio.get_running_loop().create_future()
-                self.pending_futures[msg_id] = fut
-            data["msg_id"] = msg_id
-            await self.sio.emit(event, data, to=self.sid)
-
-        async def recv(msg_id: str) -> dict | None:
-            fut = self.pending_futures.get(msg_id)
-            if not fut:
-                return
-
-            try:
-                reply = await asyncio.wait_for(fut, timeout=180)
-            except asyncio.TimeoutError:
-                self.pending_futures.pop(msg_id, None)
-                return
-            if reply.get("over"):
-                self.pending_futures.pop(msg_id, None)
-                return
-            return reply
-
-        return send, recv
-
-    async def __aexit__(self, exc_type, exc, tb):
-        self.busy = False
+@dataclass
+class D_Agent:
+    name: str
+    scrapers: list[str]
+    uri: str
 
 
 @dataclass
 class Agents:
-    _agents: dict[str, Agent]
-    _agents_name: dict[str, str]
-    _supported_scrapers: defaultdict[str, set[str]] # 存储支持某抓取器的全部远端
+    _agents: dict[str, Agent]      # sid -> agent
+    _agents_name: dict[str, str]   # sid -> name
+    _d_agents: dict[str, D_Agent]  # name -> agent
+    _supported_scrapers: defaultdict[str, set[str]] # 存储支持某抓取器的全部远端 sid/name
     _logger: logging.Logger
 
-    __slot__ = ("_agents", "_agents_name", "_supported_scrapers", "_logger")
+    __slots__ = ("_agents", "_agents_name", "_d_agents", "_supported_scrapers", "_logger")
 
     @classmethod
     def create(cls) -> Self:
+        d_agents = {}
+        supported_scrapers = defaultdict(set)
+        for agent in config.known_agents:
+            if agent.get("connect_method") == "direct_websocket":
+                name, scrapers, uri = agent["name"], agent["enabled_scrapers"], agent["agent_uri"]
+                d_agents[name] = D_Agent(name, scrapers, uri)
+                for scraper in scrapers:
+                    supported_scrapers[scraper].add(name)
         return cls(
             _agents={},
             _agents_name={},
-            _supported_scrapers=defaultdict(set),
+            _d_agents=d_agents,
+            _supported_scrapers=supported_scrapers,
             _logger=logging.getLogger("Agents"),
         )
 
-    def register(self, sid: str, name: str, scrapers: list[str], sio: AsyncServer):
+    def register(self, sid: str, name: str, scrapers: list[str], sio: AsyncServer) -> tuple[bool, str]:
         if self._agents.get(sid):
             self._logger.info("replicate agent, both sid are %s, name is %s", sid, name)
-            return
+            return False, f"replicate agent, both sid are {sid}, name is {name}"
         self._agents[sid] = Agent(sid, name, scrapers, sio, {})
         self._agents_name[sid] = name
         # TODO 校验外部数据
@@ -153,6 +136,7 @@ class Agents:
         if self._agents_name.get(name):
             self._logger.debug("replicate agent, sid is %s, both name are %s", sid, name)
         self._logger.info("远端注册成功: %s", name)
+        return True, ""
 
     def delete(self, sid: str):
         if self._agents.get(sid):
@@ -166,9 +150,9 @@ class Agents:
     def get_agent(self, sid: str) -> Agent | None:
         return self._agents.get(sid)
 
-    def get(self, cls_id: str) -> tuple[Agent, ...]:
+    def get(self, cls_id: str) -> tuple[D_Agent | Agent, ...]:
         if agents_sid := self._supported_scrapers.get(cls_id):
-            return tuple(self._agents[sid] for sid in agents_sid)
+            return tuple(self._d_agents.get(sid) or self._agents[sid] for sid in agents_sid)
         return ()
 
 # 非线程安全，但在单个事件循环下是协程安全的
@@ -183,7 +167,7 @@ class Data:
             with open(config.users_file, 'w', encoding="utf-8") as f:
                 json.dump(self._users, f)
         else:
-            with open(config.users_file, 'r', encoding="utf-8") as f:
+            with open(config.users_file, encoding="utf-8") as f:
                 self._users = json.load(f)
 
         # DB

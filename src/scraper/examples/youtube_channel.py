@@ -1,6 +1,7 @@
 import re
+from collections.abc import AsyncGenerator
 from datetime import datetime
-from typing import AsyncGenerator, Self
+from typing import Self
 
 import feedparser
 from bs4 import BeautifulSoup
@@ -13,7 +14,6 @@ from src.scraper.tools import get_response_or_none
 
 class YoutubeChannel(WebsiteScraper):
     home_url = "https://www.youtube.com"
-    page_turning_duration = 10
 
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -42,7 +42,7 @@ class YoutubeChannel(WebsiteScraper):
         self.channel_id, self.channel_name, self.feed = channel_id, channel_name, feed
 
     def _source_info(self):
-        name = "Youtube Channel" + self.channel_name
+        name = "Youtube Channel " + self.channel_name
         return {
             "name": name,
             "link": f"{self.__class__.home_url}/@{self.channel_id}",
@@ -61,19 +61,17 @@ class YoutubeChannel(WebsiteScraper):
             if entry.title == flags.get("article_title"):
                 return
 
-            res = await get_response_or_none(entry.link, cls.headers) # type: ignore
+            res = await get_response_or_none(entry.link, cls.headers)
             if res is None or res.status_code != 200:
                 return
-            duration_seconds = int(cls.extract_duration(res.text)) // 1000
-            duration_m, duration_s = divmod(duration_seconds, 60)
-            d = f"video duration is {duration_m}:{duration_s}. "
+            d = cls.extract_duration(res.text)
             article = {
                 "title": entry.title,
                 "summary": d + entry.summary[0:50],
                 "link": entry.link,
                 "image_link": entry.media_thumbnail[0]['url'],
                 "content": d + entry.summary,
-                "pub_time": datetime.fromisoformat(entry.published).replace(tzinfo=None), # type: ignore
+                "pub_time": datetime.fromisoformat(entry.published).replace(tzinfo=None),
             }
             yield article
 
@@ -91,11 +89,17 @@ class YoutubeChannel(WebsiteScraper):
         return feed_url["href"] if feed_url else "" # type: ignore
 
     @classmethod
-    def extract_duration(cls, html_content):
+    def extract_duration(cls, html_content) -> str:
         # 匹配 "approxDurationMs": "1310120",
         match = re.search(r'"approxDurationMs":\s*"(\d+)"', html_content)
-        return match.group(1) if match else "1000"
+        if match:
+            duration_seconds = int(match.group(1)) // 1000
+            duration_m, duration_s = divmod(duration_seconds, 60)
+            d = f"video duration is {duration_m}:{duration_s}. "
+        else:
+            d = "video duration is not been catched."
+        return d
 
     @staticmethod
     def is_valid_channel_id(s: str) -> bool:
-        return isinstance(s, str) and 0 < len(s) and all(c.isalnum() or c in "-_" for c in s)
+        return isinstance(s, str) and len(s) > 0 and all(c.isalnum() or c in "-_" for c in s)

@@ -1,0 +1,26 @@
+[project]
+name = "source2RSS_client"
+version = "0.1.1"
+authors = [
+  { name="AhFei", email="vgamebox@outlook.com" },
+]
+description = "Client Program of source2RSS"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+license = { text = "AGPL-3.0-only" }
+
+dependencies = [
+    "httpx>=0.27.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/AhFeil/source2RSS"
+Issues = "https://github.com/AhFeil/source2RSS/issues"
+
+[build-system]
+requires = ["setuptools >= 77.0.3", "wheel"]
+build-backend = "setuptools.build_meta"

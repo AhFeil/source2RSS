@@ -1,3 +1,4 @@
+# ruff: noqa: T201, SLF001
 """
 对数据库操作测试
 
@@ -11,7 +12,7 @@ from src.data.sqlite_intf import DatabaseIntf, SQliteConnInfo, SQliteIntf
 from src.scraper import AccessLevel, ArticleDict, SortKey, SrcMetaDict
 
 
-@pytest.fixture()
+@pytest.fixture
 def setup_and_tear_down():
     print("This is run before each db test")
     yield

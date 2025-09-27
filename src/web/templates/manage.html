@@ -6,7 +6,7 @@
 {% endblock head_extend %}
 
 {% block content %}
-    <h1>manage page</h1>
+    <h2>manage page</h2>
 
     <button hx-post="crawler/run_all" hx-target="#run_all_result">
         运行全部抓取器
@@ -26,12 +26,23 @@
     <div id="invite_code_result"></div>
 
     <br><br>
+    <p>当前正在运行，以及运行完、运行中失败退出、创建失败这三种情况发生后处于不应期的抓取器：</p>
+    <ul>
+        {% for scraper_name_and_params in running_scrapers %}
+        <li>{{ scraper_name_and_params }}</li>
+        {% endfor %}
+    </ul>
+
+    {% for i, sp in scraper_profiles_content %}
+    <br><br>
     <div>
-        <form id="configForm" hx-post="scraper_profile" hx-target="#scraper_profile_result">
-            <textarea id="profile" name="profile" rows="30" cols="80">{{ scraper_profile_content }}</textarea>
+        <form id="configForm_{{i}}" hx-post="scraper_profile" hx-target="#scraper_profile_result">
+            <input type="hidden" name="index" value="{{ i }}">
+            <textarea name="profile" rows="30" cols="80">{{ sp }}</textarea>
             <br><br>
             <button type="submit">更新抓取器配置</button>
         </form>
     </div>
+    {% endfor %}
     <div id="scraper_profile_result"></div>
 {% endblock content %}
