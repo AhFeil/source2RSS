@@ -1,10 +1,12 @@
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from enum import StrEnum
+from pathlib import Path
 
 import socketio
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 
 from preproc import Plugins, config
 from src.node import sio
@@ -45,6 +47,24 @@ async def index(request: Request):
     context = {"crawl_schedules": config.get_crawl_schedules()}
     return get_rss.templates.TemplateResponse(request=request, name="home.html", context=context)
 
+
+@fast_app.get("/favicon.ico")
+async def favicon():
+    return FileResponse(path="src/web/static/favicon.ico", filename="favicon.ico")
+
+
+class AdditionalPage(StrEnum):
+    robots = "robots.txt"
+    sitemap = "sitemap.xml"
+
+additional_pages = {
+    item.value: Path(f"src/web/templates/{item.value}").read_text(encoding="utf-8")
+    for item in AdditionalPage
+}
+
+@fast_app.get("/{file}", response_class=PlainTextResponse)
+async def static_from_root(file: AdditionalPage):
+    return additional_pages[file.value]
 
 app = socketio.ASGIApp(sio, other_asgi_app=fast_app) if config.enable_agent_server else fast_app
 
