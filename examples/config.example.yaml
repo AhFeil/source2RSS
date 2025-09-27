@@ -51,6 +51,7 @@ crawler_default_cfg:
   run_everyday_at: ["05:00", "11:00", "17:00", "23:00"]
   WAIT: 5
   amount_when_firstly_add: 10
+  interval_between_each_instance: 1 # seconds
   max_of_rss_items: 50
   prefer_agent: self
   # 为了节省内存，限制只能打开一个浏览器，一个浏览器可以开多个 context

@@ -29,6 +29,7 @@ class ScraperNameAndParams:
     name: str       # TODO 不能是列表
     init_params: list | tuple | str # 如果参数只有一个，则可以为 str，多个用列表按顺序容纳，没有参数则使用空列表
     amount: int
+    interval: int
 
     @classmethod
     def create(cls, cls_name: str, init_params_es: Iterable | None=None, amount: int | None=None, i_am_remote: bool=False) -> tuple[Self, ...]:
@@ -36,12 +37,13 @@ class ScraperNameAndParams:
         if cls_name == "Remote":
             return ()
         amount = amount or config.get_amount(cls_name)
+        interval = config.get_interval(cls_name)
         agent = config.get_prefer_agent(cls_name)
         # 如果未提供参数，就从配置中取
         init_params_es = init_params_es or config.get_params(cls_name)
         # TODO
         if agent == "self" or i_am_remote:
-            return tuple(cls(cls_name, init_params, amount) for init_params in init_params_es)
+            return tuple(cls(cls_name, init_params, amount, interval) for init_params in init_params_es)
         else:
             scrapers = []
             agents = data.agents.get(cls_name)
@@ -54,7 +56,7 @@ class ScraperNameAndParams:
                     new_params = [agents, cls_name, *init_params]
                 else:
                     new_params = [agents, cls_name, init_params]
-                scrapers.append(cls("Remote", new_params, amount))
+                scrapers.append(cls("Remote", new_params, amount, interval))
             return tuple(scrapers)
 
     def __hash__(self):
@@ -123,7 +125,7 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
         raise
     return instance
 
-async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:
+async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:  # noqa: C901
     """创建实例然后走统一流程"""
     res = []
     for scraper in scrapers:
@@ -132,15 +134,15 @@ async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...])
             if instance is None:
                 continue
         except TypeError:
-            raise CrawlInitError(400, "The amount of parameters is incorrect")
+            raise CrawlInitError(400, "The amount of parameters is incorrect")  # noqa: B904
         except CreateByLocked:
-            raise CrawlInitError(423, "Server is busy")
+            raise CrawlInitError(423, "Server is busy")  # noqa: B904
         except CreateByInvalidParam:
-            raise CrawlInitError(422, "Invalid parameters")
+            raise CrawlInitError(422, "Invalid parameters")  # noqa: B904
         except CreateByLackAgent:
-            raise CrawlInitError(423, "Lack agent")
+            raise CrawlInitError(423, "Lack agent")  # noqa: B904
         except (CreateButRequestFail, FailtoGet): # todo 多次连续出现，则 post2RSS
-            raise CrawlInitError(503, "Failed when crawling")
+            raise CrawlInitError(503, "Failed when crawling")  # noqa: B904
         except CrawlError:
             raise
         except Exception as e:
@@ -152,7 +154,7 @@ async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...])
             try:
                 source_name = await goto_uniform_flow(data, instance, scraper.amount)
             except ValidationError:
-                raise CrawlRunError(422, "Invalid source meta")
+                raise CrawlRunError(422, "Invalid source meta")  # noqa: B904
             except Exception as e:
                 msg = f"fail when goto_uniform_flow of {scraper.name}, {scraper.init_params=}: {e}"
                 logger.exception(msg)
@@ -163,6 +165,7 @@ async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...])
             finally:
                 asyncio.create_task(discard_scraper(scraper))
                 await instance.destroy() # TODO 不能保证一定会清理资源
+        await asyncio.sleep(scraper.interval)
     return res
 
 

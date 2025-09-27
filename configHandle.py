@@ -25,6 +25,7 @@ class Config(BriefConfig):
     run_everyday_at: list[str]
     WAIT: int
     amount_when_firstly_add: int
+    interval_between_each_instance: int
     max_of_rss_items: int
     timezone: str
     max_opening_context: int
@@ -100,6 +101,7 @@ class Config(BriefConfig):
             WAIT=crawler_default_cfg.get("WAIT", 1800),
 
             amount_when_firstly_add=crawler_default_cfg.get("amount_when_firstly_add", 10),
+            interval_between_each_instance=crawler_default_cfg.get("interval_between_each_instance", 1),
             max_of_rss_items=crawler_default_cfg.get("max_of_rss_items", 50),
             timezone=crawler_default_cfg.get("timezone", "Asia/Shanghai"),
             max_opening_context=max_opening_context,
@@ -189,6 +191,12 @@ class Config(BriefConfig):
             return self.scraper_profile[class_name]["custom_cfg"]["amount_when_firstly_add"]
         except KeyError:
             return self.amount_when_firstly_add
+
+    def get_interval(self, class_name: str) -> int:
+        try:
+            return self.scraper_profile[class_name]["custom_cfg"]["interval_between_each_instance"]
+        except KeyError:
+            return self.interval_between_each_instance
 
     def get_max_rss_items(self, class_name: str) -> int:
         try:
