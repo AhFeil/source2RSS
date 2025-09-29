@@ -1,5 +1,7 @@
 line-length = 160
 
+extend-include = ["plugins/**/*.py"]
+
 [lint]
 select = ["A", "B", "C", "E", "F", "G", "I", "ASYNC", "INT", "SLF", "ARG", "T20"]
 ignore = ["ARG001", "ARG002", "F401", "UP045", "SIM910", "B008"]

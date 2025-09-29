@@ -1,0 +1,10 @@
+{
+    "python.analysis.extraPaths": ["plugins"],
+    "python.analysis.include": ["plugins"],
+    "search.useIgnoreFiles": false,
+    "search.exclude": {
+        ".env": true,
+        "*.log": true,
+        "config_and_data_files": true
+    }
+}
