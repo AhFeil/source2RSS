@@ -52,6 +52,8 @@ class Config(BriefConfig):
     enable_agent_server: bool
     known_agents: list[dict[str, Any]]
 
+    enable_radar: bool
+
     # 用户不应该考虑的配置，开发者可以改的
     rss_dir: str = "config_and_data_files/rss"
     source_meta: str = "source_meta"   # 存储源的元信息的表的名称
@@ -121,6 +123,7 @@ class Config(BriefConfig):
             s2r_c=s2r_c,
             enable_agent_server=configs.get("enable_agent_server", False),
             known_agents=configs.get("known_agents", []),
+            enable_radar=configs.get("enable_radar", False),
         )
         config.prepare()
         return config

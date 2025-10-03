@@ -60,3 +60,5 @@ crawler_default_cfg:
 
 enable_s2r_c: false # 如果运行，程序中的一些错误会以文章的形式发表到 source2RSS 上，方便查看
 port: 8536 # 如果 enable_s2r_c 为真，这个必须填写为程序监听的端口号
+
+enable_radar: false
