@@ -35,7 +35,7 @@ class RSSCache:
                 access = AccessLevel.SYSTEM
             self._cached_sources[access][source_name] = rss_data
 
-    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...] = ()) -> list[tuple[str, str]]:
+    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...] = ()) -> list[tuple[str, str]]:  # noqa: E501
         """返回 access 到 low_access 之间的所有源的表名和展示名， 不包含 low_access"""
         source_list = []
         for i in filter(lambda x : x not in except_access, range(access, low_access, -1)):
@@ -150,9 +150,13 @@ class Agents:
     def get_agent(self, sid: str) -> Agent | None:
         return self._agents.get(sid)
 
-    def get(self, cls_id: str) -> tuple[D_Agent | Agent, ...]:
+    def get(self, cls_id: str, agent_name: str="") -> tuple[D_Agent | Agent, ...]:
         if agents_sid := self._supported_scrapers.get(cls_id):
-            return tuple(self._d_agents.get(sid) or self._agents[sid] for sid in agents_sid)
+            # TODO
+            for sid in agents_sid:
+                agent = self._d_agents.get(sid) or self._agents[sid]
+                if agent.name == agent_name:
+                    return (agent, )
         return ()
 
 # 非线程安全，但在单个事件循环下是协程安全的

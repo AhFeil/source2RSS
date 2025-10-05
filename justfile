@@ -8,9 +8,6 @@ machine_ip := `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}
   echo "管理员访问： http://vfly2:123456@{{machine_ip}}:8536/"
   cd "{{root}}" && .env/bin/python main.py
 
-@run_agent:
-  cd "{{root}}" && .env/bin/python -m src.node.as_agent
-
 
 @test: (start_agent "d") && (stop_agent "d")
   SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest tests/ -m "not slow" || true

@@ -1,5 +1,6 @@
 import logging.config
 import os
+import random
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -29,7 +30,7 @@ class Config(BriefConfig):
     max_of_rss_items: int
     timezone: str
     max_opening_context: int
-    prefer_agent: str
+    prefer_agent: str | list[tuple[str, int]] # 指定一个 agent ，或者指定一个列表，包含多个 agent 和权重
 
     mongodb_uri: str | None
     mongo_dbname: str | None
@@ -179,9 +180,13 @@ class Config(BriefConfig):
 
     def get_prefer_agent(self, class_name: str) -> str:
         try:
-            return self.scraper_profile[class_name]["custom_cfg"]["prefer_agent"]
+            prefer_agent = self.scraper_profile[class_name]["custom_cfg"]["prefer_agent"]
         except KeyError:
-            return self.prefer_agent
+            prefer_agent = self.prefer_agent
+        if isinstance(prefer_agent, str):
+            return prefer_agent
+        agents, weights = zip(*prefer_agent)
+        return random.choices(agents, weights=weights)[0]
 
     def get_params(self, class_name: str) -> list:
         try:

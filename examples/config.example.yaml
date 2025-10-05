@@ -19,9 +19,6 @@ enabled_web_scraper:
 # 暂时没有维护无法正常运行的抓取器
 # - newsletter
 
-scraper_profile:
-- examples/scraper_profile.example.yaml
-
 # 不了解的话建议删除
 enable_agent_server: true
 known_agents:
@@ -30,11 +27,15 @@ known_agents:
   agent_uri: ws://127.0.0.1:8537/ws_connect
   enabled_scrapers:
   - BentoMLBlog
+  - BilibiliUp
   - YoutubeChannel
 - name: vfly2_agent
   connect_method: reverse_websocket
 
 # *****下面的配置都有默认值，删除也不影响运行，如果有需要可以自定义*****
+
+# scraper_profile:
+# - examples/scraper_profile.example.yaml
 
 # 请求时的相关配置
 query_cache_maxsize: 100

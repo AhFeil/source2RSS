@@ -1,8 +1,11 @@
 # 这里的名称，使用类名
 BilibiliUp:
   custom_cfg:
-    interval_between_each_instance: 60
+    interval_between_each_instance: 10
     run_everyday_at: ["06:00", "12:00", "19:00", "22:00", "23:00", "23:37", "00:00"]
+    prefer_agent:
+    - [vfly2_direct_agent, 2]
+    - [self, 1]
   cls_init_params:
   - "138624168"
 

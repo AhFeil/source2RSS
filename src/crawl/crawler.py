@@ -38,26 +38,27 @@ class ScraperNameAndParams:
             return ()
         amount = amount or config.get_amount(cls_name)
         interval = config.get_interval(cls_name)
-        agent = config.get_prefer_agent(cls_name)
         # 如果未提供参数，就从配置中取
         init_params_es = init_params_es or config.get_params(cls_name)
-        # TODO
-        if agent == "self" or i_am_remote:
-            return tuple(cls(cls_name, init_params, amount, interval) for init_params in init_params_es)
-        else:
-            scrapers = []
-            agents = data.agents.get(cls_name)
-            if not agents:
-                return ()
-            for init_params in init_params_es:
+        scrapers = []
+        for init_params in init_params_es:
+            agent_name = config.get_prefer_agent(cls_name)
+            # TODO
+            if agent_name == "self" or i_am_remote:
+                scraper = cls(cls_name, init_params, amount, interval)
+            else:
+                agents = data.agents.get(cls_name, agent_name)
+                if not agents:
+                    continue
                 if not init_params:
                     new_params = [agents, cls_name]
                 elif isinstance(init_params, tuple | list):
                     new_params = [agents, cls_name, *init_params]
                 else:
                     new_params = [agents, cls_name, init_params]
-                scrapers.append(cls("Remote", new_params, amount, interval))
-            return tuple(scrapers)
+                scraper = cls("Remote", new_params, amount, interval)
+            scrapers.append(scraper)
+        return tuple(scrapers)
 
     def __hash__(self):
         if self.name == "Remote":
