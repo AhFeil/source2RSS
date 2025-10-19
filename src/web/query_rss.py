@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse
 
 from preproc import Plugins, config, data
-from src.crawl import ScraperNameAndParams, start_to_crawl
+from src.crawl import ScraperNameAndParams, process_one_instance
 from src.crawl.crawl_error import CrawlError
 from src.scraper import AccessLevel
 
@@ -102,15 +102,14 @@ def async_cached(func):
 async def go_to_crawl(cls_id: str, one_group_params: tuple, *, cache_type: CacheType=CacheType.NORMAL) -> str:
     scraper_with_one_group_params = ScraperNameAndParams.create(cls_id, (one_group_params, ))
     try:
-        res = await start_to_crawl((scraper_with_one_group_params, ))
+        res = await process_one_instance(scraper_with_one_group_params[0])
     except CrawlError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
 
-    try:
-        return res[0][0]
-    except IndexError:
-        await config.post2RSS("error log of no_cache_flow", f"{res=}, {cls_id=}, {one_group_params=}")
-        raise HTTPException(status_code=500, detail="crawl result is not expected")
+    if res is None:
+        await config.post2RSS("error log of no_cache_flow", f"res=None, {cls_id=}, {one_group_params=}")
+        raise HTTPException(status_code=500, detail="request params is invalid.")
+    return res
 
 @router.get("/{cls_id}/")
 async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []): # noqa: B006

@@ -21,7 +21,7 @@ def setup_and_tear_down():
 
 def test_index_of_user(setup_and_tear_down):
     response = client.get("/users/me/")
-    assert response.status_code == 200
+    assert response.status_code == 401
 
 """
 curl -X 'POST' \

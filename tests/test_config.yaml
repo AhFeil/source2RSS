@@ -1,4 +1,7 @@
 other_configs_path:
 - examples/config.example.yaml
 
+scraper_profile:
+- examples/scraper_profile.example.yaml
+
 data_dir: tests/config_and_data_files

@@ -27,7 +27,7 @@ async def combine_link(desc, scraper, link):
         instance = await get_instance(scraper)
     except Exception:
         desc.append('<p>创建抓取器出错，请稍后重试</p>')
-        logger.error(f"usage create instance error, full traceback:\n{traceback.format_exc()}")
+        logger.error("usage create instance error, full traceback:\n%s", traceback.format_exc())
     else:
         if instance:
             desc.append(f'<p><span>{instance.source_info["name"]} 的 RSS 链接：</span> <a href="{link}" rel="noprerender">{link}</a></p>')
@@ -59,7 +59,7 @@ async def make_desc(scraper_class) -> str:
         if not scrapers:
             desc.append("<p>缺失例子</p>")
         else:
-            for scraper in scrapers:
+            for scraper in scrapers[:3]:
                 if scraper.name == "Remote":
                     args = scraper.init_params[2:]
                 else:

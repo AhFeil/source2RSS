@@ -103,12 +103,11 @@ async def discard_scraper(scraper: ScraperNameAndParams):
 """
 async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
     cls: type[WebsiteScraper] | None = Plugins.get_plugin_or_none(scraper.name)
-    # 根本无法创建，返回 None
+    # 根本无法创建，返回 None TODO 是否引发异常更合适
     if cls is None or (not scraper.init_params and cls.is_variety):
         return
     # 可以创建，但是重复：有另一个相同的在运行，引发异常
     if has_scraper(scraper):
-
         logger.info("repeat instance of %s", str(scraper))
         raise CrawlRepeatError(f"repeat instance of {scraper.name}")
     # 最终创建实例
@@ -126,47 +125,51 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
         raise
     return instance
 
-async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:  # noqa: C901
-    """创建实例然后走统一流程"""
+async def process_one_instance(scraper: ScraperNameAndParams) -> str | None:  # noqa: C901
+    try:
+        instance = await get_instance(scraper)
+        if instance is None:
+            return
+    except TypeError:
+        raise CrawlInitError(400, "The amount of parameters is incorrect")  # noqa: B904
+    except CreateByLocked:
+        raise CrawlInitError(423, "Server is busy")  # noqa: B904
+    except CreateByInvalidParam:
+        raise CrawlInitError(422, "Invalid parameters")  # noqa: B904
+    except CreateByLackAgent:
+        raise CrawlInitError(423, "Lack agent")  # noqa: B904
+    except (CreateButRequestFail, FailtoGet): # todo 多次连续出现，则 post2RSS
+        raise CrawlInitError(503, "Failed when crawling")  # noqa: B904
+    except CrawlError:
+        raise
+    except Exception as e:
+        msg = f"fail when query rss {scraper.name}: {e}"
+        logger.exception(msg)
+        await config.post2RSS("error log of _process_one_kind_of_class", msg)
+        raise CrawlInitError(500, "Unknown Error") from e
+
+    try:
+        source_name = await goto_uniform_flow(data, instance, scraper.amount)
+    except ValidationError:
+        raise CrawlRunError(422, "Invalid source meta")  # noqa: B904
+    except Exception as e:
+        msg = f"fail when goto_uniform_flow of {scraper.name}, {scraper.init_params=}: {e}"
+        logger.exception(msg)
+        await config.post2RSS("error log of goto_uniform_flow", msg)
+        raise CrawlRunError(500, "Unknown Error") from e
+    finally:
+        asyncio.create_task(discard_scraper(scraper))
+        await instance.destroy() # TODO 不能保证一定会清理资源
+    return source_name
+
+async def _process_one_kind_of_class(scrapers: tuple[ScraperNameAndParams, ...]) -> list[str]:
     res = []
-    for scraper in scrapers: # TODO 将单个的抽出
-        try:
-            instance = await get_instance(scraper)
-            if instance is None:
-                continue
-        except TypeError:
-            raise CrawlInitError(400, "The amount of parameters is incorrect")  # noqa: B904
-        except CreateByLocked:
-            raise CrawlInitError(423, "Server is busy")  # noqa: B904
-        except CreateByInvalidParam:
-            raise CrawlInitError(422, "Invalid parameters")  # noqa: B904
-        except CreateByLackAgent:
-            raise CrawlInitError(423, "Lack agent")  # noqa: B904
-        except (CreateButRequestFail, FailtoGet): # todo 多次连续出现，则 post2RSS
-            raise CrawlInitError(503, "Failed when crawling")  # noqa: B904
-        except CrawlError:
-            raise
-        except Exception as e:
-            msg = f"fail when query rss {scraper.name}: {e}"
-            logger.exception(msg)
-            await config.post2RSS("error log of _process_one_kind_of_class", msg)
-            raise CrawlInitError(500, "Unknown Error") from e
-        else:
-            try:
-                source_name = await goto_uniform_flow(data, instance, scraper.amount)
-            except ValidationError:
-                raise CrawlRunError(422, "Invalid source meta")  # noqa: B904
-            except Exception as e:
-                msg = f"fail when goto_uniform_flow of {scraper.name}, {scraper.init_params=}: {e}"
-                logger.exception(msg)
-                await config.post2RSS("error log of goto_uniform_flow", msg)
-                raise CrawlRunError(500, "Unknown Error") from e
-            else:
-                res.append(source_name)
-            finally:
-                asyncio.create_task(discard_scraper(scraper))
-                await instance.destroy() # TODO 不能保证一定会清理资源
-        await asyncio.sleep(scraper.interval)
+    # 如果有一个发送异常，剩下的多半也会，因此不继续进行
+    for scraper in scrapers:
+        source_name = await process_one_instance(scraper)
+        if source_name:
+            res.append(source_name)
+            await asyncio.sleep(scraper.interval)
     return res
 
 

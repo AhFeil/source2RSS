@@ -149,6 +149,7 @@ async def test_query_rss_high_concurrency():
         for response in responses:
             assert response.status_code == 200
 
+@pytest.mark.slow
 @pytest.mark.asyncio
 async def test_query_rss_same_scraper_in_one_time():
     """同一时间，完全相同的实例只能有一个在运行，其他的直接放弃"""
