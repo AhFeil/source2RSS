@@ -124,6 +124,20 @@ class Agents:
             _logger=logging.getLogger("Agents"),
         )
 
+    def all_agent_info(self) -> list[tuple[str, list[str]]]:
+        """返回可用的 agent 的基本信息：名称、支持的抓取器"""
+        info = []
+        for sid in self._agents:
+            name = self._agents_name[sid]
+            supported_scrapers = list(self._supported_scrapers[sid])
+            supported_scrapers.sort()
+            info.append((name, supported_scrapers))
+        for name in self._d_agents:
+            supported_scrapers = list(self._supported_scrapers[name])
+            supported_scrapers.sort()
+            info.append((name, supported_scrapers))
+        return info
+
     def register(self, sid: str, name: str, scrapers: list[str], sio: AsyncServer) -> tuple[bool, str]:
         if self._agents.get(sid):
             self._logger.info("replicate agent, both sid are %s, name is %s", sid, name)

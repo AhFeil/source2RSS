@@ -7,7 +7,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
-from preproc import config
+from preproc import config, data
 from src.crawl import start_to_crawl_all
 from src.crawl.crawler import running_scrapers
 
@@ -28,6 +28,7 @@ async def manage_page(request: Request):
         "invite_code": UserRegistry._invite_code, # noqa: SLF001
         "count": UserRegistry._left_count, # noqa: SLF001
         "running_scrapers": running_scrapers,
+        "all_agent_info": data.agents.all_agent_info(),
         "scraper_profiles_content": scraper_profiles_content,
     }
     return templates.TemplateResponse(request=request, name="manage.html", context=context)

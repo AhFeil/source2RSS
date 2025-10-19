@@ -33,6 +33,14 @@
         {% endfor %}
     </ul>
 
+    <h3>可用的 agent</h3>
+    <ol>
+        {% for name, supported_scrapers in all_agent_info %}
+            <li>{{ name }}: {{ supported_scrapers }}</li>
+        {% endfor %}
+    </ol>
+
+    <h3>抓取器配置</h3>
     {% for i, sp in scraper_profiles_content %}
     <br><br>
     <div>
