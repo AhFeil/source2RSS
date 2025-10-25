@@ -16,6 +16,9 @@ machine_ip := `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}
   echo "全量测试"
   SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest tests/ || true
 
+@ci_test: (start_agent "d") && (stop_agent "d")
+  SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest tests/ -m "not slow"
+
 # 启动 agent 并后台运行，设置 PID 变量
 start_agent type:
   #!/usr/bin/env bash
