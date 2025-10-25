@@ -4,7 +4,7 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 
-from src.scraper.model import SortKey
+from src.scraper.model import AccessLevel, SortKey
 from src.scraper.scraper import WebsiteScraper
 from src.scraper.tools import get_response_or_none
 
@@ -25,7 +25,8 @@ class OldStone(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "博客 Old Stone",
             "lang": "zh-CN",
-            "key4sort": SortKey.PUB_TIME
+            "key4sort": SortKey.PUB_TIME,
+            "access": AccessLevel.SHARED_USER,
         }
         return source_info
 

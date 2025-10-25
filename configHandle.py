@@ -56,7 +56,7 @@ class Config(BriefConfig):
     enable_radar: bool
 
     # 用户不应该考虑的配置，开发者可以改的
-    rss_dir: str = "config_and_data_files/rss"
+    rss_dir: str
     source_meta: str = "source_meta"   # 存储源的元信息的表的名称
     wait_before_close_browser: int = 180
     refractory_period: int = 60 # 当一个抓取器实例被创建后的一段时间，不接受同一种实例的创建，避免无效的重复
@@ -125,6 +125,7 @@ class Config(BriefConfig):
             enable_agent_server=configs.get("enable_agent_server", False),
             known_agents=configs.get("known_agents", []),
             enable_radar=configs.get("enable_radar", False),
+            rss_dir=f"{data_dir}/rss",
         )
         config.prepare()
         return config

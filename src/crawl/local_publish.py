@@ -55,6 +55,9 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
         result = data.db_intf.get_top_n_articles_by_key(source_name, config.get_max_rss_items(instance.__class__.__name__), key4sort)
         rss_feed = generate_rss(source_info, result)
         rss_json = {"source_info": source_info, "articles": result}
+        for a in result:
+            a["pub_time"] = str(a["pub_time"])
+            a["time4sort"] = str(a["time4sort"])  # TODO
         data.rss_cache.set_rss(source_name, rss_feed, rss_json, source_info["access"])
         logger.info("%s updates", source_name)
     else:

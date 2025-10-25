@@ -10,6 +10,7 @@ machine_ip := `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}
 
 
 @test: (start_agent "d") && (stop_agent "d")
+  rm -r {{root}}/tests/config_and_data_files
   SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest tests/ -m "not slow" || true
 
 @test_all: (start_agent "d") && (stop_agent "d")
