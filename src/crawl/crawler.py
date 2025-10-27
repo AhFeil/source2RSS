@@ -1,7 +1,5 @@
 import asyncio
 import logging
-import signal
-import sys
 from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Self
@@ -72,12 +70,6 @@ class ScraperNameAndParams:
         return self.name == other.name and self.init_params == other.init_params
 
 running_scrapers = set()
-
-def print_running_scrapers(signum, frame):
-    print(f"\n[INFO] 当前 running_scrapers: {running_scrapers}", file=sys.stderr)  # noqa: T201
-
-# 绑定信号
-signal.signal(signal.SIGUSR1, print_running_scrapers)
 
 def has_scraper(scraper: ScraperNameAndParams) -> bool:
     if scraper.name == "Representative":

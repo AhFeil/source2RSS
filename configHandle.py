@@ -32,9 +32,6 @@ class Config(BriefConfig):
     max_opening_context: int
     prefer_agent: str | list[tuple[str, int]] # 指定一个 agent ，或者指定一个列表，包含多个 agent 和权重
 
-    mongodb_uri: str | None
-    mongo_dbname: str | None
-
     enabled_web_scraper: dict[str, str]
     remote_pub_scraper: dict[str, str]
 
@@ -109,8 +106,6 @@ class Config(BriefConfig):
             timezone=crawler_default_cfg.get("timezone", "Asia/Shanghai"),
             max_opening_context=max_opening_context,
             prefer_agent=crawler_default_cfg.get("prefer_agent", "self"),
-            mongodb_uri=configs.get("mongodb_uri"),
-            mongo_dbname=configs.get("mongo_dbname"),
             enabled_web_scraper=configs.get('enabled_web_scraper', {}),
             remote_pub_scraper=configs.get('remote_pub_scraper', {}),
             query_cache_maxsize=configs.get('query_cache_maxsize', 100),

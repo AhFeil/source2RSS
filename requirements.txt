@@ -1,6 +1,5 @@
 briefconf
 httpx
-pymongo
 feedgen
 feedparser
 schedule

@@ -1,8 +1,15 @@
+import re
 from datetime import datetime, timedelta, timezone
 
 from feedgen.feed import FeedGenerator
 
 from src.scraper import ArticleDict, SrcMetaDict
+
+
+def clean_xml_string(s: str) -> str:
+    # 移除 NULL 字节和控制字符（除了 \t, \n, \r）
+    # XML 1.0 允许的控制字符只有 U+0009 (tab), U+000A (LF), U+000D (CR)
+    return re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', s)
 
 
 def generate_rss(source_info: SrcMetaDict, articles: list[ArticleDict]) -> bytes:
@@ -24,7 +31,7 @@ def generate_rss(source_info: SrcMetaDict, articles: list[ArticleDict]) -> bytes
         if url := article["link"]:
             fe.link(href=url)
         if summary := article["summary"]:
-            fe.description(summary)
+            fe.description(clean_xml_string(summary))
         if cover := article.get("image_link"):
             fe.enclosure(cover, 0, 'image/jpeg')
         if content := article.get("content"):

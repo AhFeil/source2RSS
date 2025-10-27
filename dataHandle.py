@@ -189,14 +189,9 @@ class Data:
                 self._users = json.load(f)
 
         # DB
-        if config.mongodb_uri is not None:
-            from src.data import MongodbConnInfo, MongodbIntf
-            info = MongodbConnInfo(config.mongodb_uri, config.mongo_dbname, config.source_meta)
-            self.db_intf: DatabaseIntf = MongodbIntf.connect(info)
-        else:
-            from src.data import SQliteConnInfo, SQliteIntf
-            info = SQliteConnInfo(config.sqlite_uri)
-            self.db_intf: DatabaseIntf = SQliteIntf.connect(info)
+        from src.data import SQliteConnInfo, SQliteIntf
+        info = SQliteConnInfo(config.sqlite_uri)
+        self.db_intf: DatabaseIntf = SQliteIntf.connect(info)
 
         self.rss_cache = RSSCache(config.rss_dir, self.db_intf)
         self.agents = Agents.create()
