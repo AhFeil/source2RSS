@@ -1,6 +1,5 @@
 briefconf
 httpx
-pymongo
 feedgen
 feedparser
 schedule
@@ -13,3 +12,4 @@ SQLAlchemy
 python-socketio[asyncio_client]
 python-socketio[asgi]
 aiohttp
+fastapi-radar

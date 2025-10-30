@@ -7,7 +7,9 @@ SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests
 import pytest
 from fastapi.testclient import TestClient
 
+from configHandle import config
 from main import fast_app
+from tests.web.utility import get_headers
 
 client = TestClient(fast_app)
 
@@ -21,7 +23,7 @@ def setup_and_tear_down():
 
 def test_index_of_user(setup_and_tear_down):
     response = client.get("/users/me/")
-    assert response.status_code == 200
+    assert response.status_code == 401
 
 """
 curl -X 'POST' \
@@ -34,17 +36,33 @@ curl -X 'POST' \
   "passwd": "zfZZFgf56zsd56"
 }'
 """
+def register_user(data: dict, test_client: TestClient):
+    header = {
+        "accept": "application/json",
+        "Content-Type": "application/json"
+    }
+    return test_client.post("/users/me/register", json=data, headers=header)
+
+
 def test_register(setup_and_tear_down):
     data = {
         "invite_code": "source2RSS",
         "name": "pytest",
         "passwd": "zfZZFgf56zsd56"
     }
-    header = {
-        "accept": "application/json",
-        "Content-Type": "application/json"
-    }
-    response = client.post("/users/me/register", json=data, headers=header)
+    response = register_user(data, client)
     assert response.status_code == 200
-    response = client.post("/users/me/register", json=data, headers=header)
+    response = register_user(data, client)
     assert response.status_code == 200 # todo 重复注册会失败
+
+
+def add_source_to_user(user_name: str, source_name: str, test_client: TestClient):
+    data = {"source_name": source_name}
+    return test_client.post(f"/users/{user_name}/user_sources", json=data, headers=get_headers(config.query_username, config.query_password))
+
+
+def test_add_source(setup_and_tear_down):
+    response = add_source_to_user("pytest", "Old Stone", client)
+    assert response.status_code == 200 # TODO 校验 msg
+    response = add_source_to_user("pytest", "Old%20Stone", client)
+    assert response.status_code == 200

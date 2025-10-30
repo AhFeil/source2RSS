@@ -120,9 +120,9 @@ async def start_agent():
             retry_delay = 5  # 成功后重置重试时间
             await sio_agent.wait()
         except ConnectionError_ as e:
-            logger.warning(f"连接失败: {e}")
+            logger.warning("连接失败: %s", str(e))
             wait_time = retry_delay + random.uniform(0, 2)
-            logger.info(f"等待 {wait_time:.2f} 秒后重试...")
+            logger.info("等待 %.2f 秒后重试...", wait_time)
             await asyncio.sleep(wait_time)
             retry_delay = min(retry_delay * 2, max_retry_delay)  # 指数增长
         finally:

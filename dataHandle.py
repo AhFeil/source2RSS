@@ -35,7 +35,7 @@ class RSSCache:
                 access = AccessLevel.SYSTEM
             self._cached_sources[access][source_name] = rss_data
 
-    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...] = ()) -> list[tuple[str, str]]:
+    def get_source_list(self, access: AccessLevel, low_access: AccessLevel=AccessLevel.NONE, except_access: tuple[AccessLevel, ...] = ()) -> list[tuple[str, str]]:  # noqa: E501
         """返回 access 到 low_access 之间的所有源的表名和展示名， 不包含 low_access"""
         source_list = []
         for i in filter(lambda x : x not in except_access, range(access, low_access, -1)):
@@ -124,6 +124,20 @@ class Agents:
             _logger=logging.getLogger("Agents"),
         )
 
+    def all_agent_info(self) -> list[tuple[str, list[str]]]:
+        """返回可用的 agent 的基本信息：名称、支持的抓取器"""
+        info = []
+        for sid in self._agents:
+            name = self._agents_name[sid]
+            supported_scrapers = list(self._supported_scrapers[sid])
+            supported_scrapers.sort()
+            info.append((name, supported_scrapers))
+        for name in self._d_agents:
+            supported_scrapers = list(self._supported_scrapers[name])
+            supported_scrapers.sort()
+            info.append((name, supported_scrapers))
+        return info
+
     def register(self, sid: str, name: str, scrapers: list[str], sio: AsyncServer) -> tuple[bool, str]:
         if self._agents.get(sid):
             self._logger.info("replicate agent, both sid are %s, name is %s", sid, name)
@@ -150,9 +164,13 @@ class Agents:
     def get_agent(self, sid: str) -> Agent | None:
         return self._agents.get(sid)
 
-    def get(self, cls_id: str) -> tuple[D_Agent | Agent, ...]:
+    def get(self, cls_id: str, agent_name: str="") -> tuple[D_Agent | Agent, ...]:
         if agents_sid := self._supported_scrapers.get(cls_id):
-            return tuple(self._d_agents.get(sid) or self._agents[sid] for sid in agents_sid)
+            # TODO
+            for sid in agents_sid:
+                agent = self._d_agents.get(sid) or self._agents[sid]
+                if agent.name == agent_name:
+                    return (agent, )
         return ()
 
 # 非线程安全，但在单个事件循环下是协程安全的
@@ -171,14 +189,9 @@ class Data:
                 self._users = json.load(f)
 
         # DB
-        if config.mongodb_uri is not None:
-            from src.data import MongodbConnInfo, MongodbIntf
-            info = MongodbConnInfo(config.mongodb_uri, config.mongo_dbname, config.source_meta)
-            self.db_intf: DatabaseIntf = MongodbIntf.connect(info)
-        else:
-            from src.data import SQliteConnInfo, SQliteIntf
-            info = SQliteConnInfo(config.sqlite_uri)
-            self.db_intf: DatabaseIntf = SQliteIntf.connect(info)
+        from src.data import SQliteConnInfo, SQliteIntf
+        info = SQliteConnInfo(config.sqlite_uri)
+        self.db_intf: DatabaseIntf = SQliteIntf.connect(info)
 
         self.rss_cache = RSSCache(config.rss_dir, self.db_intf)
         self.agents = Agents.create()

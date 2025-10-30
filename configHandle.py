@@ -1,5 +1,6 @@
 import logging.config
 import os
+import random
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -25,13 +26,11 @@ class Config(BriefConfig):
     run_everyday_at: list[str]
     WAIT: int
     amount_when_firstly_add: int
+    interval_between_each_instance: int
     max_of_rss_items: int
     timezone: str
     max_opening_context: int
-    prefer_agent: str
-
-    mongodb_uri: str | None
-    mongo_dbname: str | None
+    prefer_agent: str | list[tuple[str, int]] # 指定一个 agent ，或者指定一个列表，包含多个 agent 和权重
 
     enabled_web_scraper: dict[str, str]
     remote_pub_scraper: dict[str, str]
@@ -51,8 +50,10 @@ class Config(BriefConfig):
     enable_agent_server: bool
     known_agents: list[dict[str, Any]]
 
+    enable_radar: bool
+
     # 用户不应该考虑的配置，开发者可以改的
-    rss_dir: str = "config_and_data_files/rss"
+    rss_dir: str
     source_meta: str = "source_meta"   # 存储源的元信息的表的名称
     wait_before_close_browser: int = 180
     refractory_period: int = 60 # 当一个抓取器实例被创建后的一段时间，不接受同一种实例的创建，避免无效的重复
@@ -100,12 +101,11 @@ class Config(BriefConfig):
             WAIT=crawler_default_cfg.get("WAIT", 1800),
 
             amount_when_firstly_add=crawler_default_cfg.get("amount_when_firstly_add", 10),
+            interval_between_each_instance=crawler_default_cfg.get("interval_between_each_instance", 1),
             max_of_rss_items=crawler_default_cfg.get("max_of_rss_items", 50),
             timezone=crawler_default_cfg.get("timezone", "Asia/Shanghai"),
             max_opening_context=max_opening_context,
             prefer_agent=crawler_default_cfg.get("prefer_agent", "self"),
-            mongodb_uri=configs.get("mongodb_uri"),
-            mongo_dbname=configs.get("mongo_dbname"),
             enabled_web_scraper=configs.get('enabled_web_scraper', {}),
             remote_pub_scraper=configs.get('remote_pub_scraper', {}),
             query_cache_maxsize=configs.get('query_cache_maxsize', 100),
@@ -119,6 +119,8 @@ class Config(BriefConfig):
             s2r_c=s2r_c,
             enable_agent_server=configs.get("enable_agent_server", False),
             known_agents=configs.get("known_agents", []),
+            enable_radar=configs.get("enable_radar", False),
+            rss_dir=f"{data_dir}/rss",
         )
         config.prepare()
         return config
@@ -174,9 +176,13 @@ class Config(BriefConfig):
 
     def get_prefer_agent(self, class_name: str) -> str:
         try:
-            return self.scraper_profile[class_name]["custom_cfg"]["prefer_agent"]
+            prefer_agent = self.scraper_profile[class_name]["custom_cfg"]["prefer_agent"]
         except KeyError:
-            return self.prefer_agent
+            prefer_agent = self.prefer_agent
+        if isinstance(prefer_agent, str):
+            return prefer_agent
+        agents, weights = zip(*prefer_agent)
+        return random.choices(agents, weights=weights)[0]
 
     def get_params(self, class_name: str) -> list:
         try:
@@ -189,6 +195,12 @@ class Config(BriefConfig):
             return self.scraper_profile[class_name]["custom_cfg"]["amount_when_firstly_add"]
         except KeyError:
             return self.amount_when_firstly_add
+
+    def get_interval(self, class_name: str) -> int:
+        try:
+            return self.scraper_profile[class_name]["custom_cfg"]["interval_between_each_instance"]
+        except KeyError:
+            return self.interval_between_each_instance
 
     def get_max_rss_items(self, class_name: str) -> int:
         try:

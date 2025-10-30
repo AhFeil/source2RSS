@@ -152,14 +152,14 @@ class Remote(WebsiteScraper):
         for key in flags:
             if isinstance(flags[key], datetime):
                 flags[key] = flags[key].timestamp()
-        cls._logger.info(f"[Remote] {cls_id} start to parse")
+        cls._logger.info("[Remote] %s start to parse", cls_id)
 
         commission = {"cls_id": cls_id, "params": params, "flags": flags, "continue": True}
 
         await con.send(commission, "go_on")
         async for reply in con.recv_iter():
             a = reply["article"]
-            cls._logger.info(f"[Remote] {cls_id} have new article")
+            cls._logger.info("[Remote] %s have new article", cls_id)
             if a.get("pub_time"):
                 a["pub_time"] = datetime.fromtimestamp(a["pub_time"])
             if a.get("time4sort"):

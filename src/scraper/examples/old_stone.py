@@ -4,7 +4,7 @@ from datetime import datetime
 
 from bs4 import BeautifulSoup
 
-from src.scraper.model import SortKey
+from src.scraper.model import AccessLevel, SortKey
 from src.scraper.scraper import WebsiteScraper
 from src.scraper.tools import get_response_or_none
 
@@ -25,7 +25,8 @@ class OldStone(WebsiteScraper):
             "link": self.__class__.home_url,
             "desc": "博客 Old Stone",
             "lang": "zh-CN",
-            "key4sort": SortKey.PUB_TIME
+            "key4sort": SortKey.PUB_TIME,
+            "access": AccessLevel.SHARED_USER,
         }
         return source_info
 
@@ -34,7 +35,7 @@ class OldStone(WebsiteScraper):
         """给起始页码，yield 一篇一篇惰性返回，直到最后一页最后一篇"""
         start_page = 1
         while True:
-            cls._logger.info(f"Old Stone start to parse page {start_page}")
+            cls._logger.info("Old Stone start to parse page %d", start_page)
             page = "" if start_page == 1 else f"page/{start_page}/"
             response = await get_response_or_none(f"{OldStone.home_url}/{page}", cls.headers)
             if response is None:

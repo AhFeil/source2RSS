@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel, constr
 
 from .get_rss import templates
-from .security import User, UserRegistry, get_valid_user
+from .security import User, UserRegistry, get_admin_user, get_valid_user
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +22,8 @@ username_password_regex = r'^[a-zA-Z0-9!@#$%^&*()_+={}\[\]<>,.?/~-]+$'
 
 class UserCreate(BaseModel):
     invite_code: str
-    name: constr(pattern=username_password_regex, min_length=3, max_length=20) # type: ignore
+    name: constr(pattern=username_password_regex, min_length=3, max_length=20) # type: ignore TODO me 不能被注册
     passwd: constr(pattern=username_password_regex, min_length=8, max_length=32) # type: ignore
-
 
 @router.get("/me/", response_class=HTMLResponse)
 async def user_page(request: Request, user: Annotated[User, Depends(get_valid_user)]):
@@ -39,3 +38,16 @@ async def user_register(user_data: UserCreate):
     if user := UserRegistry.register_user_or_none(user_data.invite_code, user_data.name, user_data.passwd):
         return {"message": "User created", "user name": user.name}
     return {"message": "User failed to be created", "user name": user_data.name}
+
+
+class AddSource(BaseModel):
+    source_name: str
+
+@router.get("/me/user_sources/", response_class=JSONResponse)
+async def user_sources(request: Request, user: Annotated[User, Depends(get_valid_user)]):
+    return {"user_sources": user.source_names}
+
+@router.post("/{user_name}/user_sources", response_class=JSONResponse, dependencies=[Depends(get_admin_user)])
+async def add_user_source(user_name: str, add_source: AddSource):
+    UserRegistry.add_source_by_name(user_name, add_source.source_name)
+    return {"message": f"add source to {user_name}", "source name": add_source.source_name}

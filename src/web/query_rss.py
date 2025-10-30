@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse
 
 from preproc import Plugins, config, data
-from src.crawl import ScraperNameAndParams, start_to_crawl
+from src.crawl import ScraperNameAndParams, process_one_instance
 from src.crawl.crawl_error import CrawlError
 from src.scraper import AccessLevel
 
@@ -102,22 +102,21 @@ def async_cached(func):
 async def go_to_crawl(cls_id: str, one_group_params: tuple, *, cache_type: CacheType=CacheType.NORMAL) -> str:
     scraper_with_one_group_params = ScraperNameAndParams.create(cls_id, (one_group_params, ))
     try:
-        res = await start_to_crawl((scraper_with_one_group_params, ))
+        res = await process_one_instance(scraper_with_one_group_params[0])
     except CrawlError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
 
-    try:
-        return res[0][0]
-    except IndexError:
-        await config.post2RSS("error log of no_cache_flow", f"{res=}, {cls_id=}, {one_group_params=}")
-        raise HTTPException(status_code=500, detail="crawl result is not expected")
+    if res is None:
+        await config.post2RSS("error log of no_cache_flow", f"res=None, {cls_id=}, {one_group_params=}")
+        raise HTTPException(status_code=500, detail="request params is invalid.")
+    return res
 
 @router.get("/{cls_id}/")
 async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)], q: Annotated[list[str], Query()] = []): # noqa: B006
     """已登录用户可以用此主动请求更新，并获取更新后的源"""
     if Plugins.get_plugin_or_none(cls_id) is None or cls_id == "Representative":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
-    logger.info(f"{cls_id} get new request of {q}")
+    logger.info("%s get new request of %s", cls_id, str(q))
     # todo 检查，用户只能请求用户级别的抓取器
     if user.is_administrator and not config.in_bedtime(cls_id, datetime.now().strftime("%H:%M")):
         source_name = await go_to_crawl(cls_id, tuple(q), cache_type=CacheType.JUST_REFRESH)

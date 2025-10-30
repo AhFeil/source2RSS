@@ -16,7 +16,7 @@ fi
 source .env/bin/activate
 pip install -r requirements.txt
 # 安装指定的浏览器
-playwright install
+playwright install chromium
 # 如果显示缺乏依赖
 # python -m playwright install --with-deps
 

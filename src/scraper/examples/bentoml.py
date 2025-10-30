@@ -55,7 +55,7 @@ class BentoMLBlog(WebsiteScraper):
             query = '&'.join(f"{key}={value}" for key, value in varied_query_dict.items()) + '&' + cls.steady_query
             encoded_query = quote(query, safe='[]=&')
             url = "https://admin.bentoml.com/api/blog-posts?" + encoded_query
-            cls._logger.info(f"BentoML Blog start to parse page {start_page}")
+            cls._logger.info("BentoML Blog start to parse page %d", start_page)
             response = await get_response_or_none(url, cls.headers)
             if response is None:
                 return

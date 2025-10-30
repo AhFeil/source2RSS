@@ -62,6 +62,15 @@ class UserRegistry:
         return user.source_names if user else set()
 
     @classmethod
+    def add_source_by_name(cls, name: str, source_name: str):
+        """根据用户名向源列表添加内容"""
+        user = cls._user_registry.get(name)
+        if user:
+            user.source_names.add(source_name)
+            cls._user_registry[config.query_username].source_names.add(source_name) # TODO
+            cls._save_users_and_etc()
+
+    @classmethod
     def register_user_or_none(cls, invite_code: str, name: str, passwd: str) -> User | None:
         """根据用户名和密码添加一个用户"""
         if cls._user_registry.get(name):

@@ -85,9 +85,9 @@ class AsyncBrowserManager:
                 await cls._playwright.stop() # type: ignore
                 cls._browser = None
                 cls._playwright = None
-                cls._logger.info("destroy browser by " + id_)
+                cls._logger.info("destroy browser by %s", id_)
             elif all_users > 0:
-                cls._logger.info("leave browser alone, said by " + id_)
+                cls._logger.info("leave browser alone, said by %s", id_)
             elif all_users == 0 and cls._browser is None:
                 pass
             else:
@@ -100,7 +100,7 @@ class AsyncBrowserManager:
         while(need_wait):
             async with cls._lock:
                 if cls._users >= max_:
-                    cls._logger.info(id_ + " need to wait for context")
+                    cls._logger.info("%s need to wait for context", id_)
                     need_wait = True
                 else:
                     cls._users += 1
