@@ -26,11 +26,13 @@ then
     mkdir config_and_data_files && \
     cp examples/config.example.yaml config_and_data_files/config.yaml && \
     cp examples/scraper_profile.example.yaml config_and_data_files/scraper_profile.yaml && \
-    sed -i 's|examples/scraper_profile\.example\.yaml|config_and_data_files/scraper_profile.yaml|g' config_and_data_files/config.yaml && \
-    cp examples/agent_config.example.yaml config_and_data_files/agent_config.yaml
+    sed -i 's|examples/scraper_profile\.example\.yaml|config_and_data_files/scraper_profile.yaml|g' config_and_data_files/config.yaml
 fi
 
 # 创建 systemd 配置文件
+if [ "$1" != "agent" ]; then
+# 如果第一个参数不是 "agent" 或者为空
+
 if [ ! -f ${program_name}.service ]
 then
 cat > ./${program_name}.service <<EOF
@@ -56,6 +58,9 @@ fi
 
 chmod 644 ${program_name}.service
 
+else
+# 如果第一个参数是 "agent"
+cp examples/agent_config.example.yaml config_and_data_files/agent_config.yaml
 
 d_agent_pgm_name="source2RSS_d_agent"
 
@@ -111,6 +116,6 @@ EOF
 fi
 
 chmod 644 ${r_agent_pgm_name}.service
-
+fi
 
 # vim: expandtab shiftwidth=4 softtabstop=4
