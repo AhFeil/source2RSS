@@ -96,7 +96,9 @@ class BilibiliUp(WebsiteScraper):
                 continue
             content = a["desc"]["text"] if a.get("desc") else ""
             if attributes := a["major"].get("archive"):
-                name = attributes["title"]
+                badge = attributes.get("badge")
+                vip = "【" + badge.get("text") + "】" if badge and badge.get("icon_url") else ""
+                name = vip + attributes["title"]
                 summary = attributes["desc"]
                 article_url = "https:" + attributes["jump_url"] # bvid = attributes["bvid"]
                 image_link = attributes["cover"]
@@ -107,6 +109,7 @@ class BilibiliUp(WebsiteScraper):
                 image = attributes.get("pics")
                 image_link = image[0]["url"] if image else ""
             else:
+                # 记录，有个 "type": "MAJOR_TYPE..." 可以区分类型
                 continue
 
             article = {
