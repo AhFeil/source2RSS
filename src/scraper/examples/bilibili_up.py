@@ -97,7 +97,7 @@ class BilibiliUp(WebsiteScraper):
             content = a["desc"]["text"] if a.get("desc") else ""
             if attributes := a["major"].get("archive"):
                 badge = attributes.get("badge")
-                vip = "【" + badge.get("text") + "】" if badge else ""
+                vip = "【" + badge.get("text") + "】" if badge and badge.get("icon_url") else ""
                 name = vip + attributes["title"]
                 summary = attributes["desc"]
                 article_url = "https:" + attributes["jump_url"] # bvid = attributes["bvid"]
