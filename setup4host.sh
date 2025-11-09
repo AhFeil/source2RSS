@@ -2,11 +2,11 @@
 # setup4host.sh - set up virtual environment, install dependencies and create systemd file
 # 确保脚本运行幂等，有更新时保证运行一次脚本就可以满足更新的需要
 
+set -e
+
 program_name="source2RSS"   # 不能有空格等特殊符号
 current_uid=$(id -u)
 current_dir=$(pwd)
-
-mkdir -p plugins
 
 # 确保存在虚拟环境并安装包
 if [ ! -d .env ]
@@ -17,8 +17,8 @@ source .env/bin/activate
 pip install -r requirements.txt
 # 安装指定的浏览器
 playwright install chromium
-# 如果显示缺乏依赖
-# python -m playwright install --with-deps
+# 安装 playwright 的依赖
+python -m playwright install --with-deps
 
 # 配置文件。若不存在目录 config_and_data_files 就自动复制示例配置文件，否则不操作
 if [ ! -d config_and_data_files ]
@@ -28,6 +28,9 @@ then
     cp examples/scraper_profile.example.yaml config_and_data_files/scraper_profile.yaml && \
     sed -i 's|examples/scraper_profile\.example\.yaml|config_and_data_files/scraper_profile.yaml|g' config_and_data_files/config.yaml
 fi
+
+bin_dir="${current_dir}/.env/bin"
+python_bin="${bin_dir}/python3"
 
 # 创建 systemd 配置文件
 if [ "$1" != "agent" ]; then
@@ -45,7 +48,7 @@ WorkingDirectory=${current_dir}
 User=${current_uid}
 Group=${current_uid}
 Type=simple
-ExecStart=${current_dir}/.env/bin/uvicorn main:app --host 0.0.0.0 --port 8536
+ExecStart=${bin_dir}/uvicorn main:app --host 0.0.0.0 --port 8536
 ExecStop=/bin/kill -s HUP $MAINPID
 Environment=PYTHONUNBUFFERED=1
 RestartSec=15
@@ -76,7 +79,7 @@ WorkingDirectory=${current_dir}
 User=${current_uid}
 Group=${current_uid}
 Type=simple
-ExecStart=${current_dir}/.env/bin/python -m src.node.as_d_agent
+ExecStart=${python_bin} -m src.node.as_d_agent
 ExecStop=/bin/kill -s HUP $MAINPID
 Environment=PYTHONUNBUFFERED=1
 RestartSec=15
@@ -104,7 +107,7 @@ WorkingDirectory=${current_dir}
 User=${current_uid}
 Group=${current_uid}
 Type=simple
-ExecStart=${current_dir}/.env/bin/python -m src.node.as_r_agent
+ExecStart=${python_bin} -m src.node.as_r_agent
 ExecStop=/bin/kill -s HUP $MAINPID
 Environment=PYTHONUNBUFFERED=1
 RestartSec=15
@@ -117,5 +120,7 @@ fi
 
 chmod 644 ${r_agent_pgm_name}.service
 fi
+
+mkdir -p plugins
 
 # vim: expandtab shiftwidth=4 softtabstop=4
