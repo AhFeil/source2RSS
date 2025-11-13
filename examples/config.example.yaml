@@ -15,9 +15,8 @@ enabled_web_scraper:
   - mangacopy
   - chiphell
   - youtube_channel
+  - telegram_channel
   - bilibili_up
-# 暂时没有维护无法正常运行的抓取器
-# - newsletter
 
 # 不了解的话建议删除
 enable_agent_server: true
