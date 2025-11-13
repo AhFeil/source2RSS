@@ -12,6 +12,7 @@ def clean_xml_string(s: str) -> str:
     return re.sub(r'[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]', '', s)
 
 
+# TODO l10n 时区应该能更改的
 def generate_rss(source_info: SrcMetaDict, articles: list[ArticleDict]) -> bytes:
     """构建 rss。根据传入的 articles ，格式化为 RSS 后以 utf-8 字节返回"""
     zone = timezone(timedelta(hours=8))

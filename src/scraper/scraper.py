@@ -3,6 +3,7 @@ from abc import ABC, ABCMeta, abstractmethod
 from collections.abc import AsyncGenerator, Generator
 from datetime import datetime, timedelta
 from typing import Any, ClassVar, Self
+from zoneinfo import ZoneInfo
 
 from api._v2 import Plugins
 
@@ -106,7 +107,11 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 cls._logger.error("%s: flags need 'key4sort' for old2new", self.source_info['name'])
                 return
             else:
+                # TODO 这里不退出的话，下面在比对时找不到键出错
                 cls._logger.warning("%s: flags need 'key4sort'", self.source_info['name'])
+        value4sort = flags[key4sort.value]  # 如果是 datetime ，则不含时区，视作是东八区的
+        if isinstance(value4sort, datetime):
+            value4sort = value4sort.astimezone(ZoneInfo("Asia/Shanghai"))
 
         if sequence is Sequence.MUST_OLD2NEW:
             async_gen = cls._parse_old2new if cls.support_old2new else \
@@ -117,7 +122,10 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             async_gen = cls._parse
 
         async for a in async_gen(flags, *self._custom_parameter_of_parse()):
-            if a[key4sort.value] > flags[key4sort.value]:
+            a_value4sort = a[key4sort.value]
+            if isinstance(a_value4sort, datetime):
+                a_value4sort = a_value4sort.astimezone(ZoneInfo("Asia/Shanghai"))
+            if a_value4sort > value4sort:
                 yield WebsiteScraper._standardize_article(a)
             else:
                 if cls.support_old2new:
@@ -178,6 +186,10 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
 
     @staticmethod
     def _standardize_article(a: dict) -> ArticleDict:
+        if a.get("pub_time"):
+            a["pub_time"] = a["pub_time"].astimezone(ZoneInfo("Asia/Shanghai"))
+        if a.get("time4sort"):
+            a["time4sort"] = a["time4sort"].astimezone(ZoneInfo("Asia/Shanghai"))
         return ArticleInfo(**a).model_dump() # type: ignore
 
     @staticmethod

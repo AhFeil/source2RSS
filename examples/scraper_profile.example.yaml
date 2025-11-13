@@ -20,6 +20,12 @@ YoutubeChannel:
   - [LearnEnglishWithTVSeries]
   - [kurzgesagt]
 
+TelegramChannel:
+  custom_cfg:
+    amount_when_firstly_add: 30
+  cls_init_params:
+  - nodeseekc
+
 MangaCopy:
   custom_cfg:
     max_of_rss_items: 10
