@@ -98,13 +98,13 @@ class Config(BriefConfig):
             sqlite_uri=f"sqlite:///{data_dir}/source2rss.db",
             users_file=f"{data_dir}/users.json",
 
+            timezone=configs.get("timezone", "Asia/Shanghai"),
             run_everyday_at=[run_everyday_at] if isinstance(run_everyday_at, str) else run_everyday_at,
             WAIT=crawler_default_cfg.get("WAIT", 1800),
 
             amount_when_firstly_add=crawler_default_cfg.get("amount_when_firstly_add", 10),
             interval_between_each_instance=crawler_default_cfg.get("interval_between_each_instance", 1),
             max_of_rss_items=crawler_default_cfg.get("max_of_rss_items", 50),
-            timezone=crawler_default_cfg.get("timezone", "Asia/Shanghai"),
             max_opening_context=max_opening_context,
             prefer_agent=crawler_default_cfg.get("prefer_agent", "self"),
             enabled_web_scraper=configs.get('enabled_web_scraper', {}),

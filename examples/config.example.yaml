@@ -44,10 +44,11 @@ query_password: "123456"
 query_bedtime:   # 睡眠时间里，管理员的请求走缓存路径，减少资源消耗
 - ["01:30", "06:30"]
 
+# 时区，影响处有两个：定期运行时，设置为不同时区的话，实际运行的时间不同；生成 RSS 中，时间相关的量
+timezone: Asia/Shanghai
 
 # 抓取器的默认配置，如果没有在 scraper_profile 文件里定义相关量，就会使用这里的
 crawler_default_cfg:
-  timezone: Asia/Shanghai
   run_everyday_at: ["05:00", "11:00", "17:00", "23:00"]
   WAIT: 5
   amount_when_firstly_add: 10
