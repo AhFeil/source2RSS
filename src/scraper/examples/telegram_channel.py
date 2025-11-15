@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import AsyncGenerator
 from datetime import datetime
 from typing import Self
@@ -12,6 +13,7 @@ from src.scraper.tools import get_response_or_none
 
 class TelegramChannel(WebsiteScraper):
     home_url = "https://t.me/s/{channel_id}"
+    page_turning_duration = 5
 
     headers = {
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -61,60 +63,74 @@ class TelegramChannel(WebsiteScraper):
         }
 
     @classmethod
-    async def _parse(cls, flags, channel_name, soup) -> AsyncGenerator[dict, None]:  # noqa: ARG003
+    async def _parse(cls, flags, channel_name, channel_url: str, soup: BeautifulSoup, header: dict) -> AsyncGenerator[dict, None]:  # noqa: ARG003, C901
         cls._logger.info("%s start to parse", channel_name)
-        articles = soup.find_all('div', class_='tgme_widget_message_wrap js-widget_message_wrap')
-        if not articles:
-            cls._logger.info("%s unexpected content", channel_name)
-            return
-        for a in articles:
-            content = a.find('div', class_="tgme_widget_message_text js-message_text")
-            if not content:
-                cls._logger.info("%s unexpected content", channel_name)
-                continue
-            link_tag = content.find('a', href=True)
-            if not link_tag:
-                cls._logger.info("%s unexpected content", channel_name)
-                continue
-            article_url = link_tag['href']
-            title = link_tag.get_text(strip=True)
-            summary = ""
+        while True:
+            articles = soup.find_all('div', class_='tgme_widget_message_wrap js-widget_message_wrap')
+            if not articles:
+                cls._logger.info("%s unexpected content 1", channel_name)
+                return
+            for a in reversed(articles):
+                content = a.find('div', class_="tgme_widget_message_text js-message_text")
+                if not content:
+                    cls._logger.info("%s unexpected content 2", channel_name)
+                    continue
+                link_tag = content.find('a', href=True)
+                if not link_tag:
+                    cls._logger.info("%s unexpected content 3", channel_name)
+                    continue
+                article_url = link_tag['href']
+                title = link_tag.get_text(strip=True)
+                summary = ""
 
-            footer = a.find('div', class_="tgme_widget_message_footer")
-            if not footer:
-                cls._logger.info("%s unexpected content", channel_name)
-                continue
-            info = footer.find('div', class_="tgme_widget_message_info")
-            if not info:
-                cls._logger.info("%s unexpected content", channel_name)
-                continue
-            time_tag = info.find('time', datetime=True)
-            if not time_tag:
-                cls._logger.info("%s unexpected content", channel_name)
-                continue
-            iso_time = time_tag['datetime']
-            time_obj = datetime.fromisoformat(iso_time)
+                footer = a.find('div', class_="tgme_widget_message_footer")
+                if not footer:
+                    cls._logger.info("%s unexpected content 4", channel_name)
+                    continue
+                info = footer.find('div', class_="tgme_widget_message_info")
+                if not info:
+                    cls._logger.info("%s unexpected content 5", channel_name)
+                    continue
+                time_tag = info.find('time', datetime=True)
+                if not time_tag:
+                    cls._logger.info("%s unexpected content 6", channel_name)
+                    continue
+                iso_time = time_tag['datetime']
+                time_obj = datetime.fromisoformat(iso_time) # type: ignore
 
-            preview = a.find('a', class_="tgme_widget_message_link_preview")
-            if preview:
-                preview_t = preview.find('div', class_="link_preview_title")
-                preview_t = preview_t.text if preview_t else ""
-                preview_d = preview.find('div', class_="link_preview_description")
-                preview_d = preview_d.text if preview_d else ""
-                summary += "\n" + preview_t + "\n" + preview_d
+                preview = a.find('a', class_="tgme_widget_message_link_preview")
+                if preview:
+                    preview_t = preview.find('div', class_="link_preview_title")
+                    preview_t = preview_t.text if preview_t else ""
+                    preview_d = preview.find('div', class_="link_preview_description")
+                    preview_d = preview_d.text if preview_d else ""
+                    summary += "\n" + preview_t + "\n" + preview_d
 
-            article = {
-                "title": title,
-                "summary": summary,
-                "link": article_url,
-                "image_link": "http://example.com",
-                "pub_time": time_obj
-            }
+                article = {
+                    "title": title,
+                    "summary": summary,
+                    "link": article_url,
+                    "image_link": "http://example.com",
+                    "pub_time": time_obj
+                }
 
-            yield article
+                yield article
+            cur_msg_link_tag = a.find('a', class_="tgme_widget_message_date")
+            if not cur_msg_link_tag:
+                break
+            await asyncio.sleep(cls.page_turning_duration)
+
+            cur_msg_link = cur_msg_link_tag['href']
+            cur_msg_id = cur_msg_link.rsplit("/", maxsplit=1)[1] # type: ignore
+            pre_msgs_link = f"{channel_url}?before={cur_msg_id}"
+            response = await get_response_or_none(pre_msgs_link, header)
+            if response and response.status_code == 200:
+                soup = BeautifulSoup(response.text, features="lxml")
+            else:
+                raise CreateButRequestFail()
 
     def _custom_parameter_of_parse(self) -> list:
-        return [self.channel_name, self.soup]
+        return [self.channel_name, self.channel_url, self.soup, self.header]
 
     @classmethod
     async def _get_channel_info(cls, channel_url: str, header: dict) -> tuple[str, str, BeautifulSoup | None]:
