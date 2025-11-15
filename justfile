@@ -6,7 +6,7 @@ machine_ip := `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}
 @run:
   echo "网页地址： http://{{machine_ip}}:8536/"
   echo "管理员访问： http://vfly2:123456@{{machine_ip}}:8536/"
-  cd "{{root}}" && .env/bin/python main.py
+  cd "{{root}}" && .env/bin/uvicorn main:app --host 0.0.0.0 --port 8536
 
 
 @test: (start_agent "d") && (stop_agent "d")

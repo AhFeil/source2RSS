@@ -48,7 +48,7 @@ WorkingDirectory=${current_dir}
 User=${current_uid}
 Group=${current_uid}
 Type=simple
-ExecStart=${bin_dir}/uvicorn main:app --host 0.0.0.0 --port 8536
+ExecStart=${bin_dir}/uvicorn main:app --host 127.0.0.1 --port 8536
 ExecStop=/bin/kill -s HUP $MAINPID
 Environment=PYTHONUNBUFFERED=1
 RestartSec=15

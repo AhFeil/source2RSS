@@ -69,6 +69,15 @@ async def static_from_root(file: AdditionalPage):
 app = socketio.ASGIApp(sio, other_asgi_app=fast_app) if config.enable_agent_server else fast_app
 
 
+if config.http_proxy_url:
+    import os
+
+    os.environ["http_proxy"] = config.http_proxy_url
+    os.environ["https_proxy"] = config.http_proxy_url
+
+    print("set proxy:", config.http_proxy_url)  # noqa: T201
+
+
 if config.enable_radar:
     from fastapi_radar import Radar
 
@@ -76,8 +85,3 @@ if config.enable_radar:
 
     radar = Radar(fast_app, db_engine=data.db_intf.engine, db_path=config.data_dir)
     radar.create_tables()
-
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=config.port)

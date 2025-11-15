@@ -101,5 +101,5 @@ async def connect_agent(websocket: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=agent_config.port)
+    uvicorn.run(app, host="0.0.0.0", port=agent_config.port)  # TODO 监听特定 IP，安全考虑
     # python -m src.node.as_d_agent

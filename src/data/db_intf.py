@@ -37,5 +37,6 @@ class DatabaseIntf(ABC):
         raise NotImplementedError
 
     # 内部接口
-    def __init__(self):
+    def __init__(self, engine):
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.engine = engine
