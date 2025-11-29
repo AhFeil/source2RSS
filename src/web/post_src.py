@@ -39,7 +39,7 @@ async def add_source(m: SourceMeta):
 async def delivery(source_name: str, articles: list[ArticleInfo]):
     """用收到的文章构造一个特殊的抓取器，然后走正常处理流程"""
     logger.info("reveice articles of %s", source_name)
-    j_articles = [a.model_dump_to_json() for a in articles]
+    j_articles = [a.model_dump() for a in articles]
     source = data.db_intf.get_source_info(source_name)
     if source is None:
         source = {

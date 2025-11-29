@@ -79,7 +79,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     @property
     def source_info(self) -> SrcMetaDict:
         """数据库要有一个表保存每个网站的元信息，生成 RSS 使用"""
-        return WebsiteScraper._standardize_src_Info(self._source_info())
+        return SourceMeta.model_validate(self._source_info()).model_dump() # type: ignore
 
     @property
     def max_wait_time(self) -> int:
@@ -95,7 +95,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 return
             async for a in cls._parse(flags, *self._custom_parameter_of_parse()):
                 amount -= 1
-                yield WebsiteScraper._standardize_article(a)
+                yield ArticleInfo.model_validate(a).model_dump() # type: ignore
                 if amount <= 0:
                     return
             return
@@ -106,7 +106,11 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
                 cls._logger.error("%s: flags need 'key4sort' for old2new", self.source_info['name'])
                 return
             else:
+                # TODO 这里不退出的话，下面在比对时找不到键出错
                 cls._logger.warning("%s: flags need 'key4sort'", self.source_info['name'])
+        value4sort = flags[key4sort.value]
+        if isinstance(value4sort, datetime):
+            value4sort = ArticleInfo.to_utc(value4sort)
 
         if sequence is Sequence.MUST_OLD2NEW:
             async_gen = cls._parse_old2new if cls.support_old2new else \
@@ -117,8 +121,11 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             async_gen = cls._parse
 
         async for a in async_gen(flags, *self._custom_parameter_of_parse()):
-            if a[key4sort.value] > flags[key4sort.value]:
-                yield WebsiteScraper._standardize_article(a)
+            a_value4sort = a[key4sort.value]
+            if isinstance(a_value4sort, datetime):
+                a_value4sort = ArticleInfo.to_utc(a_value4sort)
+            if a_value4sort > value4sort:
+                yield ArticleInfo.model_validate(a).model_dump() # type: ignore
             else:
                 if cls.support_old2new:
                     continue
@@ -175,14 +182,6 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
             for a in reversed(articles):
                 yield a
         return func
-
-    @staticmethod
-    def _standardize_article(a: dict) -> ArticleDict:
-        return ArticleInfo(**a).model_dump() # type: ignore
-
-    @staticmethod
-    def _standardize_src_Info(s: dict) -> SrcMetaDict:
-        return SourceMeta(**s).model_dump() # type: ignore
 
     @staticmethod
     def _get_time_obj(reverse: bool=False, count: int=100, interval: int=2, current_time: datetime | None=None) -> Generator[datetime, None, None]:
