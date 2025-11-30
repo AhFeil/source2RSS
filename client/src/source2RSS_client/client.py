@@ -11,8 +11,7 @@ logger = logging.getLogger("post2RSS")
 
 
 class S2RProfile(TypedDict):
-    ip_or_domain: str
-    port: int
+    url: str
     username: str
     password: str
     source_name: str
@@ -31,7 +30,7 @@ class Source2RSSClient:
     @classmethod
     def create(cls, cfg: S2RProfile, send_test: bool=False) -> Self:
         """如果 send_test 为真，则在创建后发送一个文章，用于测试功能"""
-        root_url = f"http://{cfg['ip_or_domain']}:{cfg['port']}"
+        root_url = cfg['url']
         post_url = f"{root_url}/post_src/{cfg['source_name']}/"
         src_url = f"{root_url}/query_rss/{cfg['source_name']}.xml/#"
         credentials = f"{cfg['username']}:{cfg['password']}"

@@ -83,8 +83,7 @@ class Config(BriefConfig):
         port = configs.get("port", 8536)
         if configs.get("enable_s2r_c"):
             s2r_profile: S2RProfile = {
-                "ip_or_domain": "127.0.0.1",
-                "port": port,
+                "url": "http://127.0.0.1:{port}",
                 "username": query_username,
                 "password": query_password,
                 "source_name": "source2rss_severe_log",

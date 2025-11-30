@@ -22,7 +22,8 @@ YoutubeChannel:
 
 TelegramChannel:
   custom_cfg:
-    amount_when_firstly_add: 30
+    amount_when_firstly_add: 100
+    max_of_rss_items: 300
   cls_init_params:
   - nodeseekc
 
