@@ -142,9 +142,10 @@ class Config(BriefConfig):
 
     def set_scraper_profile(self, profile: str, index: int):
         if 0 <= index < len(self.scraper_profile_file):
-            self.scraper_profile = self.load_scraper_profile(self.scraper_profile_file)
+            self.load_scraper_profile(self.scraper_profile_file)  # 校验格式是否合法
             with open(self.scraper_profile_file[index], 'w', encoding="utf-8") as f:
                 f.write(profile)
+            self.scraper_profile = self.load_scraper_profile(self.scraper_profile_file)
 
     def get_usage_cache(self) -> int:
         return sum(len(scrapers) for _, scrapers in self.enabled_web_scraper.items())

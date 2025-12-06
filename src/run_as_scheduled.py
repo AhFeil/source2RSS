@@ -45,8 +45,6 @@ def run_continuously(loop: asyncio.AbstractEventLoop):
             config.set_crawl_schedules(crawl_schedules)
             for point, cls_names in crawl_schedules.items():
                 schedule.every().day.at(point, config.timezone).do(job, cls_names, loop)
-            for job_info in schedule.get_jobs():
-                print(job_info.next_run)  # noqa: T201
 
             while not cease_continuous_run.is_set():
                 schedule.run_pending()
