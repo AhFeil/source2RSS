@@ -18,8 +18,36 @@ enabled_web_scraper:
   - telegram_channel
   - bilibili_up
 
-# 不了解的话建议删除
-enable_agent_server: true
+# 管理员名称和密码
+query_username: vfly2
+query_password: "123456"
+
+
+# *****下面的配置都有默认值，删除也不影响运行，如果有需要可以自定义*****
+
+# 对抓取器进行定制，可参考示例文件进行
+# scraper_profile:
+# - examples/scraper_profile.example.yaml
+
+# 时区，影响处有两个：定期运行时，设置为不同时区的话，实际运行的时间不同；生成 RSS 中，时间相关的量
+timezone: Asia/Shanghai
+
+# 抓取器的默认配置，如果没有在 scraper_profile 文件里设置相应的值，就会使用这里的
+crawler_default_cfg:
+  run_everyday_at: ["05:00", "11:00", "17:00", "23:00"]
+  WAIT: 5
+  amount_when_firstly_add: 10
+  interval_between_each_instance: 1 # seconds
+  max_of_rss_items: 50
+  prefer_agent: self
+  # 为了节省内存，限制只能打开一个浏览器，而一个浏览器可以开多个 context，每个抓取器实例需要一个 context 访问网页
+  # 这里限制同时打开的 context 的个数，如果内存足够可以调大
+  max_opening_context: 1
+
+
+# *****下面的配置对应的功能尚不成熟，不建议使用*****
+
+enable_agent_server: true  # 设置为 True 代表此实例可以调度其他 agent
 known_agents:
 - name: vfly2_direct_agent
   connect_method: direct_websocket
@@ -30,36 +58,3 @@ known_agents:
   - YoutubeChannel
 - name: vfly2_agent
   connect_method: reverse_websocket
-
-# *****下面的配置都有默认值，删除也不影响运行，如果有需要可以自定义*****
-
-# scraper_profile:
-# - examples/scraper_profile.example.yaml
-
-# 请求时的相关配置
-query_cache_maxsize: 100
-query_cache_ttl_s: 3600
-query_username: vfly2
-query_password: "123456"
-query_bedtime:   # 睡眠时间里，管理员的请求走缓存路径，减少资源消耗
-- ["01:30", "06:30"]
-
-# 时区，影响处有两个：定期运行时，设置为不同时区的话，实际运行的时间不同；生成 RSS 中，时间相关的量
-timezone: Asia/Shanghai
-
-# 抓取器的默认配置，如果没有在 scraper_profile 文件里定义相关量，就会使用这里的
-crawler_default_cfg:
-  run_everyday_at: ["05:00", "11:00", "17:00", "23:00"]
-  WAIT: 5
-  amount_when_firstly_add: 10
-  interval_between_each_instance: 1 # seconds
-  max_of_rss_items: 50
-  prefer_agent: self
-  # 为了节省内存，限制只能打开一个浏览器，一个浏览器可以开多个 context
-  # 每个抓取器实例需要一个 context 进而打开 page 访问网页，这里限制同时打开的 context 的个数，如果内存不够可以调小
-  max_opening_context: 2
-
-enable_s2r_c: false # 如果运行，程序中的一些错误会以文章的形式发表到 source2RSS 上，方便查看
-port: 8536 # 如果 enable_s2r_c 为真，这个必须填写为程序监听的端口号
-
-enable_radar: false

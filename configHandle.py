@@ -50,8 +50,6 @@ class Config(BriefConfig):
     enable_agent_server: bool
     known_agents: list[dict[str, Any]]
 
-    enable_radar: bool
-
     # 用户不应该考虑的配置，开发者可以改的
     rss_dir: str
     http_proxy_url: str
@@ -119,7 +117,6 @@ class Config(BriefConfig):
             s2r_c=s2r_c,
             enable_agent_server=configs.get("enable_agent_server", False),
             known_agents=configs.get("known_agents", []),
-            enable_radar=configs.get("enable_radar", False),
             rss_dir=f"{data_dir}/rss",
             http_proxy_url=configs.get("http_proxy_url", ""),
         )

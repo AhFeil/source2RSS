@@ -76,12 +76,3 @@ if config.http_proxy_url:
     os.environ["https_proxy"] = config.http_proxy_url
 
     print("set proxy:", config.http_proxy_url)  # noqa: T201
-
-
-if config.enable_radar:
-    from fastapi_radar import Radar
-
-    from preproc import data
-
-    radar = Radar(fast_app, db_engine=data.db_intf.engine, db_path=config.data_dir)
-    radar.create_tables()

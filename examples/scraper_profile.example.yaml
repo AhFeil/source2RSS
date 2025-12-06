@@ -1,11 +1,13 @@
 # 这里的名称，使用类名
 BilibiliUp:
   custom_cfg:
-    interval_between_each_instance: 10
-    run_everyday_at: ["06:00", "12:00", "19:00", "22:00", "23:00", "23:37", "00:00"]
-    prefer_agent:
-    - [vfly2_direct_agent, 2]
-    - [self, 1]
+    interval_between_each_instance: 60
+    run_everyday_at: ["11:30", "22:30"]
+    # 通过这种方式调度 agent 抓取
+    # prefer_agent:
+    # - [vfly2_direct_agent, 2]  # 2/3 概率选 agent
+    # - [self, 1]                # 1/3 概率用当前实例直接抓取
+  # 两个用处，一是作为用处页面里的示例，而是会定期抓取，定期时间就是 run_everyday_at
   cls_init_params:
   - "138624168"
 
@@ -14,8 +16,8 @@ HotJuejin:
     amount_when_firstly_add: 3
 
 YoutubeChannel:
-  custom_cfg:
-    prefer_agent: vfly2_direct_agent
+  # custom_cfg:
+  #   prefer_agent: vfly2_direct_agent
   cls_init_params:
   - [LearnEnglishWithTVSeries]
   - [kurzgesagt]
