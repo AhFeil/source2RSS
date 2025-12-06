@@ -24,7 +24,7 @@ logger = logging.getLogger("crawler")
 
 @dataclass
 class ScraperNameAndParams:
-    name: str       # TODO 不能是列表
+    name: str       # TODO 不能是列表，只能是 list[str]
     init_params: list | tuple | str # 如果参数只有一个，则可以为 str，多个用列表按顺序容纳，没有参数则使用空列表
     amount: int
     interval: int

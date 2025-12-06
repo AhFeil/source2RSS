@@ -56,6 +56,7 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     # 下面属性由元类自动判别赋值
     is_variety: bool = False   # 创建时是否需要传入额外参数
     support_old2new: bool = False
+    table_name_formation = "{}"   # 确立表名的生成规则，并返回表名
 
     # ***对外接口***
     @classmethod
