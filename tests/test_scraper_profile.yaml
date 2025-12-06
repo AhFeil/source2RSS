@@ -1,0 +1,6 @@
+
+BilibiliUp:
+  custom_cfg:
+    prefer_agent:
+    - [vfly2_direct_agent, 2]
+    - [self, 1]
