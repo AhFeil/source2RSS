@@ -1,6 +1,10 @@
 {
     "python.analysis.extraPaths": ["plugins"],
     "python.analysis.include": ["plugins"],
+    "ruff.lint.ignore": ["I001"],
+    "autocorrect.enable": false,
+    "autocorrect.enableLint": false,
+    "autocorrect.formatOnSave": false,
     "search.useIgnoreFiles": false,
     "search.exclude": {
         ".env": true,

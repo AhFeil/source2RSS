@@ -24,7 +24,7 @@ async def save_articles(data, source_name, article_source, store_a_new_one: list
             # 每篇文章整合成一个文档，存入相应集合
             data.db_intf.store2database(source_name, a)
             store_a_new_one[0] = True
-            logger.info("%s have new article: %s", source_name, a['title'])
+            logger.debug("%s have new article: %s", source_name, a['title'])
     except asyncio.TimeoutError:
         logger.info("Processing %s articles took too long.", source_name)
     except FailtoGet:
@@ -61,6 +61,6 @@ async def goto_uniform_flow(data, instance: WebsiteScraper, amount: int) -> str:
         data.rss_cache.set_rss(source_name, rss_feed, rss_json, source_info["access"])
         logger.info("%s updates", source_name)
     else:
-        logger.info("%s exists and doesn't update", source_name)
+        logger.debug("%s exists and doesn't update", source_name)
 
     return source_name
