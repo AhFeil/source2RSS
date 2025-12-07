@@ -92,8 +92,7 @@ class SQliteIntf(DatabaseIntf):
             connection.execute(text("PRAGMA foreign_keys = ON"))
 
     def __init__(self, engine, Session):
-        super().__init__()
-        self.engine = engine
+        super().__init__(engine)
         self.Session = Session
 
     def _check_table_exists(self, table_name: str) -> bool:

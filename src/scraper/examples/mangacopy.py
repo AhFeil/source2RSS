@@ -14,6 +14,7 @@ from src.scraper.tools import AsyncBrowserManager, get_response_or_none
 class MangaCopy(WebsiteScraper):
     home_url = "https://www.mangacopy.com"
     page_turning_duration = 10
+    table_name_formation = "mangacopy_book_{1}"
 
     headers = {
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
@@ -53,7 +54,7 @@ class MangaCopy(WebsiteScraper):
             "desc": f"拷貝漫畫里的漫画 —— {self.book_title}",
             "lang": "zh-CN",
             "key4sort": SortKey.CHAPTER_NUMBER,
-            "table_name": f"mangacopy_book_{self.book_id}",
+            "table_name": MangaCopy.table_name_formation.format(0, self.book_id),
         }
 
     @classmethod

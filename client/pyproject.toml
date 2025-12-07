@@ -1,6 +1,6 @@
 [project]
 name = "source2RSS_client"
-version = "0.1.1"
+version = "0.1.2"
 authors = [
   { name="AhFei", email="vgamebox@outlook.com" },
 ]

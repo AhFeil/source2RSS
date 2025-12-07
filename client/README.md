@@ -11,8 +11,7 @@
 from source2RSS_client import S2RProfile, Source2RSSClient
 
 s2r_profile: S2RProfile = {
-    "ip_or_domain": "127.0.0.1",
-    "port": 8536,
+    "url": "http://127.0.0.1:8536",
     "username": "vfly2",
     "password": "123456",
     "source_name": "source2rss_severe_log",

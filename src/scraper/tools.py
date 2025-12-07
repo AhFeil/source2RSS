@@ -20,7 +20,7 @@ async def get_response_or_none(url: str, headers=None, params=None, verify=True,
                 response = await client.get(url, params=params, headers=headers)
                 if response.status_code in {429, 500, 502, 503, 504}:
                     raise httpx.HTTPStatusError("Retryable status code", request=response.request, response=response)
-            except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.HTTPStatusError) as e:
+            except (httpx.ConnectTimeout, httpx.ConnectError, httpx.ReadTimeout, httpx.HTTPStatusError) as e:  # noqa: PERF203
                 if attempt == retry:
                     logger.warning("exception occurred when call get_response_or_none, url is '%s', e is '%s'", url, str(e))
                     return None
@@ -91,7 +91,7 @@ class AsyncBrowserManager:
             elif all_users == 0 and cls._browser is None:
                 pass
             else:
-                cls._logger.warning(f"unexpected situcation {id_}, {cls._users=}, {cls._users_that_is_waiting=}, {cls._browser=}")
+                cls._logger.warning(f"unexpected situcation {id_}, {cls._users=}, {cls._users_that_is_waiting=}, {cls._browser=}")  # noqa: G004
 
     @classmethod
     async def waiting_operation(cls, id_, max_: int):

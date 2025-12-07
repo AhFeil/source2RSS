@@ -1,11 +1,13 @@
 """抓取器返回字典定义和 FastAPI 的 Model 等"""
 from datetime import datetime
 from enum import Enum, IntEnum, StrEnum, auto
-from typing import Any, Optional, Required, TypedDict, Union, get_type_hints
+from typing import Any, Optional, Required, TypedDict, get_type_hints
+from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, ConfigDict, HttpUrl, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, field_validator, model_validator
 from pydantic_core import PydanticCustomError
 
+UTC = ZoneInfo("UTC")
 
 def init_field_names(cls):
     """装饰器：在类定义时自动初始化并存储所有字段名称"""
@@ -68,12 +70,11 @@ class SrcMetaDict(TypedDict):
 class SourceMeta(BaseModel):
     model_config = ConfigDict(
         frozen=True,
-        json_encoders={HttpUrl: lambda v: str(v)}, # type: ignore  # 自动将HttpUrl转为字符串
         populate_by_name=True
     )
 
     name: str
-    link: str # HttpUrl 不能和字符串进行比较，不能被数据库用时自动转换为字符串，太不好用
+    link: str
     desc: str
     lang: str = "zh-CN"
     tags: str = ""
@@ -131,16 +132,24 @@ class ArticleInfo(BaseModel):
 
     @field_validator('pub_time', mode='before')
     @classmethod
-    def convert_timestamp(cls, v: Union[datetime, int, float]) -> datetime:
+    def convert_timestamp(cls, v: datetime | int | float) -> datetime:
         if isinstance(v, (int, float)):
             return datetime.fromtimestamp(v)
         return v
 
-    def model_dump_to_json(self):
-        res = self.model_dump()
-        res["link"] = str(res["link"])
-        res["image_link"] = str(res["image_link"])
-        return res
+    @field_validator("pub_time", "time4sort", mode="after")
+    @classmethod
+    def convert_pub_time_to_utc(cls, v: datetime) -> datetime:
+        return ArticleInfo.to_utc(v)
+
+    @staticmethod
+    def to_utc(dt: datetime) -> datetime:
+        """
+        将 datetime 对象转换为 UTC 时区。
+        - 如果 dt 是 naive（无时区），则视为 UTC 时间，并添加 UTC 时区信息。
+        - 如果 dt 是 aware（带时区），则转换为 UTC。
+        """
+        return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt.astimezone(UTC)
 
 
 class PublishMethod(BaseModel):
