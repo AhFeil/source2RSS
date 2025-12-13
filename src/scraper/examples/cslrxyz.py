@@ -12,6 +12,7 @@ from src.scraper.tools import get_response_or_none
 class CSLRXYZ(WebsiteScraper):
     home_url = "http://cslrxyz.xyz"
     page_turning_duration = 10
+    table_name_formation = "cslrxyz"
 
     headers = {
         'Accept-Language': 'zh-CN,en-US',

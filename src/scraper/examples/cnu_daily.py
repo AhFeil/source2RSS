@@ -11,6 +11,7 @@ from src.scraper.tools import get_response_or_none
 class CNUDaily(WebsiteScraper):
     home_url = "http://www.cnu.cc/"
     page_turning_duration = 5
+    table_name_formation = "cnu_daily"
 
     headers = {
         'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',

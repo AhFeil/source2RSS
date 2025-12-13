@@ -27,9 +27,10 @@ def combine_link(desc: list, scraper: ScraperNameAndParams, link: str):
     if cls is None:
         desc.append('<p>抓取器不存在</p>')
         return
-
-    if cls.table_name_formation == "{}":  # TODO 单例，暂时名称为类名
-        name = scraper.name
+    if scraper.name == "Representative":
+        name = "Representative"
+    elif scraper.name == "Remote":
+        name = "Remote"
     else:
         params = (scraper.init_params,) if isinstance(scraper.init_params, str) else scraper.init_params
         table_name = cls.table_name_formation.format(*params)
@@ -58,7 +59,7 @@ async def make_desc(cls_id: str) -> str:
     desc.append("<br>")
     desc.append("<p>主动查询的网址例子：</p>")
     if scraper_class.is_variety:
-        scrapers = ScraperNameAndParams.create(cls_id)
+        scrapers = ScraperNameAndParams.create(cls_id, i_am_remote=True)
         if not scrapers:
             desc.append("<p>缺失例子</p>")
         else:
@@ -72,7 +73,7 @@ async def make_desc(cls_id: str) -> str:
                 combine_link(desc, scraper, link)
     else:
         link = f"/query_rss/{cls_id}/"
-        scraper = ScraperNameAndParams.create(cls_id)[0]
+        scraper = ScraperNameAndParams.create(cls_id, i_am_remote=True)[0]
         combine_link(desc, scraper, link)
     return "\n".join(desc)
 
