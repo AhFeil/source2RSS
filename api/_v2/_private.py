@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from types import ModuleType
 from typing import Any
 
-from configHandle import config
+from config_handle import config
 
 
 class Plugins:

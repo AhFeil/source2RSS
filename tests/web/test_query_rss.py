@@ -10,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
-from configHandle import config
+from config_handle import config
 from main import fast_app
 from tests.web.test_user import add_source_to_user, register_user
 from tests.web.utility import get_headers

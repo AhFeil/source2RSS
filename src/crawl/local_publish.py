@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from configHandle import config
+from config_handle import config
 from src.scraper import LocateInfo, Sequence, WebsiteScraper
 from src.scraper.scraper_error import FailtoGet
 

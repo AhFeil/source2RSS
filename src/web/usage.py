@@ -7,7 +7,7 @@ from contextlib import suppress
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 
-from dataHandle import data
+from data_handle import data
 from preproc import Plugins
 from src.crawl.crawler import ScraperNameAndParams
 from src.scraper import WebsiteScraper

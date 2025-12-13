@@ -6,7 +6,7 @@ SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s clien
 import pytest
 
 from client.src.source2RSS_client import S2RProfile, Source2RSSClient
-from configHandle import config
+from config_handle import config
 
 s2r_profile: S2RProfile = {
     "url": f"http://127.0.0.1:{config.port}",

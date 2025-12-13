@@ -9,7 +9,7 @@ from typing import Self
 
 from socketio import AsyncServer
 
-from configHandle import config
+from config_handle import config
 from src.data import DatabaseIntf
 from src.scraper import AccessLevel
 
@@ -177,7 +177,7 @@ class Agents:
 class Data:
     def __init__(self, config) -> None:
         self.config = config
-        self.logger = logging.getLogger("dataHandle")
+        self.logger = logging.getLogger("data_handle")
 
         # 从文件里加载用户数据
         self._users = {"invite_code": None, "left_count": 0, "users": []}
