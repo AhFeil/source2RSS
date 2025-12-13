@@ -6,6 +6,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
+from api import Plugins
 
 from socketio import AsyncServer
 
@@ -208,3 +209,6 @@ class Data:
             f.write(json_string)
 
 data = Data(config)
+
+# 加载插件
+Plugins.load_plugins(config.enabled_web_scraper)

@@ -5,7 +5,7 @@ from typing import Self
 
 from playwright.async_api import TimeoutError as PwTimeoutError
 
-from preproc import config
+from config_handle import config
 from src.scraper.model import SortKey
 from src.scraper.scraper import WebsiteScraper
 from src.scraper.scraper_error import (

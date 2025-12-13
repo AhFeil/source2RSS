@@ -7,7 +7,8 @@ from typing import Self
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from preproc import config, data
+from config_handle import config
+from data_handle import data
 
 
 @dataclass

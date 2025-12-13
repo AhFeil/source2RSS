@@ -7,7 +7,8 @@ from asyncio import run_coroutine_threadsafe
 
 import schedule
 
-from preproc import Plugins, config
+from data_handle import Plugins
+from config_handle import config
 from src.crawl import ScraperNameAndParams, start_to_crawl
 from src.crawl.crawl_error import CrawlError
 

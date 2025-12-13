@@ -5,8 +5,6 @@ from collections.abc import Iterable
 from types import ModuleType
 from typing import Any
 
-from config_handle import config
-
 
 class Plugins:
     _registry: dict[str, Any] = {}
@@ -36,10 +34,10 @@ class Plugins:
     imported_modules: dict[str, ModuleType] = {}
 
     @staticmethod
-    def load_plugins():
+    def load_plugins(config_enabled_web_scraper: dict):
         enabled_web_scraper = set()
         available_web_scraper = set()
-        for package_path, module_names in config.enabled_web_scraper.items():
+        for package_path, module_names in config_enabled_web_scraper.items():
             try:
                 module = importlib.import_module(package_path)
             except ModuleNotFoundError:
