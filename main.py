@@ -8,7 +8,8 @@ import socketio
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 
-from preproc import Plugins, config
+from data_handle import Plugins
+from config_handle import config
 from src.node import sio
 from src.run_as_scheduled import run_continuously
 from src.web import get_rss, manage, post_src, query_rss, usage, user

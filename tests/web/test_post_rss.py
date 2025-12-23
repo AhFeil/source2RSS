@@ -10,7 +10,7 @@ from datetime import datetime
 import pytest
 from fastapi.testclient import TestClient
 
-from configHandle import config
+from config_handle import config
 from main import fast_app
 
 client = TestClient(fast_app)

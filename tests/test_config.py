@@ -8,7 +8,7 @@ from collections import defaultdict
 
 import pytest
 
-from configHandle import config
+from config_handle import config
 
 
 @pytest.fixture

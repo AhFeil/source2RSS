@@ -7,7 +7,8 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
-from preproc import config, data
+from config_handle import config
+from data_handle import data
 from src.crawl import start_to_crawl_all
 from src.crawl.crawler import running_scrapers
 

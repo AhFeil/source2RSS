@@ -10,6 +10,7 @@ from src.scraper.tools import get_response_or_none
 class HotBilibili(WebsiteScraper):
     home_url = "https://www.bilibili.com/"
     page_turning_duration = 60
+    table_name_formation = "hot_bilibili"
 
     headers = {
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',

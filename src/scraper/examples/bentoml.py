@@ -12,6 +12,7 @@ class BentoMLBlog(WebsiteScraper):
     home_url = "https://www.bentoml.com/blog"
     admin_url = "https://admin.bentoml.com"
     page_turning_duration = 5
+    table_name_formation = "BentoML Blog"
 
     headers = {
         'Accept-Language': 'en-US,en;q=0.9',

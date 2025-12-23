@@ -6,7 +6,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from preproc import data
+from data_handle import data
 from src.scraper import AccessLevel, ArticleInfo, SortKey, SourceMeta
 
 from .query_rss import CacheType, go_to_crawl

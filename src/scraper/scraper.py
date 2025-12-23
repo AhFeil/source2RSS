@@ -28,6 +28,8 @@ class ScraperMeta(ABCMeta):
             return
         if not getattr(cls, 'readable_name', None):
             cls.readable_name = name
+        if not getattr(cls, 'table_name_formation', None):
+            cls.table_name_formation = name
         cls._logger = logging.getLogger(name)
         # 排除基类自身
         if name != "WebsiteScraper":
@@ -56,7 +58,8 @@ class WebsiteScraper(ABC, metaclass=ScraperMeta):
     # 下面属性由元类自动判别赋值
     is_variety: bool = False   # 创建时是否需要传入额外参数
     support_old2new: bool = False
-    table_name_formation = "{}"   # 确立表名的生成规则，并返回表名
+    # 确立表名的生成规则，并返回表名
+    # table_name_formation = "unknown"
 
     # ***对外接口***
     @classmethod

@@ -7,7 +7,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import declarative_base, declared_attr
 
-from configHandle import config
+from config_handle import config
 from src.scraper import ArticleDict, SrcMetaDict
 
 Base = declarative_base()

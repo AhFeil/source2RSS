@@ -6,7 +6,9 @@ from typing import Self
 
 from pydantic_core import ValidationError
 
-from preproc import Plugins, config, data
+from data_handle import Plugins
+from config_handle import config
+from data_handle import data
 from src.scraper import AsyncBrowserManager, WebsiteScraper
 from src.scraper.scraper_error import (
     CreateButRequestFail,

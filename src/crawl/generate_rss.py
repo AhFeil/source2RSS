@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 
 from feedgen.feed import FeedGenerator
 
-from configHandle import config
+from config_handle import config
 from src.scraper import ArticleDict, SrcMetaDict
 
 UTC = ZoneInfo("UTC")

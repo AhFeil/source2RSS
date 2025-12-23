@@ -2,8 +2,8 @@ import logging
 
 import socketio
 
-from configHandle import config
-from dataHandle import data
+from config_handle import config
+from data_handle import data
 
 logger = logging.getLogger("as_client")
 

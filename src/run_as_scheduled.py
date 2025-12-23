@@ -7,7 +7,8 @@ from asyncio import run_coroutine_threadsafe
 
 import schedule
 
-from preproc import Plugins, config
+from data_handle import Plugins
+from config_handle import config
 from src.crawl import ScraperNameAndParams, start_to_crawl
 from src.crawl.crawl_error import CrawlError
 
@@ -19,11 +20,14 @@ def sync_wrapper(cls_names, loop):
         future = run_coroutine_threadsafe(start_to_crawl(ScraperNameAndParams.create(name) for name in cls_names), loop)
         future.result()
     except CrawlError as e:
+        # 已知的错误就忽略
         if e.code in (400, 422, 500):
-            raise # 已知的错误就抑制
+            tb = traceback.format_exc()
+            logger.error("Exception occurred: %s\n%s{tb}", e.__class__.__name__, tb)
+            run_coroutine_threadsafe(config.post2RSS("error log of run_as_scheduled", tb), loop)
     except Exception as e:
         tb = traceback.format_exc()
-        logger.error(f"Exception occurred: {e.__class__.__name__}\n{tb}")
+        logger.error("Exception occurred: %s\n%s{tb}", e.__class__.__name__, tb)
         run_coroutine_threadsafe(config.post2RSS("error log of run_as_scheduled", tb), loop)
 
 job = sync_wrapper

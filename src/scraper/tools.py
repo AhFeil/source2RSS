@@ -7,7 +7,7 @@ import httpx
 from playwright.async_api import TimeoutError as PwTimeoutError
 from playwright.async_api import async_playwright
 
-from configHandle import config
+from config_handle import config
 
 logger = logging.getLogger(__name__)
 

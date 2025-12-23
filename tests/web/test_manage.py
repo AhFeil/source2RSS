@@ -9,7 +9,7 @@ import base64
 import pytest
 from fastapi.testclient import TestClient
 
-from configHandle import config
+from config_handle import config
 from main import fast_app
 from tests.web.utility import get_headers
 

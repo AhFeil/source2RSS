@@ -25,7 +25,7 @@ YoutubeChannel:
 TelegramChannel:
   custom_cfg:
     amount_when_firstly_add: 100
-    max_of_rss_items: 300
+    max_of_rss_items: 300  # 除了限制 RSS 最大条目数，也限制单次抓取最大文章数，因为再多也无法显示
   cls_init_params:
   - nodeseekc
 

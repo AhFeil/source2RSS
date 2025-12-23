@@ -9,7 +9,7 @@ import socketio
 from briefconf import BriefConfig
 from socketio.exceptions import ConnectionError as ConnectionError_
 
-from preproc import Plugins
+from data_handle import Plugins
 from src.crawl.remote_crawl import remote_uniform_flow
 
 
