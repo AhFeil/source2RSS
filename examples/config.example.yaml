@@ -5,6 +5,7 @@ other_configs_path:   # 靠后的配置文件会覆盖前面的配置，当前�
 enabled_web_scraper:
   src.scraper.examples:
   - bentoml
+  - dotcompress
   - cslrxyz
   - cnu_daily
   - gatesnotes

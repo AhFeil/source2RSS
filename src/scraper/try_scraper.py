@@ -32,4 +32,4 @@ if __name__ == '__main__':
 
     from src.scraper.examples.cslrxyz import CSLRXYZ
     asyncio.run(have_a_try(CSLRXYZ))
-    # .env/bin/python -m src.scraper.try_scraper
+    # 在项目根目录使用这个命令运行抓取类 .env/bin/python -m src.scraper.try_scraper
