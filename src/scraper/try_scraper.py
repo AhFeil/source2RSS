@@ -7,6 +7,7 @@ from src.scraper.scraper import WebsiteScraper
 
 async def have_a_try(scraper_class: type[WebsiteScraper], *args):
     s_ins = await scraper_class.create(*args)
+    print(s_ins.source_info)
 
     flag: LocateInfo = {"article_title": "", "pub_time": datetime.now(), "amount": 3}
     async for a in s_ins.get(flag):
