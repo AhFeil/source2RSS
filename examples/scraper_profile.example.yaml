@@ -15,6 +15,15 @@ HotJuejin:
   custom_cfg:
     amount_when_firstly_add: 3
 
+JuejinUser:
+  custom_cfg:
+    interval_between_each_instance: 60
+    run_everyday_at: ["06:30"]
+    amount_when_firstly_add: 5
+    max_of_rss_items: 10
+  cls_init_params:
+  - 3320949647350765
+
 YoutubeChannel:
   # custom_cfg:
   #   prefer_agent: vfly2_direct_agent

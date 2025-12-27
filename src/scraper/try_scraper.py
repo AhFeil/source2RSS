@@ -8,12 +8,12 @@ from src.scraper.scraper import WebsiteScraper
 async def have_a_try(scraper_class: type[WebsiteScraper], *args):
     s_ins = await scraper_class.create(*args)
 
-    flag: LocateInfo = {"article_title": "", "pub_time": datetime.now(), "amount": 10}
+    flag: LocateInfo = {"article_title": "", "pub_time": datetime.now(), "amount": 3}
     async for a in s_ins.get(flag):
         print(a["title"], a["link"], a["pub_time"])
 
     print("-" * 20)
-    flag: LocateInfo = {"article_title": "", "pub_time": datetime(2025, 5, 20)}
+    flag: LocateInfo = {"article_title": "", "pub_time": datetime(2025, 11, 20)}
     async for a in s_ins.get(flag):
         print(a["title"], a["link"], a["pub_time"])
 
@@ -30,6 +30,6 @@ if __name__ == '__main__':
 
         print("set proxy:", config.http_proxy_url)
 
-    from src.scraper.examples.cslrxyz import CSLRXYZ
-    asyncio.run(have_a_try(CSLRXYZ))
+    from src.scraper.examples.juejin_user import JuejinUser
+    asyncio.run(have_a_try(JuejinUser, 3320949647350765))
     # 在项目根目录使用这个命令运行抓取类 .env/bin/python -m src.scraper.try_scraper

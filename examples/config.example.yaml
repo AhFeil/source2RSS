@@ -18,6 +18,7 @@ enabled_web_scraper:
   - youtube_channel
   - telegram_channel
   - bilibili_up
+  - juejin_user
 
 # 管理员名称和密码
 query_username: vfly2

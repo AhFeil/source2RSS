@@ -9,7 +9,7 @@ source2RSS 是一个通用的信息源转 RSS 的 Python 框架。开发者只�
 ## 开发命令
 
 ```bash
-just run                    # 启动开发服务器（端口 8536）
+just run                    # 启动 source2RSS 开发服务器（端口 8536）
 just test                   # 运行测试（排除慢速测试，自动启停 d_agent）
 ```
 
