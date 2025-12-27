@@ -23,11 +23,11 @@ def sync_wrapper(cls_names, loop):
         # 已知的错误就忽略
         if e.code in (400, 422, 500):
             tb = traceback.format_exc()
-            logger.error("Exception occurred: %s\n%s{tb}", e.__class__.__name__, tb)
+            logger.error("Exception occurred: %s\n%s", e.__class__.__name__, tb)
             run_coroutine_threadsafe(config.post2RSS("error log of run_as_scheduled", tb), loop)
     except Exception as e:
         tb = traceback.format_exc()
-        logger.error("Exception occurred: %s\n%s{tb}", e.__class__.__name__, tb)
+        logger.error("Exception occurred: %s\n%s", e.__class__.__name__, tb)
         run_coroutine_threadsafe(config.post2RSS("error log of run_as_scheduled", tb), loop)
 
 job = sync_wrapper
