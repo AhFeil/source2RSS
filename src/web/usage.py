@@ -32,7 +32,7 @@ def combine_link(desc: list, scraper: ScraperNameAndParams, link: str):
     elif scraper.name == "Remote":
         name = "Remote"
     else:
-        params = (scraper.init_params,) if isinstance(scraper.init_params, str) else scraper.init_params
+        params = (scraper.init_params,) if isinstance(scraper.init_params, (str, int, float, bool)) else scraper.init_params
         table_name = cls.table_name_formation.format(*params)
         source_info = data.db_intf.get_source_info(table_name)
         name = source_info["name"] if source_info else "Unknown Name"

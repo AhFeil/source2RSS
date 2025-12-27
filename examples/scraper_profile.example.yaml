@@ -15,6 +15,25 @@ HotJuejin:
   custom_cfg:
     amount_when_firstly_add: 3
 
+JuejinUser:
+  custom_cfg:
+    interval_between_each_instance: 60
+    run_everyday_at: ["06:30"]
+    amount_when_firstly_add: 5
+    max_of_rss_items: 10
+  cls_init_params:
+  - 3320949647350765
+
+ZaobaoSection:
+  custom_cfg:
+  #   prefer_agent: vfly2_direct_agent
+    interval_between_each_instance: 20
+    run_everyday_at: ["06:30", "12:10", "17:30"]
+    amount_when_firstly_add: 15
+    max_of_rss_items: 100
+  cls_init_params:
+  - ["news", "china"]
+
 YoutubeChannel:
   # custom_cfg:
   #   prefer_agent: vfly2_direct_agent

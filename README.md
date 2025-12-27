@@ -109,3 +109,7 @@ TODO 待写
 编写抓取器，可以查看文档：[scraper.md](docs/scraper.md)
 
 为框架贡献代码，可以参考文档：[design.md](docs/design.md)
+
+使用 AI 自动编写抓取器，目前仅支持使用 Claude Code，在根目录下启动，提示词如下：
+- 先阅读 `docs/how_to_write_a_scraper.md` 文档，了解如何编写抓取器。然后为 https://www.dotcom.press/archive 编写一个抓取器抓取文章，比如最近的一个文章标题是 “Holiday gift guide: domains for the whole family”，时间是 December 15, 2025 。
+- 先阅读 `docs/how_to_write_a_scraper.md` 文档，了解如何编写抓取器。然后为 https://juejin.cn/user/3320949647350765/posts 编写一个抓取器抓取用户文章，这个抓取器需要能接收用户 id 参数，如 3320949647350765 ，从而可以用于其他用户。使用 playwright 的 `AsyncBrowserManager` 这个工具类获取数据，参考 `src/scraper/examples/hot_juejin.py` 的实现，访问每个文章从文章页面获得精确的发表时间。这个用户最近的一个文章是 “Web前端们！我用三年亲身经历，说说从 uniapp 到 Flutter怎么转型的，这条路我爬过，坑我踩过” 时间是 2025-11-25 。

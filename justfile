@@ -4,8 +4,8 @@ machine_ip := `ip -4 addr show scope global | grep -oP '(?<=inet\s)\d+(\.\d+){3}
 
 
 @run:
-  echo "网页地址： http://{{machine_ip}}:8536/"
-  echo "管理员访问： http://vfly2:123456@{{machine_ip}}:8536/"
+  echo "网页地址： http://localhost:8536/"
+  echo "管理员访问： http://vfly2:123456@localhost:8536/"
   cd "{{root}}" && .env/bin/uvicorn main:app --host 0.0.0.0 --port 8536
 
 
@@ -55,6 +55,8 @@ commit msg argument="":
 
 
 # === just 管理命令 ===
+
+import? "justfile.local"
 
 bashrc := "$HOME/.bashrc"
 # 设置 just 的命令补全

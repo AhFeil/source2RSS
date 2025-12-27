@@ -12,6 +12,7 @@ plugins
 .d_agent.pid
 .r_agent.pid
 ad.html
+justfile.local
 
 # tool
 .ruff_cache
