@@ -5,7 +5,7 @@ from typing import Dict, List, Optional, Tuple
 
 from playwright.async_api import Cookie
 
-from configHandle import config
+from config_handle import config
 
 
 def get_user_agent(name4seed: str) -> str:

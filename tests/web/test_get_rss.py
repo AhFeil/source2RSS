@@ -7,7 +7,7 @@ SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests
 import pytest
 from fastapi.testclient import TestClient
 
-from configHandle import config
+from config_handle import config
 from main import fast_app
 from tests.web.test_manage import update_invite_code
 from tests.web.test_user import add_source_to_user, register_user

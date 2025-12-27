@@ -14,6 +14,7 @@ from src.scraper.tools import get_response_or_none
 class TelegramChannel(WebsiteScraper):
     home_url = "https://t.me/s/{channel_id}"
     page_turning_duration = 5
+    table_name_formation = "telegram_channel_{}"
 
     headers = {
         'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -59,7 +60,7 @@ class TelegramChannel(WebsiteScraper):
             "desc": self.channel_desc,
             "lang": "zh-CN",
             "key4sort": SortKey.PUB_TIME,
-            "table_name": f"telegram_channel_{self.channel_id}",
+            "table_name": TelegramChannel.table_name_formation.format(self.channel_id),
         }
 
     @classmethod

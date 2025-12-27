@@ -50,8 +50,6 @@ class Config(BriefConfig):
     enable_agent_server: bool
     known_agents: list[dict[str, Any]]
 
-    enable_radar: bool
-
     # 用户不应该考虑的配置，开发者可以改的
     rss_dir: str
     http_proxy_url: str
@@ -83,8 +81,7 @@ class Config(BriefConfig):
         port = configs.get("port", 8536)
         if configs.get("enable_s2r_c"):
             s2r_profile: S2RProfile = {
-                "ip_or_domain": "127.0.0.1",
-                "port": port,
+                "url": f"http://127.0.0.1:{port}",
                 "username": query_username,
                 "password": query_password,
                 "source_name": "source2rss_severe_log",
@@ -120,7 +117,6 @@ class Config(BriefConfig):
             s2r_c=s2r_c,
             enable_agent_server=configs.get("enable_agent_server", False),
             known_agents=configs.get("known_agents", []),
-            enable_radar=configs.get("enable_radar", False),
             rss_dir=f"{data_dir}/rss",
             http_proxy_url=configs.get("http_proxy_url", ""),
         )
@@ -146,9 +142,10 @@ class Config(BriefConfig):
 
     def set_scraper_profile(self, profile: str, index: int):
         if 0 <= index < len(self.scraper_profile_file):
-            self.scraper_profile = self.load_scraper_profile(self.scraper_profile_file)
+            self.load_scraper_profile(self.scraper_profile_file)  # 校验格式是否合法
             with open(self.scraper_profile_file[index], 'w', encoding="utf-8") as f:
                 f.write(profile)
+            self.scraper_profile = self.load_scraper_profile(self.scraper_profile_file)
 
     def get_usage_cache(self) -> int:
         return sum(len(scrapers) for _, scrapers in self.enabled_web_scraper.items())

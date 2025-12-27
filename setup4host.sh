@@ -49,7 +49,7 @@ User=${current_uid}
 Group=${current_uid}
 Type=simple
 ExecStart=${bin_dir}/uvicorn main:app --host 127.0.0.1 --port 8536
-ExecStop=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s HUP \$MAINPID
 Environment=PYTHONUNBUFFERED=1
 RestartSec=15
 Restart=on-failure
@@ -80,7 +80,7 @@ User=${current_uid}
 Group=${current_uid}
 Type=simple
 ExecStart=${python_bin} -m src.node.as_d_agent
-ExecStop=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s HUP \$MAINPID
 Environment=PYTHONUNBUFFERED=1
 RestartSec=15
 Restart=on-failure
@@ -108,7 +108,7 @@ User=${current_uid}
 Group=${current_uid}
 Type=simple
 ExecStart=${python_bin} -m src.node.as_r_agent
-ExecStop=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s HUP \$MAINPID
 Environment=PYTHONUNBUFFERED=1
 RestartSec=15
 Restart=on-failure

@@ -3,5 +3,6 @@ other_configs_path:
 
 scraper_profile:
 - examples/scraper_profile.example.yaml
+- tests/test_scraper_profile.yaml
 
 data_dir: tests/config_and_data_files

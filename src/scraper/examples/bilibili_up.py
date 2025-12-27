@@ -5,7 +5,7 @@ from typing import Self
 
 from playwright.async_api import TimeoutError as PwTimeoutError
 
-from preproc import config
+from config_handle import config
 from src.scraper.model import SortKey
 from src.scraper.scraper import WebsiteScraper
 from src.scraper.scraper_error import (
@@ -20,6 +20,7 @@ class BilibiliUp(WebsiteScraper):
     home_url = "https://space.bilibili.com"
     page_turning_duration = 60
     support_old2new = True
+    table_name_formation = "bilibili_up_{}"
 
     headers = {
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
@@ -57,7 +58,7 @@ class BilibiliUp(WebsiteScraper):
             "desc": name_and_desc,
             "lang": "zh-CN",
             "key4sort": SortKey.PUB_TIME,
-            "table_name": f"bilibili_up_{self.uid}",
+            "table_name": BilibiliUp.table_name_formation.format(self.uid),
         }
 
     @property
@@ -84,14 +85,14 @@ class BilibiliUp(WebsiteScraper):
             return
         if tag := modules[0]["modules"].get("module_tag"):
             if tag.get("text") == "置顶":
-                modules.sort(key=lambda m : m["modules"]["module_author"]["pub_ts"], reverse=True)
+                modules.sort(key=lambda m : int(m["modules"]["module_author"]["pub_ts"]), reverse=True)
         new_modules = modules if not reverse else \
-                    WebsiteScraper._range_by_desc_of(modules, pub_time, lambda x, f : f < datetime.fromtimestamp(x["modules"]["module_author"]["pub_ts"]))
+                    WebsiteScraper._range_by_desc_of(modules, pub_time, lambda x, f : f < datetime.fromtimestamp(int(x["modules"]["module_author"]["pub_ts"])))
 
         for m in new_modules:
             a = m["modules"]["module_dynamic"]
             author = m["modules"]["module_author"]
-            time_obj = datetime.fromtimestamp(author["pub_ts"])
+            time_obj = datetime.fromtimestamp(int(author["pub_ts"]))
             if a["major"] is None: # 对视频评论的话是空的
                 continue
             content = a["desc"]["text"] if a.get("desc") else ""

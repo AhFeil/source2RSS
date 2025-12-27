@@ -7,7 +7,8 @@ from asyncio import run_coroutine_threadsafe
 
 import schedule
 
-from preproc import Plugins, config
+from data_handle import Plugins
+from config_handle import config
 from src.crawl import ScraperNameAndParams, start_to_crawl
 from src.crawl.crawl_error import CrawlError
 
@@ -19,11 +20,14 @@ def sync_wrapper(cls_names, loop):
         future = run_coroutine_threadsafe(start_to_crawl(ScraperNameAndParams.create(name) for name in cls_names), loop)
         future.result()
     except CrawlError as e:
+        # 已知的错误就忽略
         if e.code in (400, 422, 500):
-            raise # 已知的错误就抑制
+            tb = traceback.format_exc()
+            logger.error("Exception occurred: %s\n%s{tb}", e.__class__.__name__, tb)
+            run_coroutine_threadsafe(config.post2RSS("error log of run_as_scheduled", tb), loop)
     except Exception as e:
         tb = traceback.format_exc()
-        logger.error(f"Exception occurred: {e.__class__.__name__}\n{tb}")
+        logger.error("Exception occurred: %s\n%s{tb}", e.__class__.__name__, tb)
         run_coroutine_threadsafe(config.post2RSS("error log of run_as_scheduled", tb), loop)
 
 job = sync_wrapper
@@ -45,8 +49,6 @@ def run_continuously(loop: asyncio.AbstractEventLoop):
             config.set_crawl_schedules(crawl_schedules)
             for point, cls_names in crawl_schedules.items():
                 schedule.every().day.at(point, config.timezone).do(job, cls_names, loop)
-            for job_info in schedule.get_jobs():
-                print(job_info.next_run)  # noqa: T201
 
             while not cease_continuous_run.is_set():
                 schedule.run_pending()

@@ -1,16 +1,16 @@
 # ruff: noqa: B904
 """各个抓取器的用法和一些发起请求的快捷方式"""
-import asyncio
 import inspect
 import logging
-import traceback
 from contextlib import suppress
 
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 
-from preproc import Plugins
-from src.crawl.crawler import ScraperNameAndParams, discard_scraper, get_instance
+from data_handle import data
+from data_handle import Plugins
+from src.crawl.crawler import ScraperNameAndParams
+from src.scraper import WebsiteScraper
 
 from .get_rss import templates
 
@@ -22,27 +22,31 @@ router = APIRouter(
 )
 
 
-async def combine_link(desc, scraper, link):
-    try:
-        instance = await get_instance(scraper)
-    except Exception:
-        desc.append('<p>创建抓取器出错，请稍后重试</p>')
-        logger.error("usage create instance error, full traceback:\n%s", traceback.format_exc())
+def combine_link(desc: list, scraper: ScraperNameAndParams, link: str):
+    cls: type[WebsiteScraper] | None = Plugins.get_plugin_or_none(scraper.name)
+    if cls is None:
+        desc.append('<p>抓取器不存在</p>')
+        return
+    if scraper.name == "Representative":
+        name = "Representative"
+    elif scraper.name == "Remote":
+        name = "Remote"
     else:
-        if instance:
-            desc.append(f'<p><span>{instance.source_info["name"]} 的 RSS 链接：</span> <a href="{link}" rel="noprerender">{link}</a></p>')
-            asyncio.create_task(discard_scraper(scraper))
-            await instance.destroy() # todo
-        else:
-            desc.append('<p>抓取器不存在或初始化参数有误</p>')
+        params = (scraper.init_params,) if isinstance(scraper.init_params, str) else scraper.init_params
+        table_name = cls.table_name_formation.format(*params)
+        source_info = data.db_intf.get_source_info(table_name)
+        name = source_info["name"] if source_info else "Unknown Name"
+    desc.append(f'<p><span>{name} 的 RSS 链接：</span> <a href="{link}" rel="noprerender">{link}</a></p>')
 
-async def make_desc(scraper_class) -> str:
+
+async def make_desc(cls_id: str) -> str:
     desc = []
     secret_index = []
-    class_name = scraper_class.__name__
+    scraper_class = Plugins.get_plugin_or_none(cls_id)
+    if not scraper_class:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
 
-    doc = inspect.getdoc(scraper_class.create)
-    if doc:
+    if doc := inspect.getdoc(scraper_class.create):
         doc_line = iter(doc.split("\n"))
         with suppress(StopIteration):
             while not next(doc_line).strip().startswith("Args"):
@@ -55,7 +59,7 @@ async def make_desc(scraper_class) -> str:
     desc.append("<br>")
     desc.append("<p>主动查询的网址例子：</p>")
     if scraper_class.is_variety:
-        scrapers = ScraperNameAndParams.create(class_name)
+        scrapers = ScraperNameAndParams.create(cls_id, i_am_remote=True)
         if not scrapers:
             desc.append("<p>缺失例子</p>")
         else:
@@ -65,12 +69,12 @@ async def make_desc(scraper_class) -> str:
                 else:
                     args = [scraper.init_params] if not isinstance(scraper.init_params, list | tuple) else scraper.init_params
                 safe_args = [("xxxxx-secret-xxxxx" if secret_index[i] else str(arg)) for i, arg in enumerate(args)]
-                link = f"/query_rss/{class_name}/?q=" + "&q=".join(safe_args)
-                await combine_link(desc, scraper, link)
+                link = f"/query_rss/{cls_id}/?q=" + "&q=".join(safe_args)
+                combine_link(desc, scraper, link)
     else:
-        link = f"/query_rss/{class_name}/"
-        scraper = ScraperNameAndParams.create(class_name)[0]
-        await combine_link(desc, scraper, link)
+        link = f"/query_rss/{cls_id}/"
+        scraper = ScraperNameAndParams.create(cls_id, i_am_remote=True)[0]
+        combine_link(desc, scraper, link)
     return "\n".join(desc)
 
 
@@ -85,10 +89,7 @@ _usage_cache = {}
 async def get_usage_of_scraper(cls_id: str) -> str:
     if desc := _usage_cache.get(cls_id):
         return desc
-    scraper_class = Plugins.get_plugin_or_none(cls_id)
-    if not scraper_class:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
-    desc = await make_desc(scraper_class)
+    desc = await make_desc(cls_id)
     _usage_cache[cls_id] = desc
     return desc
 

@@ -4,14 +4,15 @@ import logging
 from datetime import datetime
 from enum import Enum, auto
 from functools import wraps
-from itertools import chain
 from typing import Annotated
 
 from cachetools import TTLCache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse
 
-from preproc import Plugins, config, data
+from data_handle import Plugins
+from config_handle import config
+from data_handle import data
 from src.crawl import ScraperNameAndParams, process_one_instance
 from src.crawl.crawl_error import CrawlError
 from src.scraper import AccessLevel
@@ -116,7 +117,7 @@ async def query_rss(cls_id: str, user: Annotated[User, Depends(get_valid_user)],
     """已登录用户可以用此主动请求更新，并获取更新后的源"""
     if Plugins.get_plugin_or_none(cls_id) is None or cls_id == "Representative":
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Scraper Not Found")
-    logger.info("%s get new request of %s", cls_id, str(q))
+    logger.debug("%s get new request of %s", cls_id, str(q))
     # todo 检查，用户只能请求用户级别的抓取器
     if user.is_administrator and not config.in_bedtime(cls_id, datetime.now().strftime("%H:%M")):
         source_name = await go_to_crawl(cls_id, tuple(q), cache_type=CacheType.JUST_REFRESH)

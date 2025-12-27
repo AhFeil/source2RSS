@@ -14,6 +14,7 @@ from src.scraper.tools import get_response_or_none
 
 class YoutubeChannel(WebsiteScraper):
     home_url = "https://www.youtube.com"
+    table_name_formation = "youtube_channel_{}"
 
     headers = {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -49,7 +50,7 @@ class YoutubeChannel(WebsiteScraper):
             "desc": name,
             "lang": "en-US",
             "key4sort": SortKey.PUB_TIME,
-            "table_name": f"youtube_channel_{self.channel_id}",
+            "table_name": YoutubeChannel.table_name_formation.format(self.channel_id),
         }
 
     @classmethod

@@ -6,7 +6,7 @@ from urllib.parse import quote
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
-from preproc import data
+from data_handle import data
 from src.scraper import AccessLevel, ArticleInfo, SortKey, SourceMeta
 
 from .query_rss import CacheType, go_to_crawl
@@ -38,7 +38,7 @@ async def add_source(m: SourceMeta):
 @router.post("/{source_name}/", response_class=JSONResponse, dependencies=[Depends(get_admin_user)])
 async def delivery(source_name: str, articles: list[ArticleInfo]):
     """用收到的文章构造一个特殊的抓取器，然后走正常处理流程"""
-    logger.info("reveice articles of %s", source_name)
+    logger.debug("reveice articles of %s", source_name)
     j_articles = [a.model_dump() for a in articles]
     source = data.db_intf.get_source_info(source_name)
     if source is None:

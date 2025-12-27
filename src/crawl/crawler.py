@@ -6,7 +6,9 @@ from typing import Self
 
 from pydantic_core import ValidationError
 
-from preproc import Plugins, config, data
+from data_handle import Plugins
+from config_handle import config
+from data_handle import data
 from src.scraper import AsyncBrowserManager, WebsiteScraper
 from src.scraper.scraper_error import (
     CreateButRequestFail,
@@ -24,7 +26,7 @@ logger = logging.getLogger("crawler")
 
 @dataclass
 class ScraperNameAndParams:
-    name: str       # TODO 不能是列表
+    name: str       # TODO 不能是列表，只能是 list[str]
     init_params: list | tuple | str # 如果参数只有一个，则可以为 str，多个用列表按顺序容纳，没有参数则使用空列表
     amount: int
     interval: int
@@ -100,7 +102,7 @@ async def get_instance(scraper: ScraperNameAndParams) -> WebsiteScraper | None:
         return
     # 可以创建，但是重复：有另一个相同的在运行，引发异常
     if has_scraper(scraper):
-        logger.info("repeat instance of %s", str(scraper))
+        logger.debug("repeat instance of %s", str(scraper))
         raise CrawlRepeatError(f"repeat instance of {scraper.name}")
     # 最终创建实例
     add_scraper(scraper) # 需要保证每一处调用该函数的地方都能正常移除

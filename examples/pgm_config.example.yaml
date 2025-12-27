@@ -5,6 +5,14 @@ enabled_web_scraper:
   - representative   # 删除这个则无法通过 API 发布 RSS
   - remote           # 删除这个则无法使用 Remote 模式
 
+query_cache_maxsize: 100
+query_cache_ttl_s: 3600
+query_bedtime:   # 睡眠时间里，管理员的请求走缓存路径，减少资源消耗
+- ["01:30", "06:30"]
+
+enable_s2r_c: false # 设置为 True 则程序中的一些错误会作为 RSS 可供订阅，方便出错时即时发现
+port: 8536 # 如果 enable_s2r_c 为真，这个必须填写为程序监听的端口号
+
 logging:
   version: 1
   disable_existing_loggers: False

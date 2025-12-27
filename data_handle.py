@@ -6,10 +6,11 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
+from api import Plugins
 
 from socketio import AsyncServer
 
-from configHandle import config
+from config_handle import config
 from src.data import DatabaseIntf
 from src.scraper import AccessLevel
 
@@ -177,7 +178,7 @@ class Agents:
 class Data:
     def __init__(self, config) -> None:
         self.config = config
-        self.logger = logging.getLogger("dataHandle")
+        self.logger = logging.getLogger("data_handle")
 
         # 从文件里加载用户数据
         self._users = {"invite_code": None, "left_count": 0, "users": []}
@@ -208,3 +209,6 @@ class Data:
             f.write(json_string)
 
 data = Data(config)
+
+# 加载插件
+Plugins.load_plugins(config.enabled_web_scraper)

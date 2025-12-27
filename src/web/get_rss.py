@@ -6,7 +6,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.templating import Jinja2Templates
 
-from preproc import data
+from data_handle import data
 from src.scraper import AccessLevel
 
 from . import sort_rss_list
