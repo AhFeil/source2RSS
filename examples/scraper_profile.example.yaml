@@ -38,8 +38,8 @@ YoutubeChannel:
   # custom_cfg:
   #   prefer_agent: vfly2_direct_agent
   cls_init_params:
-  - [LearnEnglishWithTVSeries]
-  - [kurzgesagt]
+  - LearnEnglishWithTVSeries
+  - kurzgesagt
 
 TelegramChannel:
   custom_cfg:
