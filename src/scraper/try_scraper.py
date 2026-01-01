@@ -34,3 +34,4 @@ if __name__ == '__main__':
     from src.scraper.examples.juejin_user import JuejinUser
     asyncio.run(have_a_try(JuejinUser, 3320949647350765))
     # 在项目根目录使用这个命令运行抓取类 .env/bin/python -m src.scraper.try_scraper
+    # Windows 系统 .env\Scripts\python.exe -m src.scraper.try_scraper
