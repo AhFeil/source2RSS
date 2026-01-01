@@ -63,7 +63,7 @@ class ScraperNameAndParams:
     def __hash__(self):
         if self.name == "Remote":
             return hash(tuple(self.init_params[1:]))
-        params = self.init_params if isinstance(self.init_params, (str, tuple)) else tuple(self.init_params)
+        params = self.init_params if isinstance(self.init_params, (str, int, tuple, float, bool)) else tuple(self.init_params)
         return hash((self.name, params))
 
     def __eq__(self, other):
