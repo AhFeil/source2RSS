@@ -9,7 +9,7 @@ from datetime import datetime
 import pytest
 
 from src.data.sqlite_intf import DatabaseIntf, SQliteConnInfo, SQliteIntf
-from src.scraper import AccessLevel, ArticleDict, SortKey, SrcMetaDict
+from source2rss_fw.scraper import AccessLevel, ArticleDict, SortKey, SrcMetaDict
 
 
 @pytest.fixture

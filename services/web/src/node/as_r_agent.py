@@ -1,3 +1,4 @@
+"""目前废弃"""
 import asyncio
 import logging
 import os
@@ -10,7 +11,7 @@ from briefconf import BriefConfig
 from socketio.exceptions import ConnectionError as ConnectionError_
 
 from src.data_handle import Plugins
-from src.crawl.remote_crawl import remote_uniform_flow
+from source2rss_fw.crawl.remote_crawl import remote_uniform_flow
 
 
 @dataclass(frozen=True, slots=True)

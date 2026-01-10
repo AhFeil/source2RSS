@@ -1,0 +1,21 @@
+[project]
+name = "source2RSS_fw"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "ahfei", email = "vgamebox@outlook.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.14.3",
+    "feedgen>=1.0.0",
+    "feedparser>=6.0.12",
+    "httpx>=0.28.1",
+    "pydantic>=2.12.5",
+    "pytest-playwright>=0.7.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.9.14,<0.10.0"]
+build-backend = "uv_build"

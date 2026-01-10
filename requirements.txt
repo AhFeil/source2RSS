@@ -1,11 +1,6 @@
 briefconf
-httpx
-feedgen
-feedparser
 schedule
 pytz
-beautifulsoup4
-pytest-playwright
 fastapi[all]
 cachetools
 SQLAlchemy

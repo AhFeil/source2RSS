@@ -11,7 +11,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.sql import text
 
-from src.scraper import ArticleDict, SrcMetaDict
+from source2rss_fw.scraper import ArticleDict, SrcMetaDict
 
 from .db_intf import DatabaseIntf
 from .orm_model import ArticleBase, Base, SourceMeta4ORM

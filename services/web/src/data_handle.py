@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 import os
@@ -6,13 +5,13 @@ from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
-from api import Plugins
 
 from socketio import AsyncServer
+from source2rss_fw.scraper import AccessLevel, Agent, D_Agent
+from source2rss_fw.plugin import Plugins
 
 from .config_handle import config
 from src.data import DatabaseIntf
-from src.scraper import AccessLevel
 
 
 @dataclass
@@ -79,22 +78,6 @@ class RSSCache:
                 rss_data = RSSData(file_content, rss_json)
                 file_dict[file_path.stem] = rss_data
         return file_dict
-
-
-@dataclass
-class Agent:
-    sid: str
-    name: str
-    scrapers: list[str]
-    sio: AsyncServer
-    pending_futures: dict[str, asyncio.Future]
-
-
-@dataclass
-class D_Agent:
-    name: str
-    scrapers: list[str]
-    uri: str
 
 
 @dataclass

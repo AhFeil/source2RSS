@@ -10,12 +10,11 @@ from cachetools import TTLCache
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from fastapi.responses import HTMLResponse
 
-from src.data_handle import Plugins
+from src.data_handle import Plugins, data
 from src.config_handle import config
-from src.data_handle import data
-from src.crawl import ScraperNameAndParams, process_one_instance
-from src.crawl.crawl_error import CrawlError
-from src.scraper import AccessLevel
+from src.crawler import crawler, create_scraper_name_and_params
+from source2rss_fw.crawl.crawl_error import CrawlError
+from source2rss_fw.scraper import AccessLevel
 
 from . import sort_rss_list
 from .get_rss import select_rss, templates
@@ -101,9 +100,9 @@ def async_cached(func):
 
 @async_cached
 async def go_to_crawl(cls_id: str, one_group_params: tuple, *, cache_type: CacheType=CacheType.NORMAL) -> str:
-    scraper_with_one_group_params = ScraperNameAndParams.create(cls_id, (one_group_params, ))
+    scraper_with_one_group_params = create_scraper_name_and_params(cls_id, (one_group_params, ))
     try:
-        res = await process_one_instance(scraper_with_one_group_params[0])
+        res = await crawler.process_one_scraper(scraper_with_one_group_params[0])
     except CrawlError as e:
         raise HTTPException(status_code=e.code, detail=str(e))
 

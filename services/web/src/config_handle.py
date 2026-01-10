@@ -7,15 +7,20 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Self
+from zoneinfo import ZoneInfo
 
 from briefconf import BriefConfig
 
 # 推导出 source2RSS_client 所在目录
 current_dir = Path(__file__).resolve().parent
-client_src_path = current_dir / "../../../packages/client/src"
+root_dir = Path(__file__).resolve().parent.parent.parent.parent
+client_src_path = root_dir / "packages/client/src"
+framework_src_path = root_dir / "packages/framework/src"
 sys.path.insert(0, str(client_src_path))
+sys.path.insert(0, str(framework_src_path))
 
-from source2RSS_client import S2RProfile, Source2RSSClient  # type: ignore # noqa: E402
+from source2RSS_client import S2RProfile, Source2RSSClient  # noqa: E402
+from source2rss_fw import scraper  # noqa: E402
 
 
 configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default="config_and_data_files/config.yaml")
@@ -35,7 +40,7 @@ class Config(BriefConfig):
     amount_when_firstly_add: int
     interval_between_each_instance: int
     max_of_rss_items: int
-    timezone: str
+    timezone: ZoneInfo
     max_opening_context: int
     prefer_agent: str | list[tuple[str, int]] # 指定一个 agent ，或者指定一个列表，包含多个 agent 和权重
 
@@ -103,7 +108,7 @@ class Config(BriefConfig):
             sqlite_uri=f"sqlite:///{data_dir}/source2rss.db",
             users_file=f"{data_dir}/users.json",
 
-            timezone=configs.get("timezone", "Asia/Shanghai"),
+            timezone=ZoneInfo(configs.get("timezone", "Asia/Shanghai")),
             run_everyday_at=[run_everyday_at] if isinstance(run_everyday_at, str) else run_everyday_at,
             WAIT=crawler_default_cfg.get("WAIT", 1800),
 
@@ -233,3 +238,5 @@ class Config(BriefConfig):
 
 
 config = Config.load(os.path.abspath(configfile))
+
+scraper.tools.configure(wait_before_close_browser=config.wait_before_close_browser, max_opening_context=config.max_opening_context)

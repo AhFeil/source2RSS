@@ -7,10 +7,10 @@ from contextlib import suppress
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import HTMLResponse
 
-from src.data_handle import data
-from src.data_handle import Plugins
-from src.crawl.crawler import ScraperNameAndParams
-from src.scraper import WebsiteScraper
+from src.crawler import create_scraper_name_and_params
+from src.data_handle import data, Plugins
+from source2rss_fw.crawl.crawler import ScraperNameAndParams
+from source2rss_fw.scraper import WebsiteScraper
 
 from .get_rss import templates
 
@@ -59,7 +59,7 @@ async def make_desc(cls_id: str) -> str:
     desc.append("<br>")
     desc.append("<p>主动查询的网址例子：</p>")
     if scraper_class.is_variety:
-        scrapers = ScraperNameAndParams.create(cls_id, i_am_remote=True)
+        scrapers = create_scraper_name_and_params(cls_id, i_am_remote=True)
         if not scrapers:
             desc.append("<p>缺失例子</p>")
         else:
@@ -73,7 +73,7 @@ async def make_desc(cls_id: str) -> str:
                 combine_link(desc, scraper, link)
     else:
         link = f"/query_rss/{cls_id}/"
-        scraper = ScraperNameAndParams.create(cls_id, i_am_remote=True)[0]
+        scraper = create_scraper_name_and_params(cls_id, i_am_remote=True)[0]
         combine_link(desc, scraper, link)
     return "\n".join(desc)
 

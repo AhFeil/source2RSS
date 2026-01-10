@@ -6,13 +6,14 @@ import traceback
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Self
+from zoneinfo import ZoneInfo
 
 from briefconf import BriefConfig
 from fastapi import FastAPI, WebSocket
 
-from src.crawl.crawl_error import CrawlRepeatError
-from src.crawl.crawler import ScraperNameAndParams, discard_scraper, get_instance
-from src.scraper.scraper_error import ScraperError
+from source2rss_fw.crawl import ScraperNameAndParams, Crawler
+from source2rss_fw.crawl.crawl_error import CrawlRepeatError
+from source2rss_fw.scraper.scraper_error import ScraperError
 
 
 @dataclass(frozen=True, slots=True)
@@ -35,6 +36,8 @@ agent_config = AgentConfig.load(os.path.abspath(configfile))
 
 logger = logging.getLogger("as_d_agent")
 
+crawler = Crawler.create(180, 30, ZoneInfo("Asia/Shanghai"), None)
+
 app = FastAPI()
 
 def normalize_datetime_flags(flags: dict) -> dict:
@@ -53,12 +56,12 @@ async def connect_agent(websocket: WebSocket):
         msg_id = request["msg_id"]
         over_payload = {"msg_id": msg_id, "over": True}
         logger.info(f"[AGENT] Receive task of {request['cls_id']}, params is {request['params']}")
-        scrapers = ScraperNameAndParams.create(request["cls_id"], (request["params"], ), 10, True)
+        scrapers = ScraperNameAndParams.create(request["cls_id"], (request["params"], ), 10, 100, 30, lambda _ : "self", lambda _ : "", True)
         if not scrapers:
             await websocket.send_json(over_payload)
             return
         scraper = scrapers[0]
-        instance = await get_instance(scraper)
+        instance = await crawler.get_scraper_instance(scraper)
         if not instance:
             await websocket.send_json(over_payload)
             return
@@ -82,7 +85,7 @@ async def connect_agent(websocket: WebSocket):
 
             await websocket.send_json(over_payload)
         finally:
-            asyncio.create_task(discard_scraper(scraper))
+            asyncio.create_task(crawler.discard_scraper(scraper))
             await instance.destroy()
     except CrawlRepeatError:
         logger.info("[AGENT] Client disconnected")
@@ -101,5 +104,5 @@ async def connect_agent(websocket: WebSocket):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=agent_config.port)  # TODO 监听特定 IP，安全考虑
+    uvicorn.run(app, host="0.0.0.0", port=agent_config.port)
     # python -m src.node.as_d_agent

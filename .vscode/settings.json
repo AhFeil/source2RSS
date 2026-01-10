@@ -1,5 +1,5 @@
 {
-    "python.analysis.extraPaths": ["plugins"],
+    "python.analysis.extraPaths": ["plugins", "packages/client/src", "packages/framework/src"],
     "python.analysis.include": ["plugins"],
     "ruff.lint.ignore": ["I001"],
     "autocorrect.enable": false,

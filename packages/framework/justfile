@@ -1,0 +1,5 @@
+python_environment := justfile_directory() / "../../.env"
+python_interpreter := python_environment / "bin/python"
+
+@test:
+  cd "{{justfile_directory()}}" && export PYTHONPATH="${PYTHONPATH}:$(pwd)/src" && {{python_interpreter}} -m pytest tests/

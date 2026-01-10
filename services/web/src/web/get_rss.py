@@ -7,7 +7,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response
 from fastapi.templating import Jinja2Templates
 
 from src.data_handle import data
-from src.scraper import AccessLevel
+from source2rss_fw.scraper import AccessLevel
 
 from . import sort_rss_list
 from .security import UserRegistry

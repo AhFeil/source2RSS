@@ -8,7 +8,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import declarative_base, declared_attr
 
 from src.config_handle import config
-from src.scraper import ArticleDict, SrcMetaDict
+from source2rss_fw.scraper import ArticleDict, SrcMetaDict
 
 Base = declarative_base()
 

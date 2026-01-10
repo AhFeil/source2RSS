@@ -1,6 +1,9 @@
-python_environment := justfile_directory() / "../../.env"
+root := justfile_directory() / "../.."
+python_environment := root / ".env"
 python_interpreter := python_environment / "bin/python"
 uvicorn := python_environment / "bin/uvicorn"
+
+fw_package := root / "packages/framework/src"
 
 @run:
   echo "网页地址： http://localhost:8536/"
@@ -10,14 +13,14 @@ uvicorn := python_environment / "bin/uvicorn"
 
 @test: (start_agent "d") && (stop_agent "d")
   rm -rf {{justfile_directory()}}/tests/config_and_data_files
-  SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml {{python_interpreter}} -m pytest tests/ -m "not slow" || true
+  cd "{{justfile_directory()}}" && export PYTHONPATH="{{fw_package}}" && SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml {{python_interpreter}} -m pytest tests/ -m "not slow" || true
 
 @test_all: (start_agent "d") && (stop_agent "d")
   echo "全量测试"
-  SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml {{python_interpreter}} -m pytest tests/ || true
+  cd "{{justfile_directory()}}" && export PYTHONPATH="{{fw_package}}" && SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml {{python_interpreter}} -m pytest tests/ || true
 
 @ci_test: (start_agent "d") && (stop_agent "d")
-  SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml {{python_interpreter}} -m pytest tests/ -m "not slow"
+  cd "{{justfile_directory()}}" && export PYTHONPATH="{{fw_package}}" && SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml {{python_interpreter}} -m pytest tests/ -m "not slow"
 
 # 启动 agent 并后台运行，设置 PID 变量
 start_agent type:

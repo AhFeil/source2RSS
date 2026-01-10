@@ -1,7 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
 
-from src.scraper.scraper import ArticleDict, SrcMetaDict
+from source2rss_fw.scraper.scraper import ArticleDict, SrcMetaDict
 
 
 class DatabaseIntf(ABC):

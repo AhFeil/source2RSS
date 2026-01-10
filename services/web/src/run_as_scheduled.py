@@ -9,15 +9,15 @@ import schedule
 
 from src.data_handle import Plugins
 from src.config_handle import config
-from src.crawl import ScraperNameAndParams, start_to_crawl
-from src.crawl.crawl_error import CrawlError
+from src.crawler import crawler, create_scraper_name_and_params
+from source2rss_fw.crawl.crawl_error import CrawlError
 
 logger = logging.getLogger(__name__)
 
 
 def sync_wrapper(cls_names, loop):
     try:
-        future = run_coroutine_threadsafe(start_to_crawl(ScraperNameAndParams.create(name) for name in cls_names), loop)
+        future = run_coroutine_threadsafe(crawler.process_scraper_groups(create_scraper_name_and_params(name) for name in cls_names), loop)
         future.result()
     except CrawlError as e:
         # 已知的错误就忽略
@@ -48,7 +48,7 @@ def run_continuously(loop: asyncio.AbstractEventLoop):
             crawl_schedules = config.get_schedule_and_cls_names(Plugins.get_all_id())
             config.set_crawl_schedules(crawl_schedules)
             for point, cls_names in crawl_schedules.items():
-                schedule.every().day.at(point, config.timezone).do(job, cls_names, loop)
+                schedule.every().day.at(point, str(config.timezone)).do(job, cls_names, loop)
 
             while not cease_continuous_run.is_set():
                 schedule.run_pending()
