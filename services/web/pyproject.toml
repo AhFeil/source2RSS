@@ -1,0 +1,17 @@
+[project]
+name = "source2rss_web"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi[all]>=0.116.1",
+]
+
+[tool.ruff]
+line-length = 160
+
+[tool.ruff.lint]
+select = ["A", "B", "C", "E", "F", "G", "I", "ASYNC", "INT", "SLF", "ARG", "T20"]
+ignore = ["ARG001", "ARG002", "F401", "UP045", "SIM910", "B008"]
+extend-select = ["SIM", "PERF", "UP", "PT", "FAST"] # , "DTZ"

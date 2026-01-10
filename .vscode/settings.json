@@ -5,6 +5,9 @@
     "autocorrect.enable": false,
     "autocorrect.enableLint": false,
     "autocorrect.formatOnSave": false,
+    "files.associations": {
+        "justfile": "plaintext"
+    },
     "search.useIgnoreFiles": false,
     "search.exclude": {
         ".env": true,

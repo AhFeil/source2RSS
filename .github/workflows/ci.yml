@@ -26,13 +26,10 @@ jobs:
       - name: Install dependencies
         shell: bash
         run: |
-          bash setup4host.sh
-          .env/bin/playwright install-deps
+          cd services/web/ && bash setup4host.sh && cd ../..
           source .env/bin/activate
           pip install -r requirements-dev.txt
 
       - name: Run tests
         shell: bash
-        run: |
-          source .env/bin/activate
-          just ci_test
+        run: cd services/web/ && just ci_test

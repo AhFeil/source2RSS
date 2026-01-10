@@ -1,0 +1,12 @@
+# （必填）提交类型: feat|fix|docs|style|refactor|perf|test|build|dev|config|chore|revert 和简述，模块可选
+# <type>[optional scope]: <description>
+:
+
+# （必填）花费时间段，hh:mm，例如 (09:15, 11:35), (14:05, 16:25)
+time taken: (, )
+estimated time required:
+
+# （必填）影响
+上线注意项：
+# - 更新配置文件
+# - 更新环境 bash ./setup4host.sh
