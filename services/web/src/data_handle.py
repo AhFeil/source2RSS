@@ -211,4 +211,4 @@ class Data:
 data = Data(config)
 
 # 加载插件
-Plugins.load_plugins(config.enabled_web_scraper)
+Plugins.load_plugins(config.enabled_web_scraper, (config.root_dir,))

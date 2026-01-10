@@ -1,6 +1,7 @@
 """注册插件，以字典存储"""
 import importlib
 import pkgutil
+import sys
 from collections.abc import Iterable
 from types import ModuleType
 from typing import Any
@@ -34,7 +35,8 @@ class Plugins:
     imported_modules: dict[str, ModuleType] = {}
 
     @staticmethod
-    def load_plugins(config_enabled_web_scraper: dict):
+    def load_plugins(config_enabled_web_scraper: dict, extra_sys_path: tuple[str]):
+        sys.path.extend(extra_sys_path)
         enabled_web_scraper = set()
         available_web_scraper = set()
         for package_path, module_names in config_enabled_web_scraper.items():
@@ -55,3 +57,5 @@ class Plugins:
             module = importlib.import_module(usable_web_scraper)
             Plugins.imported_modules[usable_web_scraper] = module
             print(usable_web_scraper)  # noqa: T201
+        for _ in extra_sys_path:
+            sys.path.pop()

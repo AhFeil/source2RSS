@@ -59,6 +59,7 @@ class Config(BriefConfig):
 
     # 用户不应该考虑的配置，开发者可以改的
     rss_dir: str
+    root_dir: str
     http_proxy_url: str
     source_meta: str = "source_meta"   # 存储源的元信息的表的名称
     wait_before_close_browser: int = 180
@@ -125,6 +126,7 @@ class Config(BriefConfig):
             enable_agent_server=configs.get("enable_agent_server", False),
             known_agents=configs.get("known_agents", []),
             rss_dir=f"{data_dir}/rss",
+            root_dir=str(current_dir / "../../.."),
             http_proxy_url=configs.get("http_proxy_url", ""),
         )
         config.prepare()
