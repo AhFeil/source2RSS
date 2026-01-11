@@ -10,17 +10,8 @@ from typing import Any, Self
 from zoneinfo import ZoneInfo
 
 from briefconf import BriefConfig
-
-# 推导出 source2RSS_client 所在目录
-current_dir = Path(__file__).resolve().parent
-root_dir = Path(__file__).resolve().parent.parent.parent.parent
-client_src_path = root_dir / "packages/client/src"
-framework_src_path = root_dir / "packages/framework/src"
-sys.path.insert(0, str(client_src_path))
-sys.path.insert(0, str(framework_src_path))
-
-from source2RSS_client import S2RProfile, Source2RSSClient  # noqa: E402
-from source2rss_fw import scraper  # noqa: E402
+from source2RSS_client import S2RProfile, Source2RSSClient
+from source2rss_fw import scraper
 
 
 configfile = os.getenv("SOURCE2RSS_CONFIG_FILE", default="config_and_data_files/config.yaml")
@@ -103,6 +94,9 @@ class Config(BriefConfig):
         else:
             s2r_c = None
 
+        current_dir = Path(__file__).resolve().parent
+        root_dir = current_dir.parent.parent.parent
+
         config = cls(
             data_dir=data_dir,
             sqlite_uri=f"sqlite:///{data_dir}/source2rss.db",
@@ -131,7 +125,7 @@ class Config(BriefConfig):
             enable_agent_server=configs.get("enable_agent_server", False),
             known_agents=configs.get("known_agents", []),
             rss_dir=f"{data_dir}/rss",
-            root_dir=str(current_dir / "../../.."),
+            root_dir=str(root_dir),
             http_proxy_url=configs.get("http_proxy_url", ""),
         )
         config.prepare()

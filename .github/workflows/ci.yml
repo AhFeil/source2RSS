@@ -32,4 +32,6 @@ jobs:
 
       - name: Run tests
         shell: bash
-        run: cd services/web/ && just ci_test
+        run: |
+          cd packages/framework && just test; cd -
+          cd services/web/ && just ci_test; cd -

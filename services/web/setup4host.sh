@@ -19,8 +19,10 @@ then
 fi
 source "${python_environment}/bin/activate"
 pip install -r "${root_dir}/requirements.txt"
+pip install "${root_dir}/packages/client"
+pip install "${root_dir}/packages/framework"
 # 安装指定的浏览器
-playwright install chromium
+python -m playwright install chromium
 # 安装 playwright 的依赖
 python -m playwright install --with-deps
 

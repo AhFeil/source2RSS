@@ -3,13 +3,24 @@
 
 SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s client/tests/test_client.py
 """
+from dataclasses import dataclass
+
 import pytest
 
-from client.src.source2RSS_client import S2RProfile, Source2RSSClient
-from config_handle import config
+from source2RSS_client import S2RProfile, Source2RSSClient
+
+
+@dataclass
+class Config:
+    url: str = "http://localhost:8536"
+    query_username: str = "vfly2"
+    query_password: str = "123456"
+
+config = Config()
+
 
 s2r_profile: S2RProfile = {
-    "url": f"http://127.0.0.1:{config.port}",
+    "url": config.url,
     "username": config.query_username,
     "password": config.query_password,
     "source_name": "test_client_log",

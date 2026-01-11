@@ -80,15 +80,13 @@ class RSSCache:
         return file_dict
 
 
-@dataclass
+@dataclass(slots=True)
 class Agents:
     _agents: dict[str, Agent]      # sid -> agent
     _agents_name: dict[str, str]   # sid -> name
     _d_agents: dict[str, D_Agent]  # name -> agent
     _supported_scrapers: defaultdict[str, set[str]] # 存储支持某抓取器的全部远端 sid/name
     _logger: logging.Logger
-
-    __slots__ = ("_agents", "_agents_name", "_d_agents", "_supported_scrapers", "_logger")
 
     @classmethod
     def create(cls) -> Self:
