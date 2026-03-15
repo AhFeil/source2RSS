@@ -36,7 +36,7 @@ class Plugins:
 
     @staticmethod
     def load_plugins(config_enabled_web_scraper: dict, extra_sys_path: tuple[str]):
-        sys.path.extend(extra_sys_path)
+        sys.path.extend(extra_sys_path)  # extra_sys_path 主要是为了 plugins
         enabled_web_scraper = set()
         available_web_scraper = set()
         for package_path, module_names in config_enabled_web_scraper.items():

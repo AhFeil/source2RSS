@@ -1,4 +1,4 @@
-python_environment := justfile_directory() / "../../.env"
+python_environment := justfile_directory() / "../../.venv"
 python_interpreter := python_environment / "bin/python"
 
 @test:

@@ -1,5 +1,5 @@
 root := justfile_directory() / "../.."
-python_environment := root / ".env"
+python_environment := root / ".venv"
 python_interpreter := python_environment / "bin/python"
 uvicorn := python_environment / "bin/uvicorn"
 
@@ -9,35 +9,19 @@ uvicorn := python_environment / "bin/uvicorn"
   cd "{{justfile_directory()}}" && {{uvicorn}} main:app --host 0.0.0.0 --port 8536
 
 
-@test: (start_agent "d") && (stop_agent "d")
+@test: start_agent && stop_agent
   rm -rf {{justfile_directory()}}/tests/config_and_data_files
   cd "{{justfile_directory()}}" && SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml {{python_interpreter}} -m pytest tests/ -m "not slow" || true
 
-@test_all: (start_agent "d") && (stop_agent "d")
+@test_all: start_agent && stop_agent
   echo "全量测试"
   cd "{{justfile_directory()}}" && SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml {{python_interpreter}} -m pytest tests/ || true
 
-@ci_test: (start_agent "d") && (stop_agent "d")
+@ci_test: start_agent && stop_agent
   cd "{{justfile_directory()}}" && SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml {{python_interpreter}} -m pytest tests/ -m "not slow"
 
-# 启动 agent 并后台运行，设置 PID 变量
-start_agent type:
-  #!/usr/bin/env bash
-  set -eu pipefail
-  echo "Starting {{type}}_agent in background..."
-  SOURCE2RSS_AGENT_CONFIG_FILE=examples/agent_config.example.yaml {{python_interpreter}} -m src.node.as_{{type}}_agent > {{type}}_agent.log 2>&1 &
-  echo $! > .{{type}}_agent.pid
-  sleep 2  # 等待启动
+start_agent:
+  echo "blank"
 
-# 停止 agent
-stop_agent type:
-  #!/usr/bin/env bash
-  set -eu pipefail
-  if [[ -f .{{type}}_agent.pid ]]; then
-    pid=$(cat .{{type}}_agent.pid)
-    echo "Stopping {{type}}_agent with PID $pid"
-    kill $pid 2>/dev/null || true
-    rm -f .{{type}}_agent.pid
-    wait $pid 2>/dev/null || true
-  fi
-  echo -e "\n"
+stop_agent:
+  echo "blank"

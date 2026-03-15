@@ -5,7 +5,8 @@
       "Read(/tmp/*)"
     ],
     "deny": [
-      "Read(./config_and_data_files/**)"
+      "Read(./config_and_data_files/**)",
+      "Read(./justfile.local)"
     ]
   }
 }

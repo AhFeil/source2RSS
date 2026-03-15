@@ -11,11 +11,11 @@ from fastapi.testclient import TestClient
 from httpx import ASGITransport, AsyncClient
 
 from src.config_handle import config
-from main import fast_app
+from main import app
 from tests.web.test_user import add_source_to_user, register_user
 from tests.web.utility import get_headers
 
-client = TestClient(fast_app)
+client = TestClient(app)
 
 
 @pytest.fixture(scope="module")
@@ -116,7 +116,7 @@ def test_query_rss_not_exist(setup_and_tear_down):
 @pytest.mark.asyncio
 async def test_query_rss_high_concurrency():
     """测试触发更新的并发表现"""
-    async with AsyncClient(transport=ASGITransport(app=fast_app), base_url="http://async_testserver") as ac: # type: ignore
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://async_testserver") as ac: # type: ignore
         urls = [
             "/query_rss/BilibiliUp/?q=246370149",
             "/query_rss/BilibiliUp/?q=110529160",
@@ -155,7 +155,7 @@ async def test_query_rss_high_concurrency():
 @pytest.mark.asyncio
 async def test_query_rss_same_scraper_in_one_time():
     """同一时间，完全相同的实例只能有一个在运行，其他的直接放弃"""
-    async with AsyncClient(transport=ASGITransport(app=fast_app), base_url="http://async_testserver") as ac: # type: ignore
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://async_testserver") as ac: # type: ignore
         urls = [
             "/query_rss/BilibiliUp/?q=246370149",
             "/query_rss/BilibiliUp/?q=246370149",

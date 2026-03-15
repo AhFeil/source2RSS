@@ -1,7 +1,6 @@
 import logging.config
 import os
 import random
-import sys
 from collections import defaultdict
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -36,7 +35,6 @@ class Config(BriefConfig):
     prefer_agent: str | list[tuple[str, int]] # 指定一个 agent ，或者指定一个列表，包含多个 agent 和权重
 
     enabled_web_scraper: dict[str, str]
-    remote_pub_scraper: dict[str, str]
 
     query_cache_maxsize: int
     query_cache_ttl_s: int
@@ -112,7 +110,6 @@ class Config(BriefConfig):
             max_opening_context=max_opening_context,
             prefer_agent=crawler_default_cfg.get("prefer_agent", "self"),
             enabled_web_scraper=configs.get('enabled_web_scraper', {}),
-            remote_pub_scraper=configs.get('remote_pub_scraper', {}),
             query_cache_maxsize=configs.get('query_cache_maxsize', 100),
             query_cache_ttl_s=configs.get('query_cache_ttl_s', 3600),
             query_username=query_username,

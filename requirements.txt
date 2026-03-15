@@ -1,9 +1,0 @@
-briefconf
-schedule
-pytz
-fastapi[all]
-cachetools
-SQLAlchemy
-python-socketio[asyncio_client]
-python-socketio[asgi]
-aiohttp

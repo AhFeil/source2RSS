@@ -1,0 +1,8 @@
+
+port: 8537
+
+enabled_web_scraper:
+  source2rss_fw.scraper_examples:
+  - zaobao_section
+  - youtube_channel
+  - bilibili_up

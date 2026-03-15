@@ -6,8 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Self
 
-from socketio import AsyncServer
-from source2rss_fw.scraper import AccessLevel, Agent, D_Agent
+from source2rss_fw.scraper import AccessLevel, D_Agent
 from source2rss_fw.plugin import Plugins
 
 from .config_handle import config
@@ -82,26 +81,22 @@ class RSSCache:
 
 @dataclass(slots=True)
 class Agents:
-    _agents: dict[str, Agent]      # sid -> agent
-    _agents_name: dict[str, str]   # sid -> name
-    _d_agents: dict[str, D_Agent]  # name -> agent
-    _supported_scrapers: defaultdict[str, set[str]] # 存储支持某抓取器的全部远端 sid/name
+    _agents: dict[str, D_Agent]      # name -> agent
+    _supported_scrapers: defaultdict[str, set[str]] # 某个抓取器，都有哪些远端支持
     _logger: logging.Logger
 
     @classmethod
     def create(cls) -> Self:
-        d_agents = {}
+        agents = {}
         supported_scrapers = defaultdict(set)
         for agent in config.known_agents:
             if agent.get("connect_method") == "direct_websocket":
                 name, scrapers, uri = agent["name"], agent["enabled_scrapers"], agent["agent_uri"]
-                d_agents[name] = D_Agent(name, scrapers, uri)
+                agents[name] = D_Agent(name, scrapers, uri)
                 for scraper in scrapers:
                     supported_scrapers[scraper].add(name)
         return cls(
-            _agents={},
-            _agents_name={},
-            _d_agents=d_agents,
+            _agents=agents,
             _supported_scrapers=supported_scrapers,
             _logger=logging.getLogger("Agents"),
         )
@@ -109,48 +104,35 @@ class Agents:
     def all_agent_info(self) -> list[tuple[str, list[str]]]:
         """返回可用的 agent 的基本信息：名称、支持的抓取器"""
         info = []
-        for sid in self._agents:
-            name = self._agents_name[sid]
-            supported_scrapers = list(self._supported_scrapers[sid])
-            supported_scrapers.sort()
-            info.append((name, supported_scrapers))
-        for name in self._d_agents:
-            supported_scrapers = list(self._supported_scrapers[name])
-            supported_scrapers.sort()
-            info.append((name, supported_scrapers))
+        for name, agent in self._agents.items():
+            info.append((name, agent.scrapers))
         return info
 
-    def register(self, sid: str, name: str, scrapers: list[str], sio: AsyncServer) -> tuple[bool, str]:
-        if self._agents.get(sid):
-            self._logger.info("replicate agent, both sid are %s, name is %s", sid, name)
-            return False, f"replicate agent, both sid are {sid}, name is {name}"
-        self._agents[sid] = Agent(sid, name, scrapers, sio, {})
-        self._agents_name[sid] = name
+    def register(self, name: str, scrapers: list[str], uri: str) -> tuple[bool, str]:
+        if self._agents.get(name):
+            self._logger.info("replicate agent, both name is %s", name)
+            return False, f"replicate agent, both name is {name}"
+        self._agents[name] = D_Agent(name, scrapers, uri)
         # TODO 校验外部数据
         for scraper in scrapers:
-            self._supported_scrapers[scraper].add(sid)
-        if self._agents_name.get(name):
-            self._logger.debug("replicate agent, sid is %s, both name are %s", sid, name)
+            self._supported_scrapers[scraper].add(name)
         self._logger.info("远端注册成功: %s", name)
         return True, ""
 
-    def delete(self, sid: str):
-        if self._agents.get(sid):
-            agent = self._agents.pop(sid)
-            name = self._agents_name.pop(sid)
+    def delete(self, name: str):
+        if self._agents.get(name):
+            agent = self._agents.pop(name)
             for scraper in agent.scrapers:
-                self._supported_scrapers[scraper].discard(sid)
+                self._supported_scrapers[scraper].discard(name)
             self._logger.info("远端已删除: %s", name)
-            # TODO 中止其下所有 future
 
-    def get_agent(self, sid: str) -> Agent | None:
-        return self._agents.get(sid)
+    def get_agent(self, name: str) -> D_Agent | None:
+        return self._agents.get(name)
 
-    def get(self, cls_id: str, agent_name: str="") -> tuple[D_Agent | Agent, ...]:
-        if agents_sid := self._supported_scrapers.get(cls_id):
-            # TODO
-            for sid in agents_sid:
-                agent = self._d_agents.get(sid) or self._agents[sid]
+    def get(self, cls_id: str, agent_name: str="") -> tuple[D_Agent, ...]:
+        if agents_name := self._supported_scrapers.get(cls_id):
+            for name in agents_name:
+                agent = self._agents[name]
                 if agent.name == agent_name:
                     return (agent, )
         return ()

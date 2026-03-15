@@ -4,13 +4,11 @@ from contextlib import asynccontextmanager
 from enum import StrEnum
 from pathlib import Path
 
-import socketio
 from fastapi import FastAPI, Request
 from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 
 from src.config_handle import config
 from src.data_handle import Plugins
-from src.node import sio
 from src.run_as_scheduled import run_continuously
 from src.web import get_rss, manage, post_src, query_rss, usage, user
 
@@ -29,27 +27,27 @@ async def lifespan(app: FastAPI):
     stop_run_continuously.set()
 
 
-fast_app = FastAPI(lifespan=lifespan)
+app = FastAPI(lifespan=lifespan)
 
-fast_app.include_router(get_rss.router)
-fast_app.include_router(post_src.router)
-fast_app.include_router(query_rss.router)
-fast_app.include_router(usage.router)
-fast_app.include_router(user.router)
-fast_app.include_router(manage.router)
+app.include_router(get_rss.router)
+app.include_router(post_src.router)
+app.include_router(query_rss.router)
+app.include_router(usage.router)
+app.include_router(user.router)
+app.include_router(manage.router)
 
 for module in Plugins.imported_modules.values():
     if "router" in getattr(module, "__all__", []):
-        fast_app.include_router(module.router)
+        app.include_router(module.router)
 
 
-@fast_app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse)
 async def index(request: Request):
     context = {"crawl_schedules": config.get_crawl_schedules()}
     return get_rss.templates.TemplateResponse(request=request, name="home.html", context=context)
 
 
-@fast_app.get("/favicon.ico")
+@app.get("/favicon.ico")
 async def favicon():
     return FileResponse(path="src/web/static/favicon.ico", filename="favicon.ico")
 
@@ -63,11 +61,9 @@ additional_pages = {
     for item in AdditionalPage
 }
 
-@fast_app.get("/{file}", response_class=PlainTextResponse)
+@app.get("/{file}", response_class=PlainTextResponse)
 async def static_from_root(file: AdditionalPage):
     return additional_pages[file.value]
-
-app = socketio.ASGIApp(sio, other_asgi_app=fast_app) if config.enable_agent_server else fast_app
 
 
 if config.http_proxy_url:

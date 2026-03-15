@@ -59,5 +59,3 @@ known_agents:
   - BentoMLBlog
   - BilibiliUp
   - YoutubeChannel
-- name: vfly2_agent
-  connect_method: reverse_websocket

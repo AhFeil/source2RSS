@@ -7,9 +7,9 @@ SOURCE2RSS_CONFIG_FILE=tests/test_config.yaml .env/bin/python -m pytest -s tests
 import pytest
 from fastapi.testclient import TestClient
 
-from main import fast_app
+from main import app
 
-client = TestClient(fast_app)
+client = TestClient(app)
 
 
 @pytest.fixture

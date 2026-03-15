@@ -10,7 +10,7 @@
     },
     "search.useIgnoreFiles": false,
     "search.exclude": {
-        ".env": true,
+        ".venv": true,
         "*.log": true,
         "config_and_data_files": true
     }

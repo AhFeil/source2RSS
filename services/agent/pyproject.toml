@@ -1,21 +1,17 @@
 [project]
-name = "source2rss_web"
+name = "source2rss_agent"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
+    "aiohttp>=3.13.3",
     "briefconf>=0.1.5",
-    "cachetools>=7.0.5",
-    "fastapi[all]>=0.116.1",
-    "pytz>=2026.1.post1",
-    "schedule>=1.2.2",
-    "sqlalchemy>=2.0.48",
+    "python-socketio[asgi,asyncio-client]>=5.16.1",
 ]
 
 [tool.uv.sources]
 source2RSS_fw = { workspace = true }
-source2RSS_client = { workspace = true }
 
 [tool.ruff]
 line-length = 160
@@ -23,4 +19,3 @@ line-length = 160
 [tool.ruff.lint]
 select = ["A", "B", "C", "E", "F", "G", "I", "ASYNC", "INT", "SLF", "ARG", "T20"]
 ignore = ["ARG001", "ARG002", "F401", "UP045", "SIM910", "B008"]
-extend-select = ["SIM", "PERF", "UP", "PT", "FAST"] # , "DTZ"

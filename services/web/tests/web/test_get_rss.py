@@ -8,12 +8,12 @@ import pytest
 from fastapi.testclient import TestClient
 
 from src.config_handle import config
-from main import fast_app
+from main import app
 from tests.web.test_manage import update_invite_code
 from tests.web.test_user import add_source_to_user, register_user
 from tests.web.utility import get_headers
 
-client = TestClient(fast_app)
+client = TestClient(app)
 
 
 @pytest.fixture(scope="module")

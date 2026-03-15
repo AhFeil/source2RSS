@@ -1,38 +1,18 @@
 """由服务端直连的 agent"""
 import asyncio
 import logging
-import os
 import traceback
-from dataclasses import dataclass
 from datetime import datetime
-from typing import Self
 from zoneinfo import ZoneInfo
 
-from briefconf import BriefConfig
 from fastapi import FastAPI, WebSocket
 
 from source2rss_fw.crawl import ScraperNameAndParams, Crawler
 from source2rss_fw.crawl.crawl_error import CrawlRepeatError
+from source2rss_fw.plugin import Plugins
 from source2rss_fw.scraper.scraper_error import ScraperError
 
-
-@dataclass(frozen=True, slots=True)
-class AgentConfig(BriefConfig):
-    name: str
-    port: int
-    enabled_scrapers: list[str]
-
-    @classmethod
-    def load(cls, config_path: str) -> Self:
-        configs = cls._load_config(config_path)
-        return cls(
-            name=configs.get("name", "vfly2_agent"),
-            port=configs.get("port", 8537),
-            enabled_scrapers=configs.get("enabled_scrapers", []),
-        )
-
-configfile = os.getenv("SOURCE2RSS_AGENT_CONFIG_FILE", default="config_and_data_files/agent_config.yaml")
-agent_config = AgentConfig.load(os.path.abspath(configfile))
+from config_handle import config
 
 logger = logging.getLogger("as_d_agent")
 
@@ -101,8 +81,4 @@ async def connect_agent(websocket: WebSocket):
         await websocket.close()
         logger.info("[AGENT] Client disconnected")
 
-
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=agent_config.port)
-    # python -m src.node.as_d_agent
+Plugins.load_plugins(config.enabled_web_scraper, (config.root_dir,))

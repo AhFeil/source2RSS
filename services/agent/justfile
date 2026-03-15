@@ -1,0 +1,31 @@
+root := justfile_directory() / "../.."
+python_environment := root / ".venv"
+python_interpreter := python_environment / "bin/python"
+uvicorn := python_environment / "bin/uvicorn"
+
+@run:
+  cd "{{justfile_directory()}}" && {{uvicorn}} as_d_agent:app --host 0.0.0.0 --port 8537
+
+# 启动 agent 并后台运行，设置 PID 变量
+start_agent:
+  #!/usr/bin/env bash
+  set -eu pipefail
+  cd "{{justfile_directory()}}"
+  echo "Starting d_agent in background..."
+  cd "{{justfile_directory()}}" && {{uvicorn}} as_d_agent:app --host 0.0.0.0 --port 8537 > d_agent.log 2>&1 &
+  echo $! > .d_agent.pid
+  sleep 2  # 等待启动
+
+# 停止 agent
+stop_agent:
+  #!/usr/bin/env bash
+  set -eu pipefail
+  cd "{{justfile_directory()}}"
+  if [[ -f .d_agent.pid ]]; then
+    pid=$(cat .d_agent.pid)
+    echo "Stopping d_agent with PID $pid"
+    kill $pid 2>/dev/null || true
+    rm -f .d_agent.pid
+    wait $pid 2>/dev/null || true
+  fi
+  echo -e "\n"
