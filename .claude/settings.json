@@ -3,6 +3,9 @@
     "allow": [
       "Read(/tmp)",
       "Read(/tmp/*)"
+    ],
+    "deny": [
+      "Read(./config_and_data_files/**)"
     ]
   }
 }

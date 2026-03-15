@@ -9,8 +9,8 @@ source2RSS 是一个通用的信息源转 RSS 的 Python 框架。开发者只�
 ## 开发命令
 
 ```bash
-just run                    # 启动 source2RSS 开发服务器（端口 8536）
-just test                   # 运行测试（排除慢速测试，自动启停 d_agent）
+cd services/web/ && just run    # 启动 source2RSS 开发服务器（端口 8536）
+cd services/web/ && just test   # 运行测试（排除慢速测试，自动启停 d_agent）
 ```
 
 ## 架构
@@ -21,11 +21,12 @@ just test                   # 运行测试（排除慢速测试，自动启停 d
 
 ### 核心组件
 
-- **src/scraper/**: 插件化抓取器系统。抓取器继承自 `WebsiteScraper`，通过 `ScraperMeta` 元类自动注册。
-- **src/crawl/**: 爬虫调度、RSS 生成、分布式抓取逻辑。
-- **src/web/**: FastAPI 路由，处理 RSS 交付、用户管理、源管理。
-- **src/data/**: SQLite 数据库层，使用 SQLAlchemy ORM。
-- **src/node/**: Agent 节点，用于分布式抓取（direct/reverse agent）。
+- **packages/framework/src/source2rss_fw/scraper/**: 插件化抓取器系统。抓取器继承自 `WebsiteScraper`，通过 `ScraperMeta` 元类自动注册。
+- **packages/framework/src/source2rss_fw/crawl/**: 爬虫调度、RSS 生成、分布式抓取逻辑。
+
+- **services/web/src/data/**: SQLite 数据库层，使用 SQLAlchemy ORM。
+- **services/web/src/node**: Agent 节点，用于分布式抓取（direct/reverse agent）。
+- **services/web/**: FastAPI 路由，处理 RSS 交付、用户管理、源管理。
 
 ### 抓取器模式
 
@@ -38,27 +39,26 @@ just test                   # 运行测试（排除慢速测试，自动启停 d
 - `_parse()`: 异步生成器，按从新到旧顺序 yield 文章字典
 - 可选：`_parse_old2new()` 支持反向分页
 
-参考模板：`src/scraper/examples/cslrxyz.py`
+参考模板：`packages/framework/src/source2rss_fw/scraper_examples/cslrxyz.py`
 
 ### Agent 架构
 
-- **Direct Agent (d)**: 内网 Agent 向公网服务器发起连接
-- **Reverse Agent (r)**: 公网服务器主动连接
+- **Direct Agent (d)**: 公网服务器主动连接内网 Agent
 - 公网服务器根据 Agent 能力和配置分配任务
 
 ## 配置
 
-主配置：`config_and_data_files/config.yaml`
+主配置：`services/web/examples/config.example.yaml`
 - `enabled_web_scraper`: 要加载的插件路径
 - `crawler_default_cfg`: 调度时间、等待间隔
 - `known_agents`: 分布式爬虫的 Agent 连接配置
 
-Agent 配置：`examples/agent_config.example.yaml`
+Agent 配置：`services/web/examples/agent_config.example.yaml`
 
 ## 测试
 
-测试配置：`tests/test_config.yaml`
-测试隔离：使用独立的 `tests/config_and_data_files/` 目录
+测试配置：`services/web/tests/test_config.yaml`
+测试隔离：使用独立的 `services/web/tests/config_and_data_files` 目录
 
 ## Web 端点
 
